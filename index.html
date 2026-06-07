@@ -1165,33 +1165,6 @@
     setTimeout(() => { widgetChat.style.display = 'none'; widgetBtn.style.display = 'flex'; }, 300);
   });
 
-  function widgetSendMsg() {
-    const text = widgetInput.value.trim();
-    if (!text) return;
-
-    const userMsg = document.createElement('div');
-    userMsg.className = 'wmsg wuser';
-    userMsg.innerHTML = `<div class="wmsg-bubble">${text}</div>`;
-    widgetMessages.appendChild(userMsg);
-    widgetInput.value = '';
-    widgetMessages.scrollTop = widgetMessages.scrollHeight;
-
-    const typing = document.createElement('div');
-    typing.className = 'wmsg';
-    typing.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble wtyping"><span class="wtyping-dot"></span><span class="wtyping-dot"></span><span class="wtyping-dot"></span></div>`;
-    widgetMessages.appendChild(typing);
-    widgetMessages.scrollTop = widgetMessages.scrollHeight;
-
-    setTimeout(() => {
-      widgetMessages.removeChild(typing);
-      const botMsg = document.createElement('div');
-      botMsg.className = 'wmsg';
-      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble">${wResponses[wCount % wResponses.length]}</div>`;
-      widgetMessages.appendChild(botMsg);
-      widgetMessages.scrollTop = widgetMessages.scrollHeight;
-      wCount++;
-    }, 1000);
-  }
 
   widgetSend.addEventListener('click', widgetSendMsg);
   widgetInput.addEventListener('keydown', e => { if (e.key === 'Enter') widgetSendMsg(); });
