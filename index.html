@@ -1174,7 +1174,12 @@
               const parsed = JSON.parse(line.slice(6));
               if (parsed.text) {
                 fullReply += parsed.text;
-                streamBubble.textContent = fullReply;
+                await new Promise(r => setTimeout(r, 30));
+                streamBubble.innerHTML = fullReply
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                  .replace(/\n- /g, '<br>• ')
+                  .replace(/\n/g, '<br>');
                 widgetMessages.scrollTop = widgetMessages.scrollHeight;
               }
             } catch {}
