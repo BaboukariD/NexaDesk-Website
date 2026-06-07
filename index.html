@@ -1155,10 +1155,10 @@
       widgetMessages.removeChild(typing);
       const botMsg = document.createElement('div');
       botMsg.className = 'wmsg';
-      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble" id="streamBubble"></div>`;
+      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble stream-bubble"></div>`;
       widgetMessages.appendChild(botMsg);
 
-      const streamBubble = document.getElementById('streamBubble');
+      const streamBubble = botMsg.querySelector('.stream-bubble');
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullReply = '';
