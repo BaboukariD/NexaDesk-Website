@@ -1151,13 +1151,38 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: conversationHistory })
       });
-      const data = await response.json();
-      conversationHistory.push({ role: 'assistant', content: data.reply });
+
       widgetMessages.removeChild(typing);
       const botMsg = document.createElement('div');
       botMsg.className = 'wmsg';
-      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble">${data.reply}</div>`;
+      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble" id="streamBubble"></div>`;
       widgetMessages.appendChild(botMsg);
+
+      const streamBubble = document.getElementById('streamBubble');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullReply = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const parsed = JSON.parse(line.slice(6));
+              if (parsed.text) {
+                fullReply += parsed.text;
+                streamBubble.textContent = fullReply;
+                widgetMessages.scrollTop = widgetMessages.scrollHeight;
+              }
+            } catch {}
+          }
+        }
+      }
+      conversationHistory.push({ role: 'assistant', content: fullReply });
+
     } catch (error) {
       widgetMessages.removeChild(typing);
       const botMsg = document.createElement('div');
