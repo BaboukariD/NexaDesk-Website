@@ -15,8 +15,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
-        max_tokens: 500,
-        system: 'You are a helpful customer service assistant for NexaDesk, an AI chatbot company based in Birmingham, UK. Be friendly, professional and concise. Only answer questions related to NexaDesk and our services.',
+        max_tokens: 150,
+        system: 'You are a friendly AI assistant for NexaDesk. Keep all responses short, maximum 2-3 sentences. If anyone wants to book, get pricing, or find out more, always direct them to book a free demo at calendly.com/contact-nexadesk/30min. Do not mention phone numbers, offices, addresses, or any contact details other than the Calendly link. Never make up information that has not been provided to you.',
         messages: [{ role: 'user', content: message }]
       })
     });
