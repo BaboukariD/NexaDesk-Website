@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexaDesk — Conversations that Convert</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080809;
+      --surface: #101013;
+      --border: rgba(255,255,255,0.07);
+      --accent: #7c5cfc;
+      --accent2: #a78bfa;
+      --text: #f0eeff;
+      --muted: #6b6880;
+      --card: #0e0e12;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      overflow-x: hidden;
+    }
+
+    /* NOISE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* GLOW */
+    .glow {
+      position: fixed;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,92,252,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      top: -150px; left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(8,8,9,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .logo-icon {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800; color: white;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: var(--accent);
+      color: white !important;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: 500 !important;
+      transition: opacity 0.2s !important;
+    }
+
+    .nav-cta:hover { opacity: 0.85; color: white !important; }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(124,92,252,0.12);
+      border: 1px solid rgba(124,92,252,0.3);
+      color: var(--accent2);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 32px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.125rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+      font-weight: 300;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-buttons {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+
+    .btn-primary:hover { background: #6a4ae8; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(124,92,252,0.35); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+
+    /* DEMO CHAT */
+    .demo-wrap {
+      position: relative; z-index: 1;
+      padding: 0 24px 100px;
+      display: flex; justify-content: center;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .demo-window {
+      width: 100%; max-width: 680px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,92,252,0.08);
+    }
+
+    .demo-header {
+      background: #0c0c10;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .demo-dots { display: flex; gap: 6px; }
+    .demo-dots span { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-dots span:nth-child(1) { background: #ff5f57; }
+    .demo-dots span:nth-child(2) { background: #febc2e; }
+    .demo-dots span:nth-child(3) { background: #28c840; }
+
+    .demo-title { font-size: 0.8rem; color: var(--muted); margin-left: 8px; font-weight: 500; }
+
+    .demo-online { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-left: auto; box-shadow: 0 0 8px #22c55e; }
+
+    .demo-messages { padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; min-height: 280px; }
+
+    .msg { display: flex; gap: 10px; align-items: flex-start; }
+    .msg.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; color: white; flex-shrink: 0;
+    }
+
+    .msg.user .msg-avatar { background: #1e1e26; color: var(--muted); }
+
+    .msg-bubble {
+      background: #16161e;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      max-width: 80%;
+      color: var(--text);
+    }
+
+    .msg.user .msg-bubble { background: var(--accent); border-color: transparent; color: white; }
+
+    .msg-bubble.typing { display: flex; align-items: center; gap: 4px; padding: 14px 16px; }
+    .typing-dot { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    .demo-input {
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex; gap: 10px; align-items: center;
+    }
+
+    .demo-input input {
+      flex: 1;
+      background: #16161e;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.875rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+    }
+
+    .demo-input input::placeholder { color: var(--muted); }
+    .demo-input input:focus { border-color: rgba(124,92,252,0.4); }
+
+    .demo-send {
+      width: 38px; height: 38px;
+      background: var(--accent);
+      border: none; border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
+    }
+
+    .demo-send:hover { background: #6a4ae8; transform: scale(1.05); }
+    .demo-send svg { width: 16px; height: 16px; fill: white; }
+
+    /* HOW IT WORKS */
+    section { position: relative; z-index: 1; }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 480px;
+      font-weight: 300;
+    }
+
+    .how-section {
+      padding: 100px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .how-header { margin-bottom: 64px; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .step:hover { border-color: rgba(124,92,252,0.3); transform: translateY(-4px); }
+
+    .step-num {
+      width: 40px; height: 40px;
+      background: rgba(124,92,252,0.12);
+      border: 1px solid rgba(124,92,252,0.2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .step h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .step p { color: var(--muted); font-size: 0.875rem; line-height: 1.7; font-weight: 300; }
+
+    /* FEATURES */
+    .features-section {
+      padding: 100px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .features-header { margin-bottom: 64px; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .feature-card:hover { border-color: rgba(124,92,252,0.3); transform: translateY(-4px); }
+    .feature-card.large { grid-column: span 2; display: flex; gap: 48px; align-items: center; }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: rgba(124,92,252,0.12);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-card.large .feature-icon { flex-shrink: 0; width: 56px; height: 56px; font-size: 1.5rem; margin-bottom: 0; }
+
+    .feature-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-card p { color: var(--muted); font-size: 0.875rem; line-height: 1.7; font-weight: 300; }
+
+    /* PRICING */
+    .pricing-section {
+      padding: 100px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .pricing-header { text-align: center; margin-bottom: 64px; }
+    .pricing-header .section-label { text-align: center; }
+    .pricing-header .section-sub { margin: 0 auto; text-align: center; }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .price-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .price-card:hover { transform: translateY(-4px); }
+
+    .price-card.featured {
+      border-color: rgba(124,92,252,0.5);
+      background: linear-gradient(135deg, rgba(124,92,252,0.08) 0%, var(--card) 60%);
+    }
+
+    .price-card.featured::before {
+      content: 'Most Popular';
+      position: absolute; top: 20px; right: 20px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .price-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .price-amount {
+      font-family: 'Syne', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .price-amount span { font-size: 1.2rem; font-weight: 400; color: var(--muted); }
+    .price-desc { color: var(--muted); font-size: 0.8rem; margin-bottom: 28px; font-weight: 300; }
+
+    .price-features { list-style: none; margin-bottom: 32px; display: flex; flex-direction: column; gap: 10px; }
+
+    .price-features li {
+      font-size: 0.875rem;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 300;
+    }
+
+    .price-features li::before { content: '✓'; color: var(--accent); font-weight: 700; }
+
+    .btn-plan {
+      display: block; width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: 500;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+    }
+
+    .btn-plan:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+    .price-card.featured .btn-plan { background: var(--accent); border-color: transparent; color: white; }
+    .price-card.featured .btn-plan:hover { background: #6a4ae8; }
+
+    /* CTA */
+    .cta-section {
+      padding: 100px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .cta-box {
+      background: linear-gradient(135deg, rgba(124,92,252,0.12) 0%, rgba(124,92,252,0.04) 100%);
+      border: 1px solid rgba(124,92,252,0.25);
+      border-radius: 24px;
+      padding: 80px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(124,92,252,0.15) 0%, transparent 70%);
+      top: -100px; left: 50%; transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .cta-box h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .cta-box p { color: var(--muted); font-size: 1rem; margin-bottom: 36px; font-weight: 300; position: relative; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; z-index: 1;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .footer-copy { color: var(--muted); font-size: 0.8rem; }
+
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0 48px;
+      position: relative; z-index: 1;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .how-section, .features-section, .pricing-section, .cta-section { padding: 60px 20px; }
+      .steps, .features-grid, .pricing-grid { grid-template-columns: 1fr; }
+      .feature-card.large { flex-direction: column; gap: 24px; }
+      footer { flex-direction: column; gap: 20px; text-align: center; }
+      .divider { margin: 0 20px; }
+      .cta-box { padding: 48px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-icon">N</div>
+    NexaDesk
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="nav-cta">Book a Demo</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-badge"><span></span> AI-Powered Customer Service</div>
+    <h1>Turn every visitor<br/>into a <em>customer</em></h1>
+    <p class="hero-sub">NexaDesk gives your business a 24/7 AI assistant that answers questions, captures leads, and converts visitors — automatically.</p>
+    <div class="hero-buttons">
+      <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-primary">
+        Book a Free Demo
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#how" class="btn-secondary">See how it works</a>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<div class="demo-wrap">
+  <div class="demo-window">
+    <div class="demo-header">
+      <div class="demo-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="demo-title">NexaDesk Chat — Live Demo</span>
+      <div class="demo-online"></div>
+    </div>
+    <div class="demo-messages" id="chatMessages">
+      <div class="msg">
+        <div class="msg-avatar">N</div>
+        <div class="msg-bubble">👋 Hi! I'm the NexaDesk assistant. How can I help you today?</div>
+      </div>
+    </div>
+    <div class="demo-input">
+      <input type="text" id="chatInput" placeholder="Type a message..." />
+      <button class="demo-send" id="sendBtn">
+        <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<div class="how-section" id="how">
+  <div class="how-header">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Up and running<br/>in 3 simple steps</h2>
+    <p class="section-sub">No technical knowledge needed. We handle everything — you just watch the leads come in.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Tell us about your business</h3>
+      <p>We gather your FAQs, opening hours, products, and services. A quick 30-minute call is all it takes.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>We build your custom AI</h3>
+      <p>Your chatbot is trained on your business data and customised with your brand's tone and personality.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Go live on your website</h3>
+      <p>We give you one line of code to paste. Your AI assistant is live and talking to customers within 24 hours.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<div class="features-section" id="features">
+  <div class="features-header">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything your business needs</h2>
+    <p class="section-sub">Powerful features designed to help small and medium businesses compete at a higher level.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card large">
+      <div class="feature-icon">🤖</div>
+      <div>
+        <h3>Always-on AI assistant</h3>
+        <p>Your chatbot works 24/7, 365 days a year. It answers customer questions instantly — even at 3am on Christmas Day. Never lose a lead to slow response times again.</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <h3>Trained on your data</h3>
+      <p>Every chatbot is unique to your business. It knows your menu, your prices, your team — and only talks about what you want it to.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📩</div>
+      <h3>Lead capture</h3>
+      <p>Automatically collect customer names, emails and phone numbers during the conversation. Your inbox fills while you sleep.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Instant responses</h3>
+      <p>Customers get answers in under a second. No waiting, no hold music, no frustration. Just instant, accurate help.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔧</div>
+      <h3>Fully managed</h3>
+      <p>We handle all updates, maintenance and improvements. You focus on running your business — we'll handle the tech.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<div class="pricing-section" id="pricing">
+  <div class="pricing-header">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Simple, transparent pricing</h2>
+    <p class="section-sub">No hidden fees. No long contracts. Cancel anytime.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-name">Starter</div>
+      <div class="price-amount">£49<span>/mo</span></div>
+      <div class="price-desc">Perfect for small businesses</div>
+      <ul class="price-features">
+        <li>AI chatbot on your website</li>
+        <li>FAQ & business info answers</li>
+        <li>Opening hours & location</li>
+        <li>Mobile friendly</li>
+        <li>Email support</li>
+      </ul>
+      <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-plan">Get Started</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-name">Growth</div>
+      <div class="price-amount">£99<span>/mo</span></div>
+      <div class="price-desc">Most popular for growing businesses</div>
+      <ul class="price-features">
+        <li>Everything in Starter</li>
+        <li>Lead capture & collection</li>
+        <li>Custom personality & tone</li>
+        <li>Monthly performance updates</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-plan">Get Started</a>
+    </div>
+    <div class="price-card">
+      <div class="price-name">Pro</div>
+      <div class="price-amount">£199<span>/mo</span></div>
+      <div class="price-desc">For businesses ready to scale</div>
+      <ul class="price-features">
+        <li>Everything in Growth</li>
+        <li>Large product catalogue support</li>
+        <li>Appointment booking integration</li>
+        <li>Analytics dashboard</li>
+        <li>Dedicated account manager</li>
+      </ul>
+      <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-plan">Get Started</a>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-box">
+    <h2>Ready to convert more customers?</h2>
+    <p>Book a free 30-minute demo and see NexaDesk live on your website within 24 hours.</p>
+    <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-primary" style="display:inline-flex">
+      Book Your Free Demo
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">NexaDesk</a>
+  <div class="footer-copy">© 2026 NexaDesk. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="mailto:contact@nexadesk.co.uk">contact@nexadesk.co.uk</a>
+    <a href="#">Privacy</a>
+  </div>
+</footer>
+
+<script>
+  const responses = [
+    "Great question! I'd be happy to help with that. Could you tell me a bit more about your business?",
+    "Absolutely! NexaDesk can be set up on your website within 24 hours of your demo call.",
+    "Our pricing starts at just £49/month — much less than hiring part-time staff!",
+    "Yes, your chatbot is trained specifically on your business data, so it only answers relevant questions.",
+    "You can book a free demo at calendly.com/contact-nexadesk/30min to see it live!",
+  ];
+
+  let msgCount = 0;
+
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const messages = document.getElementById('chatMessages');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // User message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg user';
+    userMsg.innerHTML = `<div class="msg-avatar">U</div><div class="msg-bubble">${text}</div>`;
+    messages.appendChild(userMsg);
+    input.value = '';
+    messages.scrollTop = messages.scrollHeight;
+
+    // Typing indicator
+    const typing = document.createElement('div');
+    typing.className = 'msg';
+    typing.innerHTML = `<div class="msg-avatar">N</div><div class="msg-bubble typing"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`;
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
+
+    setTimeout(() => {
+      messages.removeChild(typing);
+      const botMsg = document.createElement('div');
+      botMsg.className = 'msg';
+      botMsg.innerHTML = `<div class="msg-avatar">N</div><div class="msg-bubble">${responses[msgCount % responses.length]}</div>`;
+      messages.appendChild(botMsg);
+      messages.scrollTop = messages.scrollHeight;
+      msgCount++;
+    }, 1200);
+  }
+
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+  document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+</script>
+
+<!-- CHAT WIDGET -->
+<style>
+  .widget-wrap {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    z-index: 999;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+  }
+
+  .widget-popup {
+    background: #fff;
+    color: #111;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    max-width: 220px;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    position: relative;
+  }
+
+  .widget-popup::after {
+    content: '';
+    position: absolute;
+    bottom: -7px; right: 18px;
+    width: 14px; height: 14px;
+    background: #fff;
+    transform: rotate(45deg);
+    border-radius: 2px;
+  }
+
+  .widget-popup.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .widget-btn {
+    width: 56px; height: 56px;
+    background: var(--accent);
+    border: none; border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(124,92,252,0.45);
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .widget-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(124,92,252,0.55); }
+
+  .widget-btn svg { width: 24px; height: 24px; fill: white; transition: opacity 0.2s; }
+
+  .widget-notif {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 14px; height: 14px;
+    background: #22c55e;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  .widget-chat {
+    background: #fff;
+    border-radius: 20px;
+    width: 320px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    display: none;
+  }
+
+  .widget-chat.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    display: block;
+  }
+
+  .widget-chat-header {
+    background: var(--accent);
+    padding: 16px 18px;
+    display: flex; align-items: center; gap: 10px;
+    color: white;
+  }
+
+  .widget-chat-avatar {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 0.85rem;
+  }
+
+  .widget-chat-info { flex: 1; }
+  .widget-chat-name { font-weight: 600; font-size: 0.9rem; }
+  .widget-chat-status { font-size: 0.72rem; opacity: 0.85; }
+
+  .widget-close {
+    background: none; border: none; color: white; cursor: pointer;
+    font-size: 1.2rem; line-height: 1; opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+  .widget-close:hover { opacity: 1; }
+
+  .widget-messages {
+    padding: 16px;
+    min-height: 200px;
+    max-height: 260px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 10px;
+    background: #f9f9fb;
+  }
+
+  .wmsg { display: flex; gap: 8px; align-items: flex-end; }
+  .wmsg.wuser { flex-direction: row-reverse; }
+
+  .wmsg-avatar {
+    width: 26px; height: 26px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 700; color: white; flex-shrink: 0;
+  }
+
+  .wmsg-bubble {
+    background: #fff;
+    border: 1px solid #e8e8ee;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #111;
+    max-width: 80%;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .wmsg.wuser .wmsg-bubble {
+    background: var(--accent);
+    border-color: transparent;
+    color: white;
+  }
+
+  .wmsg-bubble.wtyping { display: flex; align-items: center; gap: 3px; padding: 10px 12px; }
+  .wtyping-dot { width: 5px; height: 5px; background: #aaa; border-radius: 50%; animation: bounce 1.2s infinite; }
+  .wtyping-dot:nth-child(2) { animation-delay: 0.2s; }
+  .wtyping-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  .widget-input-row {
+    border-top: 1px solid #eee;
+    padding: 12px;
+    display: flex; gap: 8px; background: #fff;
+  }
+
+  .widget-input {
+    flex: 1;
+    border: 1px solid #e8e8ee;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    color: #111;
+    background: #f9f9fb;
+  }
+
+  .widget-input:focus { border-color: var(--accent); }
+
+  .widget-send {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border: none; border-radius: 8px;
+    cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .widget-send:hover { background: #6a4ae8; }
+  .widget-send svg { width: 14px; height: 14px; fill: white; }
+
+  .widget-footer {
+    text-align: center;
+    padding: 8px;
+    font-size: 0.65rem;
+    color: #aaa;
+    background: #fff;
+    font-family: 'DM Sans', sans-serif;
+  }
+</style>
+
+<div class="widget-wrap">
+  <div class="widget-chat" id="widgetChat">
+    <div class="widget-chat-header">
+      <div class="widget-chat-avatar">N</div>
+      <div class="widget-chat-info">
+        <div class="widget-chat-name">NexaDesk Assistant</div>
+        <div class="widget-chat-status">● Online now</div>
+      </div>
+      <button class="widget-close" id="widgetClose">✕</button>
+    </div>
+    <div class="widget-messages" id="widgetMessages">
+      <div class="wmsg">
+        <div class="wmsg-avatar">N</div>
+        <div class="wmsg-bubble">👋 Hi! How may I help you today?</div>
+      </div>
+    </div>
+    <div class="widget-input-row">
+      <input type="text" class="widget-input" id="widgetInput" placeholder="Type a message..."/>
+      <button class="widget-send" id="widgetSend">
+        <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+      </button>
+    </div>
+    <div class="widget-footer">Powered by NexaDesk</div>
+  </div>
+
+  <div class="widget-popup" id="widgetPopup">
+    👋 Hi! How may I help you today?
+  </div>
+
+  <button class="widget-btn" id="widgetBtn">
+    <div class="widget-notif"></div>
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+</div>
+
+<script>
+  const wResponses = [
+    "Great question! I'd be happy to help. Could you tell me more about your business?",
+    "NexaDesk can be live on your website within 24 hours of your demo call!",
+    "Our pricing starts at just £49/month — less than a few hours of part-time staff.",
+    "Yes! Your chatbot is trained only on your business data.",
+    "Book a free demo at the link above and we'll get you set up right away!",
+  ];
+
+  let wCount = 0;
+  let popupDismissed = false;
+
+  const widgetBtn = document.getElementById('widgetBtn');
+  const widgetChat = document.getElementById('widgetChat');
+  const widgetClose = document.getElementById('widgetClose');
+  const widgetPopup = document.getElementById('widgetPopup');
+  const widgetInput = document.getElementById('widgetInput');
+  const widgetSend = document.getElementById('widgetSend');
+  const widgetMessages = document.getElementById('widgetMessages');
+
+  // Show popup after 7 seconds
+  setTimeout(() => {
+    if (!popupDismissed) widgetPopup.classList.add('show');
+  }, 7000);
+
+  widgetBtn.addEventListener('click', () => {
+    widgetPopup.classList.remove('show');
+    popupDismissed = true;
+    widgetChat.style.display = 'block';
+    setTimeout(() => widgetChat.classList.add('open'), 10);
+    widgetBtn.style.display = 'none';
+  });
+
+  widgetClose.addEventListener('click', () => {
+    widgetChat.classList.remove('open');
+    setTimeout(() => { widgetChat.style.display = 'none'; widgetBtn.style.display = 'flex'; }, 300);
+  });
+
+  function widgetSendMsg() {
+    const text = widgetInput.value.trim();
+    if (!text) return;
+
+    const userMsg = document.createElement('div');
+    userMsg.className = 'wmsg wuser';
+    userMsg.innerHTML = `<div class="wmsg-bubble">${text}</div>`;
+    widgetMessages.appendChild(userMsg);
+    widgetInput.value = '';
+    widgetMessages.scrollTop = widgetMessages.scrollHeight;
+
+    const typing = document.createElement('div');
+    typing.className = 'wmsg';
+    typing.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble wtyping"><span class="wtyping-dot"></span><span class="wtyping-dot"></span><span class="wtyping-dot"></span></div>`;
+    widgetMessages.appendChild(typing);
+    widgetMessages.scrollTop = widgetMessages.scrollHeight;
+
+    setTimeout(() => {
+      widgetMessages.removeChild(typing);
+      const botMsg = document.createElement('div');
+      botMsg.className = 'wmsg';
+      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble">${wResponses[wCount % wResponses.length]}</div>`;
+      widgetMessages.appendChild(botMsg);
+      widgetMessages.scrollTop = widgetMessages.scrollHeight;
+      wCount++;
+    }, 1000);
+  }
+
+  widgetSend.addEventListener('click', widgetSendMsg);
+  widgetInput.addEventListener('keydown', e => { if (e.key === 'Enter') widgetSendMsg(); });
+</script>
+
+</body>
+</html>
