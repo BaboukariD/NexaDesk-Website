@@ -1097,13 +1097,44 @@
 </div>
 
 <script>
-  const wResponses = [
-    "Great question! I'd be happy to help. Could you tell me more about your business?",
-    "NexaDesk can be live on your website within 24 hours of your demo call!",
-    "Our pricing starts at just £49/month — less than a few hours of part-time staff.",
-    "Yes! Your chatbot is trained only on your business data.",
-    "Book a free demo at the link above and we'll get you set up right away!",
-  ];
+  async function widgetSendMsg() {
+    const text = widgetInput.value.trim();
+    if (!text) return;
+
+    const userMsg = document.createElement('div');
+    userMsg.className = 'wmsg wuser';
+    userMsg.innerHTML = `<div class="wmsg-bubble">${text}</div>`;
+    widgetMessages.appendChild(userMsg);
+    widgetInput.value = '';
+    widgetMessages.scrollTop = widgetMessages.scrollHeight;
+
+    const typing = document.createElement('div');
+    typing.className = 'wmsg';
+    typing.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble wtyping"><span class="wtyping-dot"></span><span class="wtyping-dot"></span><span class="wtyping-dot"></span></div>`;
+    widgetMessages.appendChild(typing);
+    widgetMessages.scrollTop = widgetMessages.scrollHeight;
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await response.json();
+      widgetMessages.removeChild(typing);
+      const botMsg = document.createElement('div');
+      botMsg.className = 'wmsg';
+      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble">${data.reply}</div>`;
+      widgetMessages.appendChild(botMsg);
+    } catch (error) {
+      widgetMessages.removeChild(typing);
+      const botMsg = document.createElement('div');
+      botMsg.className = 'wmsg';
+      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble">Sorry, something went wrong. Please try again!</div>`;
+      widgetMessages.appendChild(botMsg);
+    }
+    widgetMessages.scrollTop = widgetMessages.scrollHeight;
+  }
 
   let wCount = 0;
   let popupDismissed = false;
