@@ -1159,7 +1159,7 @@
         body: JSON.stringify({ messages: conversationHistory })
       });
 
-      widgetMessages.removeChild(typing);
+
       const data = await response.json();
 
 const fullReply = data.reply;
@@ -1170,6 +1170,7 @@ const splitReply = fullReply
 
 for (const paragraph of splitReply) {
 
+// Typing dots
 const typing = document.createElement('div');
 
 typing.className = 'wmsg';
@@ -1182,29 +1183,59 @@ widgetMessages.appendChild(typing);
 widgetMessages.scrollTop =
 widgetMessages.scrollHeight;
 
+// Wait before typing
 await new Promise(r =>
-setTimeout(r, 3000)
+setTimeout(r, 2000)
 );
 
 typing.remove();
 
+// Create message bubble
 const partMsg = document.createElement('div');
 
 partMsg.className = 'wmsg';
 
-partMsg.innerHTML = `     <div class="wmsg-avatar">N</div>     <div class="wmsg-bubble">
-      ${paragraph
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n- /g, '<br>• ')
-        .replace(/\n/g, '<br>')}     </div>
+partMsg.innerHTML = `     <div class="wmsg-avatar">N</div>     <div class="wmsg-bubble"></div>
   `;
 
 widgetMessages.appendChild(partMsg);
 
+const bubble =
+partMsg.querySelector('.wmsg-bubble');
+
+// Format text
+const formatted = paragraph
+.replace(/**(.*?)**/g, '<strong>$1</strong>')
+.replace(/*(.*?)*/g, '<em>$1</em>')
+.replace(/\n- /g, '<br>• ')
+.replace(/\n/g, '<br>');
+
+// Slow typing animation
+let current = '';
+
+for (const char of formatted) {
+
+```
+current += char;
+
+bubble.innerHTML = current;
+
 widgetMessages.scrollTop =
-widgetMessages.scrollHeight;
+  widgetMessages.scrollHeight;
+
+await new Promise(r =>
+  setTimeout(r, 12)
+);
+```
+
 }
+
+// Pause before next paragraph
+await new Promise(r =>
+setTimeout(r, 1200)
+);
+}
+
 
       conversationHistory.push({ role: 'assistant', content: fullReply });
 
