@@ -1200,17 +1200,16 @@ partMsg.querySelector('.wmsg-bubble');
 
 // Format text
 const formatted = paragraph
-.replace(/**(.*?)**/g, '<strong>$1</strong>')
-.replace(/*(.*?)*/g, '<em>$1</em>')
-.replace(/\n- /g, '<br>• ')
-.replace(/\n/g, '<br>');
+  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+  .replace(/\n- /g, '<br>• ')
+  .replace(/\n/g, '<br>');
 
 // Slow typing animation
 let current = '';
 
 for (const char of formatted) {
 
-```
 current += char;
 
 bubble.innerHTML = current;
@@ -1221,8 +1220,6 @@ widgetMessages.scrollTop =
 await new Promise(r =>
   setTimeout(r, 12)
 );
-```
-
 }
 
 // Pause before next paragraph
