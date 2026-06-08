@@ -1180,26 +1180,36 @@
             try {
               const parsed = JSON.parse(line.slice(6));
               if (parsed.text) {
-                for (const char of parsed.text) {
-                  fullReply += char;
-                  fullReply = fullReply.replace(/\n{3,}/g, '\n\n');
-                  streamBubble.innerHTML = fullReply
-                    .replace(/**(.?)**/g, '$1')
-                    .replace(/*(.?)*/g, '$1')
-                    .replace(/\n- /g, '• ')
-                    .replace(/\n/g, '');
-                  widgetMessages.scrollTop = widgetMessages.scrollHeight;
-                  let delay;
-                  
-                  if (char === '\n') {
-                    delay = 450;
-                    } else if (char === '.' || char === '?' || char === '!') {
-                      delay = 180;
-                      } else {
-                        delay = Math.random() * 12 + 4;
-                        }
-                        await new Promise(r => setTimeout(r, delay));
-                        }
+                const cleanText = parsed.text.replace(/\n{3,}/g, '\n\n');
+
+for (const char of cleanText) {
+fullReply += char;
+
+streamBubble.innerHTML = fullReply
+.replace(/**(.?)**/g, '$1')
+.replace(/*(.?)*/g, '$1')
+.replace(/\n- /g, '<br>• ')
+.replace(/\n/g, '<br>');
+
+widgetMessages.scrollTop = widgetMessages.scrollHeight;
+
+let delay = Math.random() * 8 + 4;
+
+if (
+char === '.' ||
+char === '?' ||
+char === '!'
+) {
+delay = 80;
+} else if (char === '\n') {
+delay = 140;
+}
+
+await new Promise(r =>
+setTimeout(r, delay)
+);
+}
+
 
               }
             } catch {}
