@@ -588,10 +588,17 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); }
-      30% { transform: translateY(-6px); }
-    }
+    @keyframes fadeInMsg {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      }
+      
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
@@ -653,11 +660,11 @@
     <div class="demo-messages" id="chatMessages">
       <div class="msg">
         <div class="msg-avatar">N</div>
-        <div class="msg-bubble">👋 Hi! I'm the NexaDesk assistant. How can I help you today?</div>
+        <div class="msg-bubble">👋 Hey! Welcome to NexaDesk — feel free to ask me anything.</div>
       </div>
     </div>
     <div class="demo-input">
-      <input type="text" id="chatInput" placeholder="Type a message..." />
+      <input type="text" id="chatInput" placeholder="Ask anything..." />
       <button class="demo-send" id="sendBtn">
         <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
       </button>
@@ -932,7 +939,7 @@
   .widget-chat {
     background: #fff;
     border-radius: 20px;
-    width: 320px;
+    width: 360px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.25);
     overflow: hidden;
     opacity: 0;
@@ -979,7 +986,7 @@
   .widget-messages {
     padding: 16px;
     min-height: 200px;
-    max-height: 260px;
+    max-height: 340px;
     overflow-y: auto;
     display: flex; flex-direction: column; gap: 10px;
     background: #f9f9fb;
@@ -1074,7 +1081,7 @@
     <div class="widget-messages" id="widgetMessages">
       <div class="wmsg">
         <div class="wmsg-avatar">N</div>
-        <div class="wmsg-bubble">👋 Hi! How may I help you today?</div>
+        <div class="wmsg-bubble">👋 Hey! Welcome to NexaDesk — feel free to ask me anything.</div>
       </div>
     </div>
     <div class="widget-input-row">
@@ -1181,7 +1188,8 @@
                     .replace(/\n- /g, '<br>• ')
                     .replace(/\n/g, '<br>');
                   widgetMessages.scrollTop = widgetMessages.scrollHeight;
-                  const delay = char === '\n' ? 120 : 18;
+                  const delay = char === '\n'? 35
+: Math.random() * 12 + 4;
                   await new Promise(r => setTimeout(r, delay));
                 }
               }
