@@ -1166,83 +1166,38 @@
       widgetMessages.appendChild(botMsg);
 
       const streamBubble = botMsg.querySelector('.stream-bubble');
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullReply = '';
+      const data = await response.json();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const parsed = JSON.parse(line.slice(6));
-              if (parsed.text) {
-                const cleanText = parsed.text.replace(/\n{3,}/g, '\n\n');
+const fullReply = data.reply;
 
-for (const char of cleanText) {
-fullReply += char;
-
-streamBubble.innerHTML = fullReply
-.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-.replace(/\*(.*?)\*/g, '<em>$1</em>')
-.replace(/\n- /g, '<br>• ')
-.replace(/\n/g, '<br>');
-
-widgetMessages.scrollTop = widgetMessages.scrollHeight;
-
-let delay = Math.random() * 8 + 4;
-
-if (
-char === '.' ||
-char === '?' ||
-char === '!'
-) {
-delay = 80;
-} else if (char === '\n') {
-delay = 140;
-}
-
-await new Promise(r =>
-setTimeout(r, delay)
-);
-}
-
-
-              }
-            } catch {}
-          }
-        }
-      }
-      const splitReply = fullReply
+const splitReply = fullReply
   .split('\n\n')
   .filter(p => p.trim());
 
-if (splitReply.length > 1) {
-  streamBubble.innerHTML = '';
+for (const paragraph of splitReply) {
+  const partMsg = document.createElement('div');
 
-  for (const paragraph of splitReply) {
-    const part = document.createElement('div');
+  partMsg.className = 'wmsg';
 
-    part.style.marginBottom = '10px';
+  partMsg.innerHTML = `
+    <div class="wmsg-avatar">N</div>
+    <div class="wmsg-bubble">
+      ${paragraph
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n- /g, '<br>• ')
+        .replace(/\n/g, '<br>')}
+    </div>
+  `;
 
-    part.innerHTML = paragraph
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\n- /g, '<br>• ')
-      .replace(/\n/g, '<br>');
+  widgetMessages.appendChild(partMsg);
 
-    streamBubble.appendChild(part);
+  widgetMessages.scrollTop =
+    widgetMessages.scrollHeight;
 
-    widgetMessages.scrollTop =
-      widgetMessages.scrollHeight;
-
-    await new Promise(r =>
-      setTimeout(r, 850)
-    );
-  }
+  await new Promise(r =>
+    setTimeout(r, 850)
+  );
 }
       conversationHistory.push({ role: 'assistant', content: fullReply });
 
