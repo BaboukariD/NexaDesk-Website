@@ -1216,6 +1216,34 @@ setTimeout(r, delay)
           }
         }
       }
+      const splitReply = fullReply
+  .split('\n\n')
+  .filter(p => p.trim());
+
+if (splitReply.length > 1) {
+  streamBubble.innerHTML = '';
+
+  for (const paragraph of splitReply) {
+    const part = document.createElement('div');
+
+    part.style.marginBottom = '10px';
+
+    part.innerHTML = paragraph
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n- /g, '<br>• ')
+      .replace(/\n/g, '<br>');
+
+    streamBubble.appendChild(part);
+
+    widgetMessages.scrollTop =
+      widgetMessages.scrollHeight;
+
+    await new Promise(r =>
+      setTimeout(r, 850)
+    );
+  }
+}
       conversationHistory.push({ role: 'assistant', content: fullReply });
 
     } catch (error) {
