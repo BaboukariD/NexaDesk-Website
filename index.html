@@ -1186,10 +1186,10 @@ for (const char of cleanText) {
 fullReply += char;
 
 streamBubble.innerHTML = fullReply
-.replace(/**(.?)**/g, '$1')
-.replace(/*(.?)*/g, '$1')
-.replace(/\n- /g, '• ')
-.replace(/\n/g, '');
+.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+.replace(/\*(.*?)\*/g, '<em>$1</em>')
+.replace(/\n- /g, '<br>• ')
+.replace(/\n/g, '<br>');
 
 widgetMessages.scrollTop = widgetMessages.scrollHeight;
 
