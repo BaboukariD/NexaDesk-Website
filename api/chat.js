@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
         max_tokens: 200,
-        stream: true,
+        stream: false,
         system: `You are NexaDesk's professional customer support and sales representative.
 
 You are not a generic AI assistant.
@@ -141,34 +141,15 @@ Make visitors feel understood, helped, and confident in NexaDesk, and interested
       })
     });
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    const data = await response.json();
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+const reply =
+  data.content?.[0]?.text ||
+  'Sorry, something went wrong.';
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-              res.write(`data: ${JSON.stringify({ text: parsed.delta.text })}\n\n`);
-            }
-          } catch {}
-        }
-      }
-    }
-    res.end();
+res.status(200).json({
+  reply
+});
 
   } catch (error) {
     res.status(500).json({ error: 'Something went wrong' });
