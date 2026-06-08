@@ -1182,16 +1182,25 @@
               if (parsed.text) {
                 for (const char of parsed.text) {
                   fullReply += char;
+                  fullReply = fullReply.replace(/\n{3,}/g, '\n\n');
                   streamBubble.innerHTML = fullReply
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/\n- /g, '<br>• ')
-                    .replace(/\n/g, '<br>');
+                    .replace(/**(.?)**/g, '$1')
+                    .replace(/*(.?)*/g, '$1')
+                    .replace(/\n- /g, '• ')
+                    .replace(/\n/g, '');
                   widgetMessages.scrollTop = widgetMessages.scrollHeight;
-                  const delay = char === '\n'? 35
-: Math.random() * 12 + 4;
-                  await new Promise(r => setTimeout(r, delay));
-                }
+                  let delay;
+                  
+                  if (char === '\n') {
+                    delay = 450;
+                    } else if (char === '.' || char === '?' || char === '!') {
+                      delay = 180;
+                      } else {
+                        delay = Math.random() * 12 + 4;
+                        }
+                        await new Promise(r => setTimeout(r, delay));
+                        }
+
               }
             } catch {}
           }
