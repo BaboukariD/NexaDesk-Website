@@ -1169,30 +1169,43 @@ const splitReply = fullReply
   .filter(p => p.trim());
 
 for (const paragraph of splitReply) {
-  const partMsg = document.createElement('div');
 
-  partMsg.className = 'wmsg';
+const typing = document.createElement('div');
 
-  partMsg.innerHTML = `
-    <div class="wmsg-avatar">N</div>
-    <div class="wmsg-bubble">
+typing.className = 'wmsg';
+
+typing.innerHTML = `     <div class="wmsg-avatar">N</div>     <div class="wmsg-bubble wtyping">       <span class="wtyping-dot"></span>       <span class="wtyping-dot"></span>       <span class="wtyping-dot"></span>     </div>
+  `;
+
+widgetMessages.appendChild(typing);
+
+widgetMessages.scrollTop =
+widgetMessages.scrollHeight;
+
+await new Promise(r =>
+setTimeout(r, 2000)
+);
+
+typing.remove();
+
+const partMsg = document.createElement('div');
+
+partMsg.className = 'wmsg';
+
+partMsg.innerHTML = `     <div class="wmsg-avatar">N</div>     <div class="wmsg-bubble">
       ${paragraph
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/\n- /g, '<br>• ')
-        .replace(/\n/g, '<br>')}
-    </div>
+        .replace(/\n/g, '<br>')}     </div>
   `;
 
-  widgetMessages.appendChild(partMsg);
+widgetMessages.appendChild(partMsg);
 
-  widgetMessages.scrollTop =
-    widgetMessages.scrollHeight;
-
-  await new Promise(r =>
-    setTimeout(r, 2000)
-  );
+widgetMessages.scrollTop =
+widgetMessages.scrollHeight;
 }
+
       conversationHistory.push({ role: 'assistant', content: fullReply });
 
     } catch (error) {
