@@ -1160,12 +1160,6 @@
       });
 
       widgetMessages.removeChild(typing);
-      const botMsg = document.createElement('div');
-      botMsg.className = 'wmsg';
-      botMsg.innerHTML = `<div class="wmsg-avatar">N</div><div class="wmsg-bubble stream-bubble"></div>`;
-      widgetMessages.appendChild(botMsg);
-
-      const streamBubble = botMsg.querySelector('.stream-bubble');
       const data = await response.json();
 
 const fullReply = data.reply;
@@ -1196,7 +1190,7 @@ for (const paragraph of splitReply) {
     widgetMessages.scrollHeight;
 
   await new Promise(r =>
-    setTimeout(r, 850)
+    setTimeout(r, 2000)
   );
 }
       conversationHistory.push({ role: 'assistant', content: fullReply });
