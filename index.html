@@ -1188,8 +1188,8 @@ fullReply += char;
 streamBubble.innerHTML = fullReply
 .replace(/**(.?)**/g, '$1')
 .replace(/*(.?)*/g, '$1')
-.replace(/\n- /g, '<br>• ')
-.replace(/\n/g, '<br>');
+.replace(/\n- /g, '• ')
+.replace(/\n/g, '');
 
 widgetMessages.scrollTop = widgetMessages.scrollHeight;
 
