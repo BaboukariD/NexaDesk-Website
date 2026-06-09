@@ -1067,12 +1067,7 @@
     color: #aaa;
     background: #fff;
     font-family: 'DM Sans', sans-serif;
-    .widget-chat-avatar img,
-.wmsg-avatar img {
-  width: 55%;
-  height: 55%;
-  object-fit: contain;
-}
+  
   }
 </style>
 
@@ -1090,9 +1085,7 @@
     </div>
     <div class="widget-messages" id="widgetMessages">
       <div class="wmsg">
-        <div class="wmsg-avatar">
-  <img src="bot-logo.png" alt="Bot Logo">
-</div>
+        <div class="wmsg-avatar">🤖</div>
         <div class="wmsg-bubble">👋 Hey! Welcome to NexaDesk — feel free to ask me anything.</div>
       </div>
     </div>
@@ -1182,9 +1175,7 @@ const typing = document.createElement('div');
 
 typing.className = 'wmsg';
 
-typing.innerHTML = `     <div class="wmsg-avatar">
-  <img src="bot-logo.png" alt="Bot Logo">
-</div>     <div class="wmsg-bubble wtyping">       <span class="wtyping-dot"></span>       <span class="wtyping-dot"></span>       <span class="wtyping-dot"></span>     </div>
+typing.innerHTML = `     <div class="wmsg-avatar">🤖</div>     <div class="wmsg-bubble wtyping">       <span class="wtyping-dot"></span>       <span class="wtyping-dot"></span>       <span class="wtyping-dot"></span>     </div>
   `;
 
 widgetMessages.appendChild(typing);
@@ -1204,9 +1195,7 @@ const partMsg = document.createElement('div');
 
 partMsg.className = 'wmsg';
 
-partMsg.innerHTML = `     <div class="wmsg-avatar">
-  <img src="bot-logo.png" alt="Bot Logo">
-</div>     <div class="wmsg-bubble"></div>
+partMsg.innerHTML = `     <div class="wmsg-avatar">🤖</div>     <div class="wmsg-bubble"></div>
   `;
 
 widgetMessages.appendChild(partMsg);
@@ -1251,9 +1240,7 @@ setTimeout(r, 1200)
       widgetMessages.removeChild(typing);
       const botMsg = document.createElement('div');
       botMsg.className = 'wmsg';
-      botMsg.innerHTML = `<div class="wmsg-avatar">
-  <img src="bot-logo.png" alt="Bot Logo">
-</div><div class="wmsg-bubble">Sorry, something went wrong. Please try again!</div>`;
+      botMsg.innerHTML = `<div class="wmsg-avatar">🤖</div><div class="wmsg-bubble">Sorry, something went wrong. Please try again!</div>`;
       widgetMessages.appendChild(botMsg);
     }
     widgetMessages.scrollTop = widgetMessages.scrollHeight;
