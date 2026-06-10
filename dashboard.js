@@ -43,6 +43,7 @@ leads.reverse().forEach(lead => {
 console.error("Error loading leads:", error);
 
 }
+document.body.style.visibility = 'visible';
 
 }
 
