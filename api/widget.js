@@ -46,7 +46,13 @@ export default async function handler(req, res) {
   });
 
   const data = await response.json();
-  const reply = data.content?.[0]?.text || 'Sorry, something went wrong.';
+
+console.log("CLAUDE RESPONSE:", data);
+
+const reply = data.content?.[0]?.text || JSON.stringify(data);
+
+res.status(200).json({ reply });
+
 
   res.status(200).json({ reply });
 }
