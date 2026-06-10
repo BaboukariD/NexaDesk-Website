@@ -135,10 +135,7 @@ font-size:0.85rem;
 
 <script>
   const password = prompt("Enter password to access dashboard:");
-  if (password !== "YourPasswordHere") {
-    document.body.style.visibility = 'visible';
-    document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:40vh;font-family:sans-serif'>Access Denied</h1>";
-  }
+  sessionStorage.setItem('nd_auth', password);
 </script>
 
 <div class="sidebar">
