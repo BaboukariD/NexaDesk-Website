@@ -41,7 +41,11 @@ export default async function handler(req, res) {
       max_tokens: 200,
       stream: false,
       system: client.system_prompt,
-      messages: messages
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+
+}))
     })
   });
 
@@ -52,5 +56,5 @@ console.log("CLAUDE RESPONSE:", data);
 const reply = data.content?.[0]?.text || JSON.stringify(data);
 
 res.status(200).json({ reply });
- 
+
 }
