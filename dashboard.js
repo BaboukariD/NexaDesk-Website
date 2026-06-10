@@ -47,4 +47,10 @@ document.body.style.visibility = 'visible';
 
 }
 
-loadLeads();
+const enteredPassword = sessionStorage.getItem('nd_auth');
+if (enteredPassword === "NexaDesk.secured/Dashboard/Babusabi123!!/Djibril") {
+  loadLeads();
+} else {
+  document.body.style.visibility = 'visible';
+  document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:40vh;font-family:sans-serif'>Access Denied</h1>";
+}
