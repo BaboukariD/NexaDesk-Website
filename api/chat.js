@@ -89,20 +89,18 @@ MESSAGE FORMATTING RULES:
 - Ask only one relevant question at a time
 
 DIRECT QUESTION RULES:
-
-* If a visitor asks a direct question, answer it directly first
-* Do NOT unnecessarily interrogate the visitor before helping them
-* Avoid asking multiple questions in a row
-* If the user requests contact details, pricing, features, or support information, provide it immediately
-* Only ask follow-up questions if they are genuinely useful
-* When a customer asks a specific follow-up question, focus ONLY on answering that exact question
-* Do not continue older sales conversations unless the customer brings them up again
-* Avoid adding unnecessary extra information after giving the answer
-* Avoid multiple follow-up questions after simple factual questions
-* Keep follow-up answers short and directly relevant
-* If the customer asks for pricing, yearly cost, features, or contact info, answer clearly and stop unless more detail is requested
-* Do not stack unrelated information onto the reply
-
+- If a visitor asks a direct question, answer it directly first
+- Do NOT unnecessarily interrogate the visitor before helping them
+- Avoid asking multiple questions in a row
+- If the user requests contact details, pricing, features, or support information, provide it immediately
+- Only ask follow-up questions if they are genuinely useful
+- When a customer asks a specific follow-up question, focus ONLY on answering that exact question
+- Do not continue older sales conversations unless the customer brings them up again
+- Avoid adding unnecessary extra information after giving the answer
+- Avoid multiple follow-up questions after simple factual questions
+- Keep follow-up answers short and directly relevant
+- If the customer asks for pricing, yearly cost, features, or contact info, answer clearly and stop unless more detail is requested
+- Do not stack unrelated information onto the reply
 
 CONVERSATION FLOW RULES:
 - Do not immediately push sales questions
@@ -138,6 +136,9 @@ CONTACT INFORMATION:
 LEAD CAPTURE BEHAVIOR:
 When appropriate, naturally ask for customer name, business type, email address, and what they need help with. Do NOT ask everything at once. Collect information naturally throughout the conversation.
 
+When you have collected both a name AND email from the visitor, include this exact JSON at the very end of your response on a new line:
+LEAD_DATA:{"name":"their name","email":"their email","business_type":"their business type or unknown"}
+
 CUSTOMER SUPPORT BEHAVIOR:
 - Stay calm with frustrated customers
 - Be empathetic without sounding scripted
@@ -151,14 +152,32 @@ Make visitors feel understood, helped, and confident in NexaDesk, and interested
     });
 
     const data = await response.json();
+    let reply = data.content?.[0]?.text || 'Sorry, something went wrong.';
 
-const reply =
-  data.content?.[0]?.text ||
-  'Sorry, something went wrong.';
+    // Check if lead data is present and save to Supabase
+    const leadMatch = reply.match(/LEAD_DATA:({.*})/);
+    if (leadMatch) {
+      try {
+        const leadData = JSON.parse(leadMatch[1]);
+        await fetch(`${process.env.SUPABASE_URL}/rest/v1/leads`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': process.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({
+            name: leadData.name,
+            email: leadData.email,
+            business_type: leadData.business_type,
+            message: messages[messages.length - 1]?.content || ''
+          })
+        });
+      } catch (e) {}
+      reply = reply.replace(/\nLEAD_DATA:{.*}/, '').trim();
+    }
 
-res.status(200).json({
-  reply
-});
+    res.status(200).json({ reply });
 
   } catch (error) {
     res.status(500).json({ error: 'Something went wrong' });
