@@ -159,7 +159,7 @@ Make visitors feel understood, helped, and confident in NexaDesk, and interested
     if (leadMatch) {
       try {
         const leadData = JSON.parse(leadMatch[1]);
-        await fetch(`${process.env.SUPABASE_URL}/rest/v1/leads`, {
+        await fetch(`${process.env.SUPABASE_URL}/rest/v1/Leads`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
