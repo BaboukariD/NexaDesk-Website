@@ -52,7 +52,5 @@ console.log("CLAUDE RESPONSE:", data);
 const reply = data.content?.[0]?.text || JSON.stringify(data);
 
 res.status(200).json({ reply });
-
-
-  res.status(200).json({ reply });
+ 
 }
