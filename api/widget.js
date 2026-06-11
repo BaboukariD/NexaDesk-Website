@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   // Fetch client data from Supabase
   const clientResponse = await fetch(
-    `${process.env.SUPABASE_URL}/rest/v1/clients?id=eq.${clientId}&select=*`,
+    `${process.env.SUPABASE_URL}/rest/v1/Clients?id=eq.${clientId}&select=*`,
     {
       headers: {
         'apikey': process.env.SUPABASE_ANON_KEY,
