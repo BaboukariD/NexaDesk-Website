@@ -84,12 +84,18 @@
         body: JSON.stringify({ clientId, messages: history })
       });
 
-      const data = await response.json();
-      history.push({ role: 'assistant', content: data.reply });
+      const raw = await response.text();
 
-      const botMsg = document.createElement('div');
-      botMsg.className = 'nd-msg bot';
-      botMsg.textContent = data.reply;
+console.log("RAW RESPONSE:", raw);
+
+const data = JSON.parse(raw);
+
+history.push({ role: 'assistant', content: data.reply });
+
+const botMsg = document.createElement('div');
+botMsg.className = 'nd-msg bot';
+botMsg.textContent = data.reply || raw;
+
       messages.appendChild(botMsg);
       messages.scrollTop = messages.scrollHeight;
     } catch (e) {
