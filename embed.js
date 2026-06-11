@@ -165,6 +165,7 @@ opacity: 1;
 
 document.head.appendChild(style);
 
+
   // Create widget HTML
   const wrap = document.createElement('div');
   wrap.className = 'nd-widget-wrap';
@@ -254,7 +255,7 @@ messages.appendChild(typing);
 messages.scrollTop = messages.scrollHeight;
 
 // Fake thinking delay
-await new Promise(r => setTimeout(r, 1400));
+await new Promise(r => setTimeout(r, 2200));
 
 typing.remove();
 
@@ -277,12 +278,12 @@ botMsg.textContent = current;
 
 messages.scrollTop = messages.scrollHeight;
 
-await new Promise(r => setTimeout(r, 12));
+await new Promise(r => setTimeout(r, 22));
 
 
 }
 
-await new Promise(r => setTimeout(r, 500));
+await new Promise(r => setTimeout(r, 900));
 }
 
     } catch (e) {
