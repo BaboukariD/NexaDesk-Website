@@ -1,31 +1,52 @@
 (function() {
   const clientId = document.currentScript.getAttribute('data-client-id');
-  
+
   if (!clientId) return;
 
-  // Create widget styles
+  // =========================
+  // STYLES
+  // =========================
+
   const style = document.createElement('style');
 
-style.innerHTML = `
+  style.innerHTML = `
+
 .nd-widget-wrap {
 position: fixed;
 bottom: 24px;
 right: 24px;
 z-index: 9999;
-font-family: sans-serif;
+font-family: Inter, sans-serif;
 }
 
+/* =========================
+BUTTON
+========================= */
+
 .nd-btn {
-width: 56px;
-height: 56px;
-background: #7c5cfc;
+width: 58px;
+height: 58px;
+background: linear-gradient(135deg,#7c5cff,#9b7bff);
 border: none;
 border-radius: 50%;
 cursor: pointer;
+
 display: flex;
 align-items: center;
 justify-content: center;
-box-shadow: 0 4px 20px rgba(124,92,252,0.45);
+
+box-shadow:
+0 10px 30px rgba(124,92,252,0.35),
+0 4px 16px rgba(0,0,0,0.12);
+
+transition: all 0.25s ease;
+}
+
+.nd-btn:hover {
+transform: scale(1.08);
+box-shadow:
+0 14px 36px rgba(124,92,252,0.45),
+0 8px 24px rgba(0,0,0,0.18);
 }
 
 .nd-btn svg {
@@ -34,27 +55,73 @@ height: 24px;
 fill: white;
 }
 
+/* =========================
+CHAT WINDOW
+========================= */
+
 .nd-chat {
 display: none;
-width: 320px;
-background: white;
-border-radius: 16px;
-box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+width: 340px;
+background: rgba(255,255,255,0.92);
+
+backdrop-filter: blur(14px);
+-webkit-backdrop-filter: blur(14px);
+
+border-radius: 20px;
+
+box-shadow:
+0 10px 30px rgba(0,0,0,0.08),
+0 20px 60px rgba(124,92,252,0.12);
+
 overflow: hidden;
-margin-bottom: 12px;
+margin-bottom: 14px;
+
+opacity: 0;
+transform: translateY(14px) scale(0.96);
+
+transition:
+opacity 0.25s ease,
+transform 0.25s ease;
 }
 
+.nd-chat.open {
+opacity: 1;
+transform: translateY(0) scale(1);
+}
+
+/* =========================
+HEADER
+========================= */
+
 .nd-header {
-background: #7c5cfc;
+background: linear-gradient(135deg,#7c5cff,#9b7bff);
 padding: 16px;
 color: white;
+
 display: flex;
 justify-content: space-between;
 align-items: center;
 }
 
-.nd-header span {
+.nd-agent {
+display: flex;
+align-items: center;
+gap: 8px;
+
 font-weight: 600;
+font-size: 0.95rem;
+}
+
+.nd-agent-dot {
+width: 8px;
+height: 8px;
+
+background: #4dff88;
+border-radius: 50%;
+
+box-shadow: 0 0 10px rgba(77,255,136,0.8);
+
+animation: pulseDot 2s infinite;
 }
 
 .nd-close {
@@ -63,83 +130,161 @@ border: none;
 color: white;
 cursor: pointer;
 font-size: 1.2rem;
+opacity: 0.9;
+transition: opacity 0.2s ease;
 }
+
+.nd-close:hover {
+opacity: 1;
+}
+
+/* =========================
+MESSAGES
+========================= */
 
 .nd-messages {
 padding: 16px;
-height: 260px;
+height: 320px;
+
 overflow-y: auto;
+
 display: flex;
 flex-direction: column;
 gap: 10px;
+
 background: #f9f9fb;
+
+scroll-behavior: smooth;
 }
 
 .nd-msg {
-max-width: 80%;
-padding: 8px 12px;
-border-radius: 12px;
-font-size: 0.85rem;
-line-height: 1.5;
+max-width: 82%;
+
+padding: 10px 14px;
+
+border-radius: 14px;
+
+font-size: 0.88rem;
+line-height: 1.55;
+
+white-space: pre-wrap;
+word-wrap: break-word;
+
+animation: fadeInMsg 0.25s ease;
 }
 
 .nd-msg.bot {
 background: white;
-border: 1px solid #e8e8ee;
+border: 1px solid #ececf4;
 color: #111;
+
 align-self: flex-start;
 }
 
 .nd-msg.user {
-background: #7c5cfc;
+background: linear-gradient(135deg,#7c5cff,#9b7bff);
 color: white;
+
 align-self: flex-end;
 }
+
+/* =========================
+INPUT
+========================= */
 
 .nd-input-row {
 display: flex;
 gap: 8px;
+
 padding: 12px;
+
 border-top: 1px solid #eee;
+
 background: white;
 }
 
 .nd-input {
 flex: 1;
+
 border: 1px solid #e8e8ee;
-border-radius: 8px;
-padding: 8px 12px;
-font-size: 0.85rem;
+border-radius: 10px;
+
+padding: 10px 12px;
+
+font-size: 0.88rem;
+
 outline: none;
+
+transition: all 0.2s ease;
+
+background: #fafafe;
+}
+
+.nd-input:focus {
+border-color: #9b7bff;
+
+box-shadow:
+0 0 0 4px rgba(124,92,252,0.12);
+
+background: white;
 }
 
 .nd-send {
-width: 34px;
-height: 34px;
-background: #7c5cfc;
+width: 38px;
+height: 38px;
+
+background: linear-gradient(135deg,#7c5cff,#9b7bff);
+
 border: none;
-border-radius: 8px;
+border-radius: 10px;
+
 cursor: pointer;
+
 color: white;
 font-size: 1rem;
+
+transition: all 0.2s ease;
 }
+
+.nd-send:hover {
+transform: scale(1.08);
+}
+
+/* =========================
+FOOTER
+========================= */
 
 .nd-footer {
 text-align: center;
-padding: 6px;
-font-size: 0.65rem;
+
+padding: 8px;
+
+font-size: 0.68rem;
+
 color: #aaa;
+
 background: white;
 }
+
+/* =========================
+TYPING DOTS
+========================= */
 
 .typing-dot {
 width: 6px;
 height: 6px;
+
 background: #999;
+
 border-radius: 50%;
+
 display: inline-block;
-animation: bounce 1.2s infinite;
+
 margin: 0 2px;
+
+opacity: 0.8;
+
+animation: bounce 1.2s infinite;
 }
 
 .typing-dot:nth-child(2) {
@@ -150,7 +295,31 @@ animation-delay: 0.2s;
 animation-delay: 0.4s;
 }
 
+/* =========================
+ANIMATIONS
+========================= */
+
+@keyframes pulseDot {
+
+0% {
+transform: scale(1);
+opacity: 1;
+}
+
+50% {
+transform: scale(1.25);
+opacity: 0.7;
+}
+
+100% {
+transform: scale(1);
+opacity: 1;
+}
+
+}
+
 @keyframes bounce {
+
 0%,80%,100% {
 transform: scale(0.8);
 opacity: 0.5;
@@ -160,35 +329,112 @@ opacity: 0.5;
 transform: scale(1);
 opacity: 1;
 }
+
 }
+
+@keyframes fadeInMsg {
+
+0% {
+opacity: 0;
+transform: translateY(8px);
+}
+
+100% {
+opacity: 1;
+transform: translateY(0);
+}
+
+}
+
+/* =========================
+MOBILE
+========================= */
+
+@media (max-width: 480px) {
+
+.nd-widget-wrap {
+right: 14px;
+bottom: 14px;
+}
+
+.nd-chat {
+width: calc(100vw - 28px);
+max-width: 360px;
+}
+
+}
+
 `;
 
-document.head.appendChild(style);
+  document.head.appendChild(style);
 
+  // =========================
+  // HTML
+  // =========================
 
-  // Create widget HTML
   const wrap = document.createElement('div');
+
   wrap.className = 'nd-widget-wrap';
+
   wrap.innerHTML = `
-    <div class="nd-chat" id="nd-chat">
-      <div class="nd-header">
-        <span>Chat with us</span>
-        <button class="nd-close" id="nd-close">✕</button>
-      </div>
-      <div class="nd-messages" id="nd-messages">
-        <div class="nd-msg bot">Hi! How can I help you today?</div>
-      </div>
-      <div class="nd-input-row">
-        <input type="text" class="nd-input" id="nd-input" placeholder="Type a message..." />
-        <button class="nd-send" id="nd-send">➤</button>
-      </div>
-      <div class="nd-footer">Powered by NexaDesk</div>
-    </div>
-    <button class="nd-btn" id="nd-btn">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    </button>
-  `;
+
+<div class="nd-chat" id="nd-chat">
+
+<div class="nd-header">
+
+<div class="nd-agent">
+<div class="nd-agent-dot"></div>
+<span>Assistant Online</span>
+</div>
+
+<button class="nd-close" id="nd-close">✕</button>
+
+</div>
+
+<div class="nd-messages" id="nd-messages">
+
+<div class="nd-msg bot">
+Hi! How can I help you today?
+</div>
+
+</div>
+
+<div class="nd-input-row">
+
+<input
+type="text"
+class="nd-input"
+id="nd-input"
+placeholder="Type a message..."
+/>
+
+<button class="nd-send" id="nd-send">
+➤
+</button>
+
+</div>
+
+<div class="nd-footer">
+Powered by NexaDesk
+</div>
+
+</div>
+
+<button class="nd-btn" id="nd-btn">
+
+<svg viewBox="0 0 24 24">
+<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+</svg>
+
+</button>
+
+`;
+
   document.body.appendChild(wrap);
+
+  // =========================
+  // ELEMENTS
+  // =========================
 
   const chat = document.getElementById('nd-chat');
   const btn = document.getElementById('nd-btn');
@@ -196,104 +442,207 @@ document.head.appendChild(style);
   const input = document.getElementById('nd-input');
   const send = document.getElementById('nd-send');
   const messages = document.getElementById('nd-messages');
+
   let history = [];
 
+  // =========================
+  // OPEN / CLOSE
+  // =========================
+
   btn.addEventListener('click', () => {
-    chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
+
+    if (chat.style.display === 'block') {
+
+      chat.classList.remove('open');
+
+      setTimeout(() => {
+        chat.style.display = 'none';
+      }, 250);
+
+    } else {
+
+      chat.style.display = 'block';
+
+      setTimeout(() => {
+        chat.classList.add('open');
+      }, 10);
+
+      input.focus();
+
+    }
+
   });
 
   closeBtn.addEventListener('click', () => {
-    chat.style.display = 'none';
+
+    chat.classList.remove('open');
+
+    setTimeout(() => {
+      chat.style.display = 'none';
+    }, 250);
+
   });
 
+  // =========================
+  // SEND MESSAGE
+  // =========================
+
   async function sendMessage() {
+
     const text = input.value.trim();
+
     if (!text) return;
 
-    history.push({ role: 'user', content: text });
+    history.push({
+      role: 'user',
+      content: text
+    });
+
+    // USER MESSAGE
 
     const userMsg = document.createElement('div');
+
     userMsg.className = 'nd-msg user';
     userMsg.textContent = text;
+
     messages.appendChild(userMsg);
+
     input.value = '';
+
     messages.scrollTop = messages.scrollHeight;
 
     try {
-      const response = await fetch('https://nexadesk.co.uk/api/widget', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId, messages: history })
-      });
+
+      const response = await fetch(
+        'https://nexadesk.co.uk/api/widget',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            clientId,
+            messages: history
+          })
+        }
+      );
 
       const raw = await response.text();
 
-console.log("RAW RESPONSE:", raw);
+      console.log('RAW RESPONSE:', raw);
 
-const data = JSON.parse(raw);
+      const data = JSON.parse(raw);
 
-history.push({ role: 'assistant', content: data.reply });
+      history.push({
+        role: 'assistant',
+        content: data.reply
+      });
 
-const fullReply = data.reply || raw;
+      const fullReply = data.reply || raw;
 
-const splitReply = fullReply
-.split('\n\n')
-.filter(p => p.trim());
+      const splitReply = fullReply
+      .split(/\n\s*\n/)
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
 
-for (const paragraph of splitReply) {
+      for (const paragraph of splitReply) {
 
-// Typing indicator
-const typing = document.createElement('div');
+        // TYPING INDICATOR
 
-typing.className = 'nd-msg bot';
+        const typing = document.createElement('div');
 
-typing.innerHTML = `     <span class="typing-dot"></span>     <span class="typing-dot"></span>     <span class="typing-dot"></span>
-  `;
+        typing.className = 'nd-msg bot';
 
-messages.appendChild(typing);
+        typing.style.width = 'fit-content';
 
-messages.scrollTop = messages.scrollHeight;
+        typing.innerHTML = `
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        `;
 
-// Fake thinking delay
-await new Promise(r => setTimeout(r, 2200));
+        messages.appendChild(typing);
 
-typing.remove();
+        messages.scrollTop = messages.scrollHeight;
 
-// Real message bubble
-const botMsg = document.createElement('div');
+        // THINKING DELAY
 
-botMsg.className = 'nd-msg bot';
+        const thinkingTime = Math.min(
+          1200 + paragraph.length * 10,
+          2800
+        );
 
-messages.appendChild(botMsg);
+        await new Promise(r =>
+          setTimeout(r, thinkingTime)
+        );
 
-// Slow typing effect
-let current = '';
+        typing.remove();
 
-for (const char of paragraph) {
+        // BOT MESSAGE
 
+        const botMsg = document.createElement('div');
 
-current += char;
+        botMsg.className = 'nd-msg bot';
 
-botMsg.textContent = current;
+        messages.appendChild(botMsg);
 
-messages.scrollTop = messages.scrollHeight;
+        // TYPEWRITER EFFECT
 
-await new Promise(r => setTimeout(r, 22));
+        let current = '';
 
+        for (const char of paragraph) {
 
-}
+          current += char;
 
-await new Promise(r => setTimeout(r, 900));
-}
+          botMsg.textContent = current;
+
+          messages.scrollTop =
+          messages.scrollHeight;
+
+          const typingSpeed =
+          paragraph.length > 180 ? 8 :
+          paragraph.length > 100 ? 14 :
+          20;
+
+          await new Promise(r =>
+            setTimeout(r, typingSpeed)
+          );
+
+        }
+
+        await new Promise(r =>
+          setTimeout(r, 700)
+        );
+
+      }
 
     } catch (e) {
+
       const errMsg = document.createElement('div');
+
       errMsg.className = 'nd-msg bot';
-      errMsg.textContent = 'Sorry, something went wrong.';
+
+      errMsg.textContent =
+      'Sorry, something went wrong.';
+
       messages.appendChild(errMsg);
+
     }
+
   }
 
+  // =========================
+  // EVENTS
+  // =========================
+
   send.addEventListener('click', sendMessage);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+  input.addEventListener('keydown', e => {
+
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+
+  });
+
 })();
