@@ -29,32 +29,43 @@ export default async function handler(req, res) {
   const client = clients[0];
 
   // Call Claude with client's system prompt
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 200,
-      stream: false,
-      system: client.system_prompt,
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
+  try {
 
+const response = await fetch('https://api.anthropic.com/v1/messages', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'x-api-key': process.env.ANTHROPIC_API_KEY,
+'anthropic-version': '2023-06-01'
+},
+body: JSON.stringify({
+model: 'claude-3-haiku-20240307',
+max_tokens: 200,
+system: client.system_prompt,
+messages: messages.map(msg => ({
+role: msg.role,
+content: msg.content
 }))
-    })
-  });
+})
+});
 
-  const data = await response.json();
+const data = await response.json();
 
 console.log("CLAUDE RESPONSE:", data);
 
 const reply = data.content?.[0]?.text || JSON.stringify(data);
 
-res.status(200).json({ reply });
+return res.status(200).json({ reply });
+
+} catch (error) {
+
+console.error("SERVER ERROR:", error);
+
+return res.status(500).json({
+reply: "Server crashed: " + error.message
+});
+
+}
+
 
 }
