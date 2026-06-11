@@ -1202,10 +1202,11 @@ partMsg.querySelector('.wmsg-bubble');
 
 // Format text
 const formatted = paragraph
-  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  .replace(/\*(.*?)\*/g, '<em>$1</em>')
-  .replace(/\n- /g, '<br>• ')
-  .replace(/\n/g, '<br>');
+.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#7c5cfc;text-decoration:underline;">$1</a>')
+.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+.replace(/\*(.*?)\*/g, '<em>$1</em>')
+.replace(/\n- /g, '<br>• ')
+.replace(/\n/g, '<br>');
 
 // Slow typing animation
 let current = '';
@@ -1215,6 +1216,7 @@ for (const char of formatted) {
 current += char;
 
 bubble.innerHTML = current;
+
 
 widgetMessages.scrollTop =
   widgetMessages.scrollHeight;
@@ -1234,7 +1236,6 @@ setTimeout(r, 1200)
       conversationHistory.push({ role: 'assistant', content: fullReply });
 
     } catch (error) {
-      widgetMessages.removeChild(typing);
       const botMsg = document.createElement('div');
       botMsg.className = 'wmsg';
       botMsg.innerHTML = `<div class="wmsg-avatar">🤖</div><div class="wmsg-bubble">Sorry, something went wrong. Please try again!</div>`;
