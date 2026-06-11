@@ -21,9 +21,14 @@ export default async function handler(req, res) {
   );
 
   const clients = await clientResponse.json();
+  console.log("CLIENT RESPONSE:", clients);
+
 
   if (!clients.length) {
-    return res.status(404).json({ error: 'Client not found or inactive' });
+    return res.status(404).json({
+  error: 'Client not found',
+  data: clients
+});
   }
 
   const client = clients[0];
