@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
   const clients = await clientResponse.json();
 
-  if (!clients.length || !clients[0].is_active) {
+  if (!clients.length) {
     return res.status(404).json({ error: 'Client not found or inactive' });
   }
 
