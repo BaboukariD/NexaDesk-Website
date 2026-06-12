@@ -651,7 +651,8 @@ top: messages.scrollHeight,
 behavior: 'smooth'
 });
 
-await fetch(
+
+const response = await fetch(
 'https://nexadesk.co.uk/api/save-lead',
 {
 method: 'POST',
@@ -678,6 +679,15 @@ client_id: clientId
 })
 }
 );
+
+if (!response.ok) {
+
+throw new Error(
+'Failed to save lead'
+);
+
+}
+
 
 const confirmMsg =
 document.createElement('div');
