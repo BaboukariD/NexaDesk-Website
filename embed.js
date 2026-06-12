@@ -444,6 +444,20 @@ Powered by NexaDesk
   const messages = document.getElementById('nd-messages');
 
   let history = [];
+  let leadMode = false;
+  let leadData = {
+    name: '',
+    email: '',
+    phone: '',
+    preferred_contact: ''
+    };
+
+
+let awaitingName = false;
+let awaitingEmail = false;
+let awaitingContactPreference = false;
+
+
 
   // =========================
   // OPEN / CLOSE
@@ -491,12 +505,236 @@ Powered by NexaDesk
 
     const text = input.value.trim();
 
+const lowerText = text.toLowerCase();
+
+const interested =
+lowerText.includes('price') ||
+lowerText.includes('pricing') ||
+lowerText.includes('interested') ||
+lowerText.includes('contact') ||
+lowerText.includes('call') ||
+lowerText.includes('book') ||
+lowerText.includes('demo') ||
+lowerText.includes('get started');
+
     if (!text) return;
 
-    history.push({
-      role: 'user',
-      content: text
-    });
+
+if (awaitingName) {
+
+leadData.name = text;
+
+const userMsg =
+document.createElement('div');
+
+userMsg.className = 'nd-msg user';
+
+userMsg.textContent = text;
+
+messages.appendChild(userMsg);
+
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+awaitingName = false;
+awaitingEmail = true;
+
+const emailMsg =
+document.createElement('div');
+
+emailMsg.className = 'nd-msg bot';
+
+emailMsg.textContent =
+'Perfect — what’s the best email to reach you on?';
+
+messages.appendChild(emailMsg);
+
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+input.value = '';
+
+return;
+
+}
+
+const validEmail =
+/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+
+if (awaitingEmail && validEmail) {
+
+
+leadData.email = text;
+
+const userMsg =
+document.createElement('div');
+
+userMsg.className = 'nd-msg user';
+
+userMsg.textContent = text;
+
+messages.appendChild(userMsg);
+
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+awaitingEmail = false;
+awaitingContactPreference = true;
+
+const contactMsg =
+document.createElement('div');
+
+contactMsg.className = 'nd-msg bot';
+
+contactMsg.textContent =
+'Would you prefer we contact you by email or phone?';
+
+messages.appendChild(contactMsg);
+
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+input.value = '';
+
+return;
+
+}
+
+
+if (awaitingEmail && !validEmail) {
+
+const invalidMsg =
+document.createElement('div');
+
+invalidMsg.className = 'nd-msg bot';
+
+invalidMsg.textContent =
+'That email doesn’t look quite right — could you try again?';
+
+messages.appendChild(invalidMsg);
+
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+return;
+
+}
+
+
+if (awaitingContactPreference) {
+
+leadData.preferred_contact =
+lowerText.includes('phone')
+? 'phone'
+: 'email';
+
+const userMsg =
+document.createElement('div');
+
+userMsg.className = 'nd-msg user';
+
+userMsg.textContent = text;
+
+messages.appendChild(userMsg);
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+await fetch(
+'https://nexadesk.co.uk/api/save-lead',
+{
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+
+name: leadData.name || '',
+
+email: leadData.email || '',
+
+phone: leadData.phone || '',
+
+preferred_contact:
+leadData.preferred_contact,
+
+message: history
+.map(m => m.content)
+.join(' | '),
+
+client_id: clientId
+
+})
+}
+);
+
+const confirmMsg =
+document.createElement('div');
+
+confirmMsg.className = 'nd-msg bot';
+
+confirmMsg.textContent =
+'Perfect — thanks! Someone from the team will reach out shortly.';
+
+messages.appendChild(confirmMsg);
+
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+awaitingContactPreference = false;
+
+leadMode = false;
+
+input.value = '';
+
+return;
+
+}
+history.push({
+role: 'user',
+content: text
+});
+
+    
+if (interested && !leadMode) {
+
+leadMode = true;
+awaitingName = true;
+
+
+setTimeout(() => {
+
+const leadMsg = document.createElement('div');
+
+leadMsg.className = 'nd-msg bot';
+
+leadMsg.textContent =
+'Before we continue, may I get your name?';
+
+messages.appendChild(leadMsg);
+
+messages.scrollTo({
+top: messages.scrollHeight,
+behavior: 'smooth'
+});
+
+}, 1200);
+
+}
+
 
     // USER MESSAGE
 
@@ -596,8 +834,11 @@ Powered by NexaDesk
 
           botMsg.textContent = current;
 
-          messages.scrollTop =
-          messages.scrollHeight;
+          messages.scrollTo({
+            top: messages.scrollHeight,
+            behavior: 'smooth'
+            });
+
 
           const typingSpeed =
           paragraph.length > 180 ? 8 :
@@ -611,7 +852,7 @@ Powered by NexaDesk
         }
 
         await new Promise(r =>
-          setTimeout(r, 700)
+          setTimeout(r, 350)
         );
 
       }
