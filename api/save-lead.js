@@ -1,91 +1,163 @@
-import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
-const supabase = createClient(
-process.env.SUPABASE_URL,
-process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const resend = new Resend(
-process.env.RESEND_API_KEY
-);
+const SUPABASE_URL =
+  'https://exqdmvloldvshzpxevht.supabase.co';
+
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export default async function handler(req, res) {
 
-if (req.method !== 'POST') {
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      error: 'Method not allowed'
+    });
+  }
 
-return res.status(405).json({
-error: 'Method not allowed'
-});
+  try {
 
-}
+    // =========================
+    // REQUEST DATA
+    // =========================
 
-try {
+    const {
+      name,
+      email,
+      phone,
+      preferred_contact,
+      message,
+      client_id
+    } = req.body;
 
-const {
-name,
-email,
-phone,
-preferred_contact,
-message,
-client_id
-} = req.body;
+    // =========================
+    // VALIDATION
+    // =========================
 
-const { data, error } = await supabase
-.from('Leads')
-.insert([
-{
-name,
-email,
-phone,
-preferred_contact,
-message,
-client_id
-}
-])
-.select();
+    if (!client_id) {
+      return res.status(400).json({
+        error: 'Missing client_id'
+      });
+    }
 
-if (error) throw error;
+    // =========================
+    // GET CLIENT
+    // =========================
 
-const leadId = data?.[0]?.id || null;
+    const clientRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/Clients?id=eq.${client_id}&select=*`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
 
-await resend.emails.send({
+    const clients = await clientRes.json();
 
-from: 'NexaDesk <onboarding@resend.dev>',
+    if (!clients || clients.length === 0) {
+      return res.status(404).json({
+        error: 'Client not found'
+      });
+    }
 
-to: 'contact@nexadesk.co.uk',
+    const client = clients[0];
 
-subject: 'New Lead Captured',
+    // =========================
+    // SAVE LEAD
+    // =========================
 
-html: `
+    const leadPayload = {
+      name: name || '',
+      email: email || '',
+      phone: phone || '',
+      preferred_contact: preferred_contact || '',
+      message: message || '',
+      client_id
+    };
 
-<h2>New Lead</h2>
+    const saveRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/Leads`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(leadPayload)
+      }
+    );
 
-<p><strong>Name:</strong> ${name}</p>
+    const savedLead = await saveRes.json();
 
-<p><strong>Email:</strong> ${email}</p>
+    // =========================
+    // SEND EMAIL TO CLIENT
+    // =========================
 
-<p><strong>Preferred Contact:</strong> ${preferred_contact}</p>
+    if (client.contact_email) {
 
-<p><strong>Message:</strong> ${message}</p>
+      await resend.emails.send({
+        from: 'NexaDesk <leads@nexadesk.co.uk>',
+        to: client.contact_email,
+        subject: `New Lead for ${client.business_name}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;padding:24px;">
+            
+            <h2>New Lead Captured</h2>
 
-`
+            <p>
+              A new visitor submitted their details
+              through your NexaDesk assistant.
+            </p>
 
-});
+            <hr style="margin:24px 0;" />
 
-return res.status(200).json({
-success: true,
-id: leadId
-});
+            <p><strong>Name:</strong> ${name || 'N/A'}</p>
+            <p><strong>Email:</strong> ${email || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
 
-} catch (err) {
+            <p>
+              <strong>Preferred Contact:</strong>
+              ${preferred_contact || 'N/A'}
+            </p>
 
-console.error(err);
+            <p>
+              <strong>Conversation Summary:</strong>
+            </p>
 
-return res.status(500).json({
-error: 'Failed to save lead'
-});
+            <div style="
+              background:#f5f5f5;
+              padding:16px;
+              border-radius:12px;
+              white-space:pre-wrap;
+            ">
+              ${message || 'No message'}
+            </div>
 
-}
+          </div>
+        `
+      });
+
+    }
+
+    // =========================
+    // SUCCESS
+    // =========================
+
+    return res.status(200).json(savedLead);
+
+  } catch (err) {
+
+    console.error(err);
+
+    return res.status(500).json({
+      error: err.message
+    });
+
+  }
 
 }
