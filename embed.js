@@ -459,8 +459,9 @@
 
       // Email preferred — save and confirm
       try {
-        await saveLead();
-        await sendLeadEmail();
+        const leadId = await saveLead();
+        await saveConversation(leadId);
+        try { await sendLeadEmail(); } catch(e) { console.warn('Email failed:', e); }
       } catch (e) {
         console.error('Lead save error:', e);
       }
@@ -478,8 +479,9 @@
       input.value = '';
 
       try {
-        await saveLead();
-        await sendLeadEmail();
+        const leadId = await saveLead();
+        await saveConversation(leadId);
+        try { await sendLeadEmail(); } catch(e) { console.warn('Email failed:', e); }
       } catch (e) {
         console.error('Lead save error:', e);
       }
