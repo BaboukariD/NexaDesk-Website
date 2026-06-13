@@ -31,7 +31,7 @@ message,
 client_id
 } = req.body;
 
-const { error } = await supabase
+const { data, error } = await supabase
 .from('Leads')
 .insert([
 {
@@ -42,9 +42,12 @@ preferred_contact,
 message,
 client_id
 }
-]);
+])
+.select();
 
 if (error) throw error;
+
+const leadId = data?.[0]?.id || null;
 
 await resend.emails.send({
 
@@ -71,7 +74,8 @@ html: `
 });
 
 return res.status(200).json({
-success: true
+success: true,
+id: leadId
 });
 
 } catch (err) {

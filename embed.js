@@ -356,7 +356,7 @@
   });
   if (!response.ok) throw new Error('Failed to save lead');
   const data = await response.json();
-  return data[0]?.id || null;
+  return data.id || null;
 }
   async function saveConversation(leadId) {
   await fetch('https://nexadesk.co.uk/api/save-conversation', {
