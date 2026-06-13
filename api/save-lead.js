@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
 
+console.log('RESEND KEY EXISTS:', !!process.env.RESEND_API_KEY);
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const SUPABASE_URL =
