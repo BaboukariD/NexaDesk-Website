@@ -18,18 +18,17 @@
 
   .nd-chat{
     position:fixed;
-    bottom:90px;
+    bottom:95px;
     right:24px;
-    width:340px;
-    height:520px;
-    background:#0f1117;
-    border:1px solid #1c2230;
-    border-radius:20px;
+    width:430px;
+    height:620px;
+    background:#f3f4f6;
+    border-radius:28px;
     overflow:hidden;
     display:none;
     flex-direction:column;
     z-index:999999;
-    box-shadow:0 18px 60px rgba(0,0,0,.45);
+    box-shadow:0 25px 70px rgba(0,0,0,.18);
     opacity:0;
     transform:translateY(15px);
     transition:all .25s ease;
@@ -41,115 +40,117 @@
   }
 
   .nd-header{
-    background:#111827;
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
     color:white;
-    padding:16px;
-    font-size:15px;
+    padding:22px;
+    font-size:16px;
     font-weight:600;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    border-bottom:1px solid #1f2937;
   }
 
   .nd-close{
     cursor:pointer;
-    opacity:.75;
-    font-size:18px;
+    font-size:20px;
+    opacity:.85;
   }
 
   .nd-messages{
     flex:1;
     overflow-y:auto;
-    padding:16px;
+    padding:22px;
     display:flex;
     flex-direction:column;
-    gap:12px;
-    background:#0b0f17;
+    gap:14px;
+    background:#f3f4f6;
   }
 
   .nd-msg{
-    max-width:85%;
-    padding:11px 13px;
-    border-radius:16px;
-    line-height:1.45;
-    font-size:13.5px;
+    max-width:82%;
+    padding:15px 17px;
+    border-radius:18px;
+    line-height:1.5;
+    font-size:14px;
     white-space:pre-wrap;
   }
 
   .nd-msg.user{
     align-self:flex-end;
-    background:#7c3aed;
+    background:#8b5cf6;
     color:white;
-    border-bottom-right-radius:5px;
+    border-bottom-right-radius:6px;
   }
 
   .nd-msg.bot{
     align-self:flex-start;
-    background:#161c27;
-    color:#e5e7eb;
-    border-bottom-left-radius:5px;
+    background:white;
+    color:#111827;
+    border:1px solid #e5e7eb;
+    border-bottom-left-radius:6px;
   }
 
   .nd-input-wrap{
     display:flex;
-    gap:10px;
-    padding:14px;
-    background:#111827;
-    border-top:1px solid #1f2937;
+    gap:12px;
+    padding:18px;
+    background:#f3f4f6;
+    border-top:1px solid #e5e7eb;
   }
 
   .nd-input{
     flex:1;
     border:none;
     outline:none;
-    background:#1f2937;
-    color:white;
-    border-radius:12px;
-    padding:11px 12px;
-    font-size:13px;
+    background:white;
+    color:#111827;
+    border-radius:16px;
+    padding:15px;
+    font-size:14px;
+    border:1px solid #e5e7eb;
   }
 
   .nd-send{
-    width:42px;
-    height:42px;
+    width:52px;
+    height:52px;
     border:none;
-    border-radius:12px;
-    background:#7c3aed;
+    border-radius:16px;
+    background:#8b5cf6;
     color:white;
     cursor:pointer;
-    font-size:15px;
+    font-size:18px;
+    flex-shrink:0;
   }
 
   .nd-footer{
     text-align:center;
-    padding:10px;
-    font-size:11px;
-    color:#94a3b8;
-    background:#111827;
-    border-top:1px solid #1f2937;
+    padding:14px;
+    font-size:12px;
+    color:#6b7280;
+    background:#f3f4f6;
+    border-top:1px solid #e5e7eb;
   }
 
   .nd-btn{
     position:fixed;
     bottom:24px;
     right:24px;
-    width:64px;
-    height:64px;
+    width:68px;
+    height:68px;
     border:none;
     border-radius:50%;
     cursor:pointer;
-    background:linear-gradient(135deg,#7c3aed,#9333ea);
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
     display:flex;
     align-items:center;
     justify-content:center;
     z-index:999999;
-    box-shadow:0 12px 40px rgba(124,58,237,.45);
+    box-shadow:0 14px 40px rgba(139,92,246,.4);
   }
 
   .nd-btn svg{
-    width:28px;
-    height:28px;
+    width:30px;
+    height:30px;
     fill:white;
   }
 
@@ -163,7 +164,7 @@
     width:7px;
     height:7px;
     border-radius:50%;
-    background:#a855f7;
+    background:#8b5cf6;
     animation:blink 1.4s infinite both;
   }
 
@@ -205,14 +206,14 @@
   <div class="nd-chat" id="nd-chat">
 
     <div class="nd-header">
-      Assistant Online
+      NexaDesk Assistant
       <span class="nd-close" id="nd-close">✕</span>
     </div>
 
     <div class="nd-messages" id="nd-messages">
 
       <div class="nd-msg bot">
-        Hi! How can I help you today?
+        👋 Hey! Welcome to NexaDesk — feel free to ask me anything.
       </div>
 
     </div>
@@ -415,10 +416,6 @@
     );
   }
 
-  // =========================
-  // OPEN / CLOSE
-  // =========================
-
   btn.addEventListener('click',()=>{
 
     if(chat.style.display === 'flex'){
@@ -450,10 +447,6 @@
     },250);
   });
 
-  // =========================
-  // SEND MESSAGE
-  // =========================
-
   async function sendMessage(){
 
     const text = input.value.trim();
@@ -471,10 +464,6 @@
 
     input.value = '';
 
-    // =========================
-    // NAME
-    // =========================
-
     if(awaitingName){
 
       leadData.name = text;
@@ -488,10 +477,6 @@
 
       return;
     }
-
-    // =========================
-    // EMAIL
-    // =========================
 
     if(awaitingEmail){
 
@@ -518,10 +503,6 @@
 
       return;
     }
-
-    // =========================
-    // CONTACT PREF
-    // =========================
 
     if(awaitingContactPreference){
 
@@ -562,10 +543,6 @@
       return;
     }
 
-    // =========================
-    // PHONE
-    // =========================
-
     if(awaitingPhone){
 
       leadData.phone = text;
@@ -589,10 +566,6 @@
       return;
     }
 
-    // =========================
-    // LEAD DETECTION
-    // =========================
-
     const interested =
       lowerText.includes('price') ||
       lowerText.includes('pricing') ||
@@ -614,10 +587,6 @@
 
       return;
     }
-
-    // =========================
-    // AI RESPONSE
-    // =========================
 
     try{
 
@@ -660,10 +629,6 @@
       );
     }
   }
-
-  // =========================
-  // EVENTS
-  // =========================
 
   sendBtn.addEventListener('click',sendMessage);
 
