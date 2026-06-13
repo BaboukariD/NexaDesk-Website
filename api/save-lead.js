@@ -101,7 +101,7 @@ export default async function handler(req, res) {
     if (client.contact_email) {
 
       await resend.emails.send({
-        from: 'NexaDesk <leads@nexadesk.co.uk>',
+        from: 'onboarding@resend.dev',
         to: client.contact_email,
         subject: `New Lead for ${client.business_name}`,
         html: `
