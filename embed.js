@@ -44,7 +44,7 @@
 
 .nd-chat {
   display: none;
-  width: 320px;
+  width: 360px;
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -102,7 +102,7 @@
 
 .nd-messages {
   padding: 16px;
-  height: 340px;
+  height: 280px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -220,8 +220,8 @@
 
 @media (max-width: 480px) {
   .nd-widget-wrap { right: 14px; bottom: 14px; }
-  .nd-chat { width: calc(100vw - 28px); max-width: 320px; }
-  .nd-messages { height: 260px; }
+  .nd-chat { width: calc(100vw - 28px); max-width: 360px; }
+  .nd-messages { height: 240px; }
 }
 }
 
