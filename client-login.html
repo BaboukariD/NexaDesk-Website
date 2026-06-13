@@ -10,7 +10,7 @@
     content="width=device-width, initial-scale=1.0"
   />
 
-  <title>NexaDesk Client Login</title>
+  <title>NexaDesk Client Portal</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
@@ -150,7 +150,7 @@
     </div>
 
     <div class="sub">
-      Client Portal Access
+      Secure client portal access
     </div>
 
     <div class="tabs">
@@ -164,9 +164,9 @@
 
       <button
         class="tab"
-        id="signupTab"
+        id="activateTab"
       >
-        Sign Up
+        Activate Account
       </button>
 
     </div>
@@ -175,7 +175,7 @@
       type="email"
       id="email"
       class="input"
-      placeholder="Email address"
+      placeholder="Business email"
     />
 
     <input
@@ -224,8 +224,8 @@
     const loginTab =
       document.getElementById('loginTab');
 
-    const signupTab =
-      document.getElementById('signupTab');
+    const activateTab =
+      document.getElementById('activateTab');
 
     const submitBtn =
       document.getElementById('submitBtn');
@@ -242,7 +242,7 @@
     let mode = 'login';
 
     // =========================
-    // TAB SWITCHING
+    // TABS
     // =========================
 
     loginTab.addEventListener(
@@ -252,7 +252,7 @@
         mode = 'login';
 
         loginTab.classList.add('active');
-        signupTab.classList.remove('active');
+        activateTab.classList.remove('active');
 
         submitBtn.textContent = 'Login';
 
@@ -261,16 +261,17 @@
       }
     );
 
-    signupTab.addEventListener(
+    activateTab.addEventListener(
       'click',
       () => {
 
-        mode = 'signup';
+        mode = 'activate';
 
-        signupTab.classList.add('active');
+        activateTab.classList.add('active');
         loginTab.classList.remove('active');
 
-        submitBtn.textContent = 'Create Account';
+        submitBtn.textContent =
+          'Activate Account';
 
         msg.textContent = '';
 
@@ -304,10 +305,38 @@
           'Please wait...';
 
         // =====================
-        // SIGNUP
+        // ACTIVATE ACCOUNT
         // =====================
 
-        if (mode === 'signup') {
+        if (mode === 'activate') {
+
+          // CHECK CLIENT EXISTS
+
+          const {
+            data: clients,
+            error: clientError
+          } = await supabase
+            .from('Clients')
+            .select('*')
+            .eq('contact_email', email);
+
+          if (
+            clientError ||
+            !clients ||
+            clients.length === 0
+          ) {
+
+            msg.textContent =
+              'This email is not registered as a NexaDesk client.';
+
+            return;
+
+          }
+
+          const client =
+            clients[0];
+
+          // CREATE AUTH ACCOUNT
 
           const {
             data,
@@ -328,8 +357,42 @@
 
           }
 
+          // LINK USER TO CLIENT
+
+          const {
+            error: linkError
+          } = await supabase
+            .from('ClientUsers')
+            .insert({
+
+              auth_user_id:
+                data.user.id,
+
+              client_id:
+                client.id,
+
+              email
+
+            });
+
+          if (linkError) {
+
+            msg.textContent =
+              linkError.message;
+
+            return;
+
+          }
+
           msg.textContent =
-            'Account created! Check your email.';
+            'Account activated successfully!';
+
+          setTimeout(() => {
+
+            window.location.href =
+              '/client-dashboard.html';
+
+          }, 1500);
 
           return;
 
