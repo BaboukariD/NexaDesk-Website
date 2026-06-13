@@ -31,11 +31,16 @@ export default async function handler(req, res) {
       client_id
     } = req.body;
 
+    console.log('REQUEST BODY:', req.body);
+
     // =========================
     // VALIDATION
     // =========================
 
     if (!client_id) {
+
+      console.log('MISSING CLIENT ID');
+
       return res.status(400).json({
         error: 'Missing client_id'
       });
@@ -44,6 +49,8 @@ export default async function handler(req, res) {
     // =========================
     // GET CLIENT
     // =========================
+
+    console.log('FETCHING CLIENT...');
 
     const clientRes = await fetch(
       `${SUPABASE_URL}/rest/v1/Clients?id=eq.${client_id}&select=*`,
@@ -57,13 +64,20 @@ export default async function handler(req, res) {
 
     const clients = await clientRes.json();
 
+    console.log('CLIENTS:', clients);
+
     if (!clients || clients.length === 0) {
+
+      console.log('CLIENT NOT FOUND');
+
       return res.status(404).json({
         error: 'Client not found'
       });
     }
 
     const client = clients[0];
+
+    console.log('CLIENT FOUND:', client);
 
     // =========================
     // SAVE LEAD
@@ -75,8 +89,10 @@ export default async function handler(req, res) {
       phone: phone || '',
       preferred_contact: preferred_contact || '',
       message: message || '',
-      client_id
+      client_id: Number(client_id)
     };
+
+    console.log('SAVING LEAD:', leadPayload);
 
     const saveRes = await fetch(
       `${SUPABASE_URL}/rest/v1/Leads`,
@@ -94,19 +110,29 @@ export default async function handler(req, res) {
 
     const savedLead = await saveRes.json();
 
+    console.log('SAVED LEAD:', savedLead);
+
     // =========================
-    // SEND EMAIL TO CLIENT
+    // SEND EMAIL
     // =========================
+
+    console.log('CLIENT EMAIL:', client.contact_email);
 
     if (client.contact_email) {
 
-      await resend.emails.send({
+      console.log('ATTEMPTING EMAIL SEND');
+
+      const emailResult = await resend.emails.send({
+
         from: 'onboarding@resend.dev',
+
         to: client.contact_email,
+
         subject: `New Lead for ${client.business_name}`,
+
         html: `
           <div style="font-family:Arial,sans-serif;padding:24px;">
-            
+
             <h2>New Lead Captured</h2>
 
             <p>
@@ -117,7 +143,9 @@ export default async function handler(req, res) {
             <hr style="margin:24px 0;" />
 
             <p><strong>Name:</strong> ${name || 'N/A'}</p>
+
             <p><strong>Email:</strong> ${email || 'N/A'}</p>
+
             <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
 
             <p>
@@ -142,6 +170,12 @@ export default async function handler(req, res) {
         `
       });
 
+      console.log('EMAIL RESULT:', emailResult);
+
+    } else {
+
+      console.log('NO CLIENT EMAIL FOUND');
+
     }
 
     // =========================
@@ -152,7 +186,7 @@ export default async function handler(req, res) {
 
   } catch (err) {
 
-    console.error(err);
+    console.error('SAVE LEAD ERROR:', err);
 
     return res.status(500).json({
       error: err.message
