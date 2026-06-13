@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>NexaDesk Client Login</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Inter,sans-serif;
+    }
+
+    body{
+      background:#050816;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      color:white;
+    }
+
+    .bg{
+      position:absolute;
+      inset:0;
+      background:
+      radial-gradient(circle at top,#7c3aed22,transparent 40%),
+      radial-gradient(circle at bottom,#8b5cf622,transparent 40%);
+      z-index:0;
+    }
+
+    .card{
+      width:420px;
+      background:rgba(10,12,25,.9);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:24px;
+      padding:40px;
+      position:relative;
+      z-index:2;
+      backdrop-filter:blur(12px);
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+    }
+
+    .logo{
+      font-size:32px;
+      font-weight:700;
+      margin-bottom:10px;
+      background:linear-gradient(135deg,#fff,#8b5cf6);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .sub{
+      color:#9ca3af;
+      margin-bottom:32px;
+      line-height:1.5;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin-bottom:24px;
+    }
+
+    .tab{
+      flex:1;
+      padding:12px;
+      border:none;
+      border-radius:12px;
+      background:#111827;
+      color:white;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    .tab.active{
+      background:#8b5cf6;
+    }
+
+    .input{
+      width:100%;
+      padding:14px;
+      margin-bottom:16px;
+      border:none;
+      border-radius:14px;
+      background:#111827;
+      color:white;
+      outline:none;
+      border:1px solid transparent;
+    }
+
+    .input:focus{
+      border-color:#8b5cf6;
+    }
+
+    .btn{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:14px;
+      background:linear-gradient(
+        135deg,
+        #8b5cf6,
+        #7c3aed
+      );
+      color:white;
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .msg{
+      margin-top:18px;
+      font-size:14px;
+      color:#9ca3af;
+      text-align:center;
+      line-height:1.5;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="bg"></div>
+
+  <div class="card">
+
+    <div class="logo">
+      NexaDesk
+    </div>
+
+    <div class="sub">
+      Client Portal Access
+    </div>
+
+    <div class="tabs">
+
+      <button
+        class="tab active"
+        id="loginTab"
+      >
+        Login
+      </button>
+
+      <button
+        class="tab"
+        id="signupTab"
+      >
+        Sign Up
+      </button>
+
+    </div>
+
+    <input
+      type="email"
+      id="email"
+      class="input"
+      placeholder="Email address"
+    />
+
+    <input
+      type="password"
+      id="password"
+      class="input"
+      placeholder="Password"
+    />
+
+    <button
+      class="btn"
+      id="submitBtn"
+    >
+      Login
+    </button>
+
+    <div
+      class="msg"
+      id="msg"
+    ></div>
+
+  </div>
+
+  <script>
+
+    // =========================
+    // SUPABASE
+    // =========================
+
+    const SUPABASE_URL =
+      'https://exqdmvloldvshzpxevht.supabase.co';
+
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+
+    const supabase =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+    // =========================
+    // ELEMENTS
+    // =========================
+
+    const loginTab =
+      document.getElementById('loginTab');
+
+    const signupTab =
+      document.getElementById('signupTab');
+
+    const submitBtn =
+      document.getElementById('submitBtn');
+
+    const msg =
+      document.getElementById('msg');
+
+    const emailInput =
+      document.getElementById('email');
+
+    const passwordInput =
+      document.getElementById('password');
+
+    let mode = 'login';
+
+    // =========================
+    // TAB SWITCHING
+    // =========================
+
+    loginTab.addEventListener(
+      'click',
+      () => {
+
+        mode = 'login';
+
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
+
+        submitBtn.textContent = 'Login';
+
+        msg.textContent = '';
+
+      }
+    );
+
+    signupTab.addEventListener(
+      'click',
+      () => {
+
+        mode = 'signup';
+
+        signupTab.classList.add('active');
+        loginTab.classList.remove('active');
+
+        submitBtn.textContent = 'Create Account';
+
+        msg.textContent = '';
+
+      }
+    );
+
+    // =========================
+    // AUTH
+    // =========================
+
+    submitBtn.addEventListener(
+      'click',
+      async () => {
+
+        const email =
+          emailInput.value.trim();
+
+        const password =
+          passwordInput.value.trim();
+
+        if (!email || !password) {
+
+          msg.textContent =
+            'Please fill in all fields';
+
+          return;
+
+        }
+
+        msg.textContent =
+          'Please wait...';
+
+        // =====================
+        // SIGNUP
+        // =====================
+
+        if (mode === 'signup') {
+
+          const {
+            data,
+            error
+          } = await supabase.auth.signUp({
+
+            email,
+            password
+
+          });
+
+          if (error) {
+
+            msg.textContent =
+              error.message;
+
+            return;
+
+          }
+
+          msg.textContent =
+            'Account created! Check your email.';
+
+          return;
+
+        }
+
+        // =====================
+        // LOGIN
+        // =====================
+
+        const {
+          data,
+          error
+        } = await supabase.auth.signInWithPassword({
+
+          email,
+          password
+
+        });
+
+        if (error) {
+
+          msg.textContent =
+            error.message;
+
+          return;
+
+        }
+
+        msg.textContent =
+          'Success! Redirecting...';
+
+        setTimeout(() => {
+
+          window.location.href =
+            '/client-dashboard.html';
+
+        }, 1200);
+
+      }
+    );
+
+  </script>
+
+</body>
+
+</html>
