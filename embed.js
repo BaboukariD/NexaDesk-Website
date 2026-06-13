@@ -18,20 +18,20 @@
 
   .nd-chat{
     position:fixed;
-    bottom:95px;
+    bottom:90px;
     right:24px;
-    width:430px;
-    height:620px;
-    background:#f3f4f6;
-    border-radius:28px;
+    width:360px;
+    height:540px;
+    background:#f5f5f5;
+    border-radius:24px;
     overflow:hidden;
     display:none;
     flex-direction:column;
     z-index:999999;
-    box-shadow:0 25px 70px rgba(0,0,0,.18);
+    box-shadow:0 18px 55px rgba(0,0,0,.18);
     opacity:0;
-    transform:translateY(15px);
-    transition:all .25s ease;
+    transform:translateY(12px);
+    transition:all .22s ease;
   }
 
   .nd-chat.open{
@@ -42,8 +42,8 @@
   .nd-header{
     background:linear-gradient(135deg,#8b5cf6,#7c3aed);
     color:white;
-    padding:22px;
-    font-size:16px;
+    padding:18px;
+    font-size:15px;
     font-weight:600;
     display:flex;
     align-items:center;
@@ -52,26 +52,26 @@
 
   .nd-close{
     cursor:pointer;
-    font-size:20px;
+    font-size:18px;
     opacity:.85;
   }
 
   .nd-messages{
     flex:1;
     overflow-y:auto;
-    padding:22px;
+    padding:18px;
     display:flex;
     flex-direction:column;
-    gap:14px;
-    background:#f3f4f6;
+    gap:12px;
+    background:#f5f5f5;
   }
 
   .nd-msg{
     max-width:82%;
-    padding:15px 17px;
+    padding:13px 15px;
     border-radius:18px;
-    line-height:1.5;
-    font-size:14px;
+    line-height:1.45;
+    font-size:13.5px;
     white-space:pre-wrap;
   }
 
@@ -79,22 +79,22 @@
     align-self:flex-end;
     background:#8b5cf6;
     color:white;
-    border-bottom-right-radius:6px;
+    border-bottom-right-radius:5px;
   }
 
   .nd-msg.bot{
     align-self:flex-start;
     background:white;
     color:#111827;
-    border:1px solid #e5e7eb;
-    border-bottom-left-radius:6px;
+    border:1px solid #ececec;
+    border-bottom-left-radius:5px;
   }
 
   .nd-input-wrap{
     display:flex;
-    gap:12px;
-    padding:18px;
-    background:#f3f4f6;
+    gap:10px;
+    padding:14px;
+    background:#f5f5f5;
     border-top:1px solid #e5e7eb;
   }
 
@@ -104,30 +104,30 @@
     outline:none;
     background:white;
     color:#111827;
-    border-radius:16px;
-    padding:15px;
-    font-size:14px;
+    border-radius:14px;
+    padding:13px;
+    font-size:13px;
     border:1px solid #e5e7eb;
   }
 
   .nd-send{
-    width:52px;
-    height:52px;
+    width:48px;
+    height:48px;
     border:none;
-    border-radius:16px;
+    border-radius:14px;
     background:#8b5cf6;
     color:white;
     cursor:pointer;
-    font-size:18px;
+    font-size:16px;
     flex-shrink:0;
   }
 
   .nd-footer{
     text-align:center;
-    padding:14px;
-    font-size:12px;
+    padding:11px;
+    font-size:11px;
     color:#6b7280;
-    background:#f3f4f6;
+    background:#f5f5f5;
     border-top:1px solid #e5e7eb;
   }
 
@@ -135,8 +135,8 @@
     position:fixed;
     bottom:24px;
     right:24px;
-    width:68px;
-    height:68px;
+    width:66px;
+    height:66px;
     border:none;
     border-radius:50%;
     cursor:pointer;
@@ -145,12 +145,12 @@
     align-items:center;
     justify-content:center;
     z-index:999999;
-    box-shadow:0 14px 40px rgba(139,92,246,.4);
+    box-shadow:0 12px 35px rgba(139,92,246,.38);
   }
 
   .nd-btn svg{
-    width:30px;
-    height:30px;
+    width:28px;
+    height:28px;
     fill:white;
   }
 
@@ -416,6 +416,10 @@
     );
   }
 
+  // =========================
+  // OPEN / CLOSE
+  // =========================
+
   btn.addEventListener('click',()=>{
 
     if(chat.style.display === 'flex'){
@@ -447,6 +451,10 @@
     },250);
   });
 
+  // =========================
+  // SEND MESSAGE
+  // =========================
+
   async function sendMessage(){
 
     const text = input.value.trim();
@@ -464,6 +472,8 @@
 
     input.value = '';
 
+    // NAME
+
     if(awaitingName){
 
       leadData.name = text;
@@ -477,6 +487,8 @@
 
       return;
     }
+
+    // EMAIL
 
     if(awaitingEmail){
 
@@ -503,6 +515,8 @@
 
       return;
     }
+
+    // CONTACT PREFERENCE
 
     if(awaitingContactPreference){
 
@@ -543,6 +557,8 @@
       return;
     }
 
+    // PHONE
+
     if(awaitingPhone){
 
       leadData.phone = text;
@@ -566,6 +582,8 @@
       return;
     }
 
+    // LEAD DETECTION
+
     const interested =
       lowerText.includes('price') ||
       lowerText.includes('pricing') ||
@@ -587,6 +605,8 @@
 
       return;
     }
+
+    // AI RESPONSE
 
     try{
 
@@ -629,6 +649,10 @@
       );
     }
   }
+
+  // =========================
+  // EVENTS
+  // =========================
 
   sendBtn.addEventListener('click',sendMessage);
 
