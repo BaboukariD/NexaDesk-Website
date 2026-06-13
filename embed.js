@@ -335,20 +335,33 @@
   }
 
   async function saveLead() {
-    const response = await fetch('https://nexadesk.co.uk/api/save-lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name:              leadData.name || '',
-        email:             leadData.email || '',
-        phone:             leadData.phone || '',
-        preferred_contact: leadData.preferred_contact,
-        message:           history.map(m => m.content).join(' | '),
-        client_id:         clientId
-      })
-    });
-    if (!response.ok) throw new Error('Failed to save lead');
-  }
+  const response = await fetch('https://nexadesk.co.uk/api/save-lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name:              leadData.name || '',
+      email:             leadData.email || '',
+      phone:             leadData.phone || '',
+      preferred_contact: leadData.preferred_contact,
+      message:           history.map(m => m.content).join(' | '),
+      client_id:         clientId
+    })
+  });
+  if (!response.ok) throw new Error('Failed to save lead');
+  const data = await response.json();
+  return data[0]?.id || null;
+}
+  async function saveConversation(leadId) {
+  await fetch('https://nexadesk.co.uk/api/save-conversation', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      client_id: clientId,
+      lead_id: leadId || null,
+      messages: history
+    })
+  });
+}
 
   async function sendLeadEmail() {
     await fetch('https://nexadesk.co.uk/api/send-lead-email', {
@@ -439,8 +452,9 @@
 
       // Email preferred — save and confirm
       try {
-        await saveLead();
+        const leadId = await saveLead();
         await sendLeadEmail();
+        await saveConversation(leadId);
       } catch (e) {
         console.error('Lead save error:', e);
       }
@@ -458,8 +472,9 @@
       input.value = '';
 
       try {
-        await saveLead();
+        const leadId = await saveLead();
         await sendLeadEmail();
+        await saveConversation(leadId);
       } catch (e) {
         console.error('Lead save error:', e);
       }
