@@ -8,187 +8,199 @@
   // =========================
 
   const style = document.createElement('style');
+
   style.textContent = `
 
-  * {
-    box-sizing: border-box;
-    font-family: Inter, sans-serif;
+  *{
+    box-sizing:border-box;
+    font-family:Inter,sans-serif;
   }
 
-  .nd-chat {
-    position: fixed;
-    bottom: 100px;
-    right: 24px;
-    width: 380px;
-    height: 620px;
-    background: #0f1117;
-    border: 1px solid #1f2430;
-    border-radius: 22px;
-    overflow: hidden;
-    display: none;
-    flex-direction: column;
-    z-index: 999999;
-    box-shadow: 0 20px 60px rgba(0,0,0,.45);
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all .25s ease;
+  .nd-chat{
+    position:fixed;
+    bottom:90px;
+    right:24px;
+    width:340px;
+    height:520px;
+    background:#0f1117;
+    border:1px solid #1c2230;
+    border-radius:20px;
+    overflow:hidden;
+    display:none;
+    flex-direction:column;
+    z-index:999999;
+    box-shadow:0 18px 60px rgba(0,0,0,.45);
+    opacity:0;
+    transform:translateY(15px);
+    transition:all .25s ease;
   }
 
-  .nd-chat.open {
-    transform: translateY(0);
-    opacity: 1;
+  .nd-chat.open{
+    opacity:1;
+    transform:translateY(0);
   }
 
-  .nd-header {
-    background: linear-gradient(135deg, #7c3aed, #9333ea);
-    color: white;
-    padding: 18px;
-    font-size: 18px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .nd-header{
+    background:#111827;
+    color:white;
+    padding:16px;
+    font-size:15px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid #1f2937;
   }
 
-  .nd-close {
-    cursor: pointer;
-    font-size: 20px;
-    opacity: .8;
+  .nd-close{
+    cursor:pointer;
+    opacity:.75;
+    font-size:18px;
   }
 
-  .nd-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: #0b0d12;
+  .nd-messages{
+    flex:1;
+    overflow-y:auto;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    background:#0b0f17;
   }
 
-  .nd-msg {
-    max-width: 85%;
-    padding: 12px 14px;
-    border-radius: 16px;
-    line-height: 1.45;
-    font-size: 14px;
-    white-space: pre-wrap;
+  .nd-msg{
+    max-width:85%;
+    padding:11px 13px;
+    border-radius:16px;
+    line-height:1.45;
+    font-size:13.5px;
+    white-space:pre-wrap;
   }
 
-  .nd-msg.user {
-    align-self: flex-end;
-    background: #7c3aed;
-    color: white;
-    border-bottom-right-radius: 4px;
+  .nd-msg.user{
+    align-self:flex-end;
+    background:#7c3aed;
+    color:white;
+    border-bottom-right-radius:5px;
   }
 
-  .nd-msg.bot {
-    align-self: flex-start;
-    background: #171b24;
-    color: #e6e6e6;
-    border-bottom-left-radius: 4px;
+  .nd-msg.bot{
+    align-self:flex-start;
+    background:#161c27;
+    color:#e5e7eb;
+    border-bottom-left-radius:5px;
   }
 
-  .nd-input-wrap {
-    display: flex;
-    gap: 10px;
-    padding: 14px;
-    border-top: 1px solid #1d2230;
-    background: #11141c;
+  .nd-input-wrap{
+    display:flex;
+    gap:10px;
+    padding:14px;
+    background:#111827;
+    border-top:1px solid #1f2937;
   }
 
-  .nd-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    border-radius: 14px;
-    background: #1a1f2b;
-    color: white;
-    padding: 12px;
-    font-size: 14px;
+  .nd-input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:#1f2937;
+    color:white;
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:13px;
   }
 
-  .nd-send {
-    width: 44px;
-    height: 44px;
-    border: none;
-    border-radius: 12px;
-    background: #7c3aed;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
+  .nd-send{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:12px;
+    background:#7c3aed;
+    color:white;
+    cursor:pointer;
+    font-size:15px;
   }
 
-  .nd-footer {
-    text-align: center;
-    padding: 10px;
-    font-size: 12px;
-    color: #8b93a7;
-    border-top: 1px solid #1d2230;
-    background: #11141c;
+  .nd-footer{
+    text-align:center;
+    padding:10px;
+    font-size:11px;
+    color:#94a3b8;
+    background:#111827;
+    border-top:1px solid #1f2937;
   }
 
-  .nd-btn {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    width: 62px;
-    height: 62px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    background: linear-gradient(135deg, #7c3aed, #9333ea);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999999;
-    box-shadow: 0 12px 35px rgba(124,58,237,.45);
+  .nd-btn{
+    position:fixed;
+    bottom:24px;
+    right:24px;
+    width:64px;
+    height:64px;
+    border:none;
+    border-radius:50%;
+    cursor:pointer;
+    background:linear-gradient(135deg,#7c3aed,#9333ea);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999999;
+    box-shadow:0 12px 40px rgba(124,58,237,.45);
   }
 
-  .nd-btn svg {
-    width: 28px;
-    height: 28px;
-    fill: white;
+  .nd-btn svg{
+    width:28px;
+    height:28px;
+    fill:white;
   }
 
-  .typing-dot {
-    width: 8px;
-    height: 8px;
-    background: #a855f7;
-    border-radius: 50%;
-    animation: blink 1.4s infinite both;
+  .typing-wrap{
+    display:flex;
+    gap:5px;
+    align-items:center;
   }
 
-  .nd-typing-bubble {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+  .typing-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#a855f7;
+    animation:blink 1.4s infinite both;
   }
 
-  .typing-dot:nth-child(2) {
-    animation-delay: .2s;
+  .typing-dot:nth-child(2){
+    animation-delay:.2s;
   }
 
-  .typing-dot:nth-child(3) {
-    animation-delay: .4s;
+  .typing-dot:nth-child(3){
+    animation-delay:.4s;
   }
 
-  @keyframes blink {
-    0% { opacity: .2; transform: translateY(0px); }
-    20% { opacity: 1; transform: translateY(-3px); }
-    100% { opacity: .2; transform: translateY(0px); }
+  @keyframes blink{
+    0%{
+      opacity:.2;
+      transform:translateY(0px);
+    }
+    20%{
+      opacity:1;
+      transform:translateY(-3px);
+    }
+    100%{
+      opacity:.2;
+      transform:translateY(0px);
+    }
   }
 
   `;
+
   document.head.appendChild(style);
 
   // =========================
   // HTML
   // =========================
 
-  const wrap = document.createElement('div');
+  const wrapper = document.createElement('div');
 
-  wrap.innerHTML = `
+  wrapper.innerHTML = `
 
   <div class="nd-chat" id="nd-chat">
 
@@ -198,18 +210,28 @@
     </div>
 
     <div class="nd-messages" id="nd-messages">
+
       <div class="nd-msg bot">
         Hi! How can I help you today?
       </div>
+
     </div>
 
     <div class="nd-input-wrap">
+
       <input
         id="nd-input"
         class="nd-input"
         placeholder="Type a message..."
       />
-      <button class="nd-send" id="nd-send">➤</button>
+
+      <button
+        class="nd-send"
+        id="nd-send"
+      >
+        ➤
+      </button>
+
     </div>
 
     <div class="nd-footer">
@@ -219,14 +241,16 @@
   </div>
 
   <button class="nd-btn" id="nd-btn">
+
     <svg viewBox="0 0 24 24">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
+
   </button>
 
   `;
 
-  document.body.appendChild(wrap);
+  document.body.appendChild(wrapper);
 
   // =========================
   // ELEMENTS
@@ -236,7 +260,7 @@
   const btn = document.getElementById('nd-btn');
   const closeBtn = document.getElementById('nd-close');
   const input = document.getElementById('nd-input');
-  const send = document.getElementById('nd-send');
+  const sendBtn = document.getElementById('nd-send');
   const messages = document.getElementById('nd-messages');
 
   // =========================
@@ -253,17 +277,17 @@
   let awaitingPhone = false;
 
   let leadData = {
-    name: '',
-    email: '',
-    phone: '',
-    preferred_contact: ''
+    name:'',
+    email:'',
+    phone:'',
+    preferred_contact:''
   };
 
   // =========================
   // HELPERS
   // =========================
 
-  function addMsg(role, text) {
+  function addMsg(role,text){
 
     const div = document.createElement('div');
 
@@ -274,64 +298,62 @@
     messages.appendChild(div);
 
     messages.scrollTo({
-      top: messages.scrollHeight,
-      behavior: 'smooth'
+      top:messages.scrollHeight,
+      behavior:'smooth'
     });
-
-    return div;
   }
 
-  async function addBotMsgAnimated(text) {
+  async function addBotMsgAnimated(text){
 
     const typing = document.createElement('div');
 
-    typing.className = 'nd-msg bot nd-typing-bubble';
+    typing.className = 'nd-msg bot';
 
     typing.innerHTML = `
-      <span class="typing-dot"></span>
-      <span class="typing-dot"></span>
-      <span class="typing-dot"></span>
+      <div class="typing-wrap">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
     `;
 
     messages.appendChild(typing);
 
     messages.scrollTo({
-      top: messages.scrollHeight,
-      behavior: 'smooth'
+      top:messages.scrollHeight,
+      behavior:'smooth'
     });
 
     await new Promise(r =>
-      setTimeout(r, 600 + text.length * 10)
+      setTimeout(r,500 + text.length * 8)
     );
 
     typing.remove();
 
-    const botMsg = document.createElement('div');
+    const msg = document.createElement('div');
 
-    botMsg.className = 'nd-msg bot';
+    msg.className = 'nd-msg bot';
 
-    messages.appendChild(botMsg);
+    messages.appendChild(msg);
 
     let current = '';
 
-    for (const char of text) {
+    for(const char of text){
 
       current += char;
 
-      botMsg.textContent = current;
+      msg.textContent = current;
 
       messages.scrollTo({
-        top: messages.scrollHeight,
-        behavior: 'smooth'
+        top:messages.scrollHeight,
+        behavior:'smooth'
       });
 
-      await new Promise(r => setTimeout(r, 14));
+      await new Promise(r => setTimeout(r,10));
     }
-
-    return botMsg;
   }
 
-  function resetLeadState() {
+  function resetLeadState(){
 
     leadMode = false;
 
@@ -341,55 +363,53 @@
     awaitingPhone = false;
 
     leadData = {
-      name: '',
-      email: '',
-      phone: '',
-      preferred_contact: ''
+      name:'',
+      email:'',
+      phone:'',
+      preferred_contact:''
     };
   }
 
-  async function saveLead() {
+  async function saveLead(){
 
     const response = await fetch(
       'https://nexadesk.co.uk/api/save-lead',
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
         },
-        body: JSON.stringify({
-          name: leadData.name || '',
-          email: leadData.email || '',
-          phone: leadData.phone || '',
-          preferred_contact: leadData.preferred_contact,
-          message: history.map(m => m.content).join(' | '),
-          client_id: clientId
+        body:JSON.stringify({
+          name:leadData.name || '',
+          email:leadData.email || '',
+          phone:leadData.phone || '',
+          preferred_contact:leadData.preferred_contact,
+          message:history.map(m => m.content).join(' | '),
+          client_id:clientId
         })
       }
     );
 
-    if (!response.ok) {
+    if(!response.ok){
       throw new Error('Failed to save lead');
     }
 
-    const data = await response.json();
-
-    return data.id || null;
+    return await response.json();
   }
 
-  async function saveConversation(leadId) {
+  async function saveConversation(leadId){
 
     await fetch(
       'https://nexadesk.co.uk/api/save-conversation',
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
         },
-        body: JSON.stringify({
-          client_id: clientId,
-          lead_id: leadId || null,
-          messages: history
+        body:JSON.stringify({
+          client_id:clientId,
+          lead_id:leadId || null,
+          messages:history
         })
       }
     );
@@ -399,63 +419,65 @@
   // OPEN / CLOSE
   // =========================
 
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click',()=>{
 
-    if (chat.style.display === 'block') {
+    if(chat.style.display === 'flex'){
 
       chat.classList.remove('open');
 
-      setTimeout(() => {
+      setTimeout(()=>{
         chat.style.display = 'none';
-      }, 250);
+      },250);
 
-    } else {
+    }else{
 
       chat.style.display = 'flex';
 
-      setTimeout(() => {
+      setTimeout(()=>{
         chat.classList.add('open');
-      }, 10);
+      },10);
 
       input.focus();
     }
   });
 
-  closeBtn.addEventListener('click', () => {
+  closeBtn.addEventListener('click',()=>{
 
     chat.classList.remove('open');
 
-    setTimeout(() => {
+    setTimeout(()=>{
       chat.style.display = 'none';
-    }, 250);
+    },250);
   });
 
   // =========================
   // SEND MESSAGE
   // =========================
 
-  async function sendMessage() {
+  async function sendMessage(){
 
     const text = input.value.trim();
 
-    if (!text) return;
+    if(!text) return;
 
     const lowerText = text.toLowerCase();
 
-    // NAME
+    addMsg('user',text);
 
-    if (awaitingName) {
+    history.push({
+      role:'user',
+      content:text
+    });
+
+    input.value = '';
+
+    // =========================
+    // NAME
+    // =========================
+
+    if(awaitingName){
 
       leadData.name = text;
-
-      addMsg('user', text);
-
-      history.push({
-        role: 'user',
-        content: text
-      });
-
-      input.value = '';
 
       awaitingName = false;
       awaitingEmail = true;
@@ -467,32 +489,25 @@
       return;
     }
 
+    // =========================
     // EMAIL
+    // =========================
 
-    if (awaitingEmail) {
-
-      addMsg('user', text);
-
-      input.value = '';
+    if(awaitingEmail){
 
       const validEmail =
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
 
-      if (!validEmail) {
+      if(!validEmail){
 
         await addBotMsgAnimated(
-          'Hmm, that email doesn’t look quite right — could you double-check it for me?'
+          'That email doesn’t look valid — could you try again?'
         );
 
         return;
       }
 
       leadData.email = text;
-
-      history.push({
-        role: 'user',
-        content: text
-      });
 
       awaitingEmail = false;
       awaitingContactPreference = true;
@@ -504,18 +519,11 @@
       return;
     }
 
-    // CONTACT PREFERENCE
+    // =========================
+    // CONTACT PREF
+    // =========================
 
-    if (awaitingContactPreference) {
-
-      addMsg('user', text);
-
-      history.push({
-        role: 'user',
-        content: text
-      });
-
-      input.value = '';
+    if(awaitingContactPreference){
 
       leadData.preferred_contact =
         lowerText.includes('phone')
@@ -524,7 +532,7 @@
 
       awaitingContactPreference = false;
 
-      if (leadData.preferred_contact === 'phone') {
+      if(leadData.preferred_contact === 'phone'){
 
         awaitingPhone = true;
 
@@ -535,19 +543,18 @@
         return;
       }
 
-      try {
+      try{
 
-        const leadId = await saveLead();
+        const saved = await saveLead();
 
-        await saveConversation(leadId);
+        await saveConversation(saved.id);
 
-      } catch (e) {
-
-        console.error('Lead save error:', e);
+      }catch(err){
+        console.error(err);
       }
 
       await addBotMsgAnimated(
-        'Amazing — you’re all set! Someone from the team will be in touch very soon. 🎉'
+        'Amazing — you’re all set! Someone from the team will contact you shortly.'
       );
 
       resetLeadState();
@@ -555,34 +562,26 @@
       return;
     }
 
+    // =========================
     // PHONE
+    // =========================
 
-    if (awaitingPhone) {
+    if(awaitingPhone){
 
       leadData.phone = text;
 
-      addMsg('user', text);
+      try{
 
-      history.push({
-        role: 'user',
-        content: text
-      });
+        const saved = await saveLead();
 
-      input.value = '';
+        await saveConversation(saved.id);
 
-      try {
-
-        const leadId = await saveLead();
-
-        await saveConversation(leadId);
-
-      } catch (e) {
-
-        console.error('Lead save error:', e);
+      }catch(err){
+        console.error(err);
       }
 
       await addBotMsgAnimated(
-        'Perfect — you’re all set! Someone from the team will call you very soon. 🎉'
+        'Perfect — someone from the team will call you very soon. 🎉'
       );
 
       resetLeadState();
@@ -590,7 +589,9 @@
       return;
     }
 
-    // BUYING INTENT
+    // =========================
+    // LEAD DETECTION
+    // =========================
 
     const interested =
       lowerText.includes('price') ||
@@ -601,20 +602,11 @@
       lowerText.includes('demo') ||
       lowerText.includes('book');
 
-    history.push({
-      role: 'user',
-      content: text
-    });
-
-    if (interested && !leadMode) {
+    if(interested && !leadMode){
 
       leadMode = true;
 
       awaitingName = true;
-
-      addMsg('user', text);
-
-      input.value = '';
 
       await addBotMsgAnimated(
         'Great! Before we continue, could I get your name?'
@@ -623,24 +615,22 @@
       return;
     }
 
-    // NORMAL AI
+    // =========================
+    // AI RESPONSE
+    // =========================
 
-    addMsg('user', text);
-
-    input.value = '';
-
-    try {
+    try{
 
       const response = await fetch(
         'https://nexadesk.co.uk/api/widget',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json'
           },
-          body: JSON.stringify({
+          body:JSON.stringify({
             clientId,
-            messages: history
+            messages:history
           })
         }
       );
@@ -648,8 +638,8 @@
       const data = await response.json();
 
       history.push({
-        role: 'assistant',
-        content: data.reply
+        role:'assistant',
+        content:data.reply
       });
 
       const parts = data.reply
@@ -657,11 +647,11 @@
         .map(p => p.trim())
         .filter(Boolean);
 
-      for (const part of parts) {
+      for(const part of parts){
         await addBotMsgAnimated(part);
       }
 
-    } catch (err) {
+    }catch(err){
 
       console.error(err);
 
@@ -675,10 +665,10 @@
   // EVENTS
   // =========================
 
-  send.addEventListener('click', sendMessage);
+  sendBtn.addEventListener('click',sendMessage);
 
-  input.addEventListener('keypress', e => {
-    if (e.key === 'Enter') {
+  input.addEventListener('keypress',e=>{
+    if(e.key === 'Enter'){
       sendMessage();
     }
   });
