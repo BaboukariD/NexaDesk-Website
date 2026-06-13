@@ -40,6 +40,7 @@
       radial-gradient(circle at top,#7c3aed22,transparent 40%),
       radial-gradient(circle at bottom,#8b5cf622,transparent 40%);
       z-index:0;
+      pointer-events:none;
     }
 
     .card{
@@ -73,6 +74,8 @@
       display:flex;
       gap:10px;
       margin-bottom:24px;
+      position:relative;
+      z-index:5;
     }
 
     .tab{
@@ -83,11 +86,20 @@
       background:#111827;
       color:white;
       cursor:pointer;
-      transition:.2s;
+      transition:all .2s ease;
+      position:relative;
+      z-index:5;
+    }
+
+    .tab:hover{
+      background:#1f2937;
     }
 
     .tab.active{
       background:#8b5cf6;
+      color:white;
+      box-shadow:
+      0 8px 25px rgba(139,92,246,.35);
     }
 
     .input{
@@ -242,7 +254,7 @@
     let mode = 'login';
 
     // =========================
-    // TABS
+    // TAB SWITCHING
     // =========================
 
     loginTab.addEventListener(
@@ -310,8 +322,6 @@
 
         if (mode === 'activate') {
 
-          // CHECK CLIENT EXISTS
-
           const {
             data: clients,
             error: clientError
@@ -336,8 +346,6 @@
           const client =
             clients[0];
 
-          // CREATE AUTH ACCOUNT
-
           const {
             data,
             error
@@ -356,8 +364,6 @@
             return;
 
           }
-
-          // LINK USER TO CLIENT
 
           const {
             error: linkError
