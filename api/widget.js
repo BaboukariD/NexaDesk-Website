@@ -9,13 +9,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Client ID required' });
   }
 
+  const SUPABASE_URL = process.env.SUPABASE_URL || "https://exqdmvloldvshzpxevht.supabase.co";
+  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || "sb_publishable__bJTNHHD95Uop41LMarPsQ_zjZzk4af";
+
   // Fetch client data from Supabase
   const clientResponse = await fetch(
-    `${process.env.SUPABASE_URL}/rest/v1/Clients?id=eq.${clientId}&select=*`,
+    `${SUPABASE_URL}/rest/v1/Clients?id=eq.${clientId}&select=*`,
     {
       headers: {
-        'apikey': process.env.SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
       }
     }
   );
@@ -33,6 +36,11 @@ export default async function handler(req, res) {
 
   const client = clients[0];
 
+  const systemPrompt = client.system_prompt || `You are a friendly and professional AI assistant for a business. 
+Your job is to help website visitors, answer their questions clearly and concisely, 
+and guide interested visitors toward booking a call or getting in touch. 
+Keep responses short, warm and helpful. Never make up specific prices or policies.`;
+
   // Call Claude with client's system prompt
   try {
 
@@ -45,8 +53,8 @@ headers: {
 },
 body: JSON.stringify({
 model: 'claude-haiku-4-5',
-max_tokens: 200,
-system: client.system_prompt,
+max_tokens: 500,
+system: systemPrompt,
 messages: messages.map(msg => ({
 role: msg.role,
 content: msg.content

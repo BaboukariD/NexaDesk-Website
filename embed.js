@@ -44,7 +44,7 @@
 
 .nd-chat {
   display: none;
-  width: 380px;
+  width: 320px;
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -182,14 +182,20 @@
   background: white;
 }
 
+.nd-typing-bubble {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  height: 38px;
+}
+
 .typing-dot {
-  width: 6px;
-  height: 6px;
-  background: #999;
+  width: 7px;
+  height: 7px;
+  background: #bbb;
   border-radius: 50%;
-  display: inline-block;
-  margin: 0 2px;
-  opacity: 0.8;
+  flex-shrink: 0;
   animation: bounce 1.2s infinite;
 }
 
@@ -214,7 +220,7 @@
 
 @media (max-width: 480px) {
   .nd-widget-wrap { right: 14px; bottom: 14px; }
-  .nd-chat { width: calc(100vw - 28px); max-width: 400px; }
+  .nd-chat { width: calc(100vw - 28px); max-width: 320px; }
 }
 
 `;
@@ -295,8 +301,7 @@
   async function addBotMsgAnimated(text) {
     // Show typing dots first
     const typing = document.createElement('div');
-    typing.className = 'nd-msg bot';
-    typing.style.width = 'fit-content';
+    typing.className = 'nd-msg bot nd-typing-bubble';
     typing.innerHTML = `
       <span class="typing-dot"></span>
       <span class="typing-dot"></span>
@@ -452,9 +457,8 @@
 
       // Email preferred — save and confirm
       try {
-        const leadId = await saveLead();
+        await saveLead();
         await sendLeadEmail();
-        await saveConversation(leadId);
       } catch (e) {
         console.error('Lead save error:', e);
       }
@@ -472,9 +476,8 @@
       input.value = '';
 
       try {
-        const leadId = await saveLead();
+        await saveLead();
         await sendLeadEmail();
-        await saveConversation(leadId);
       } catch (e) {
         console.error('Lead save error:', e);
       }
@@ -533,8 +536,7 @@
 
         // Typing indicator
         const typing = document.createElement('div');
-        typing.className = 'nd-msg bot';
-        typing.style.width = 'fit-content';
+        typing.className = 'nd-msg bot nd-typing-bubble';
         typing.innerHTML = `
           <span class="typing-dot"></span>
           <span class="typing-dot"></span>

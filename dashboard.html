@@ -29,6 +29,7 @@ width:240px;
 background:#121933;
 padding:30px 20px;
 border-right:1px solid rgba(255,255,255,0.08);
+flex-shrink:0;
 }
 
 .logo{
@@ -53,9 +54,15 @@ color:#cfd6ff;
 background:#1a2345;
 }
 
+.nav-item.active{
+background:#1a2345;
+color:white;
+}
+
 .main{
 flex:1;
 padding:40px;
+overflow-y:auto;
 }
 
 .topbar{
@@ -98,6 +105,7 @@ padding:24px;
 border-radius:18px;
 border:1px solid rgba(255,255,255,0.06);
 overflow-x:auto;
+margin-bottom:30px;
 }
 
 table{
@@ -129,6 +137,111 @@ display:inline-block;
 font-size:0.85rem;
 }
 
+.view-btn{
+background:linear-gradient(135deg,#7c5cff,#9b7bff);
+border:none;
+color:white;
+padding:6px 14px;
+border-radius:8px;
+cursor:pointer;
+font-size:0.82rem;
+font-family:'DM Sans',sans-serif;
+transition:0.2s;
+}
+
+.view-btn:hover{
+opacity:0.85;
+}
+
+/* CONVERSATION MODAL */
+
+.modal-overlay{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.7);
+z-index:9999;
+align-items:center;
+justify-content:center;
+}
+
+.modal-overlay.open{
+display:flex;
+}
+
+.modal{
+background:#151d3b;
+border-radius:20px;
+border:1px solid rgba(255,255,255,0.08);
+width:560px;
+max-width:90vw;
+max-height:80vh;
+display:flex;
+flex-direction:column;
+overflow:hidden;
+}
+
+.modal-header{
+padding:20px 24px;
+border-bottom:1px solid rgba(255,255,255,0.06);
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.modal-header h3{
+font-size:1.1rem;
+}
+
+.modal-close{
+background:none;
+border:none;
+color:#9da8d6;
+font-size:1.4rem;
+cursor:pointer;
+transition:0.2s;
+}
+
+.modal-close:hover{
+color:white;
+}
+
+.modal-body{
+padding:20px 24px;
+overflow-y:auto;
+flex:1;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.conv-msg{
+max-width:80%;
+padding:10px 14px;
+border-radius:14px;
+font-size:0.88rem;
+line-height:1.55;
+}
+
+.conv-msg.user{
+background:linear-gradient(135deg,#7c5cff,#9b7bff);
+color:white;
+align-self:flex-end;
+}
+
+.conv-msg.assistant{
+background:#1e2a56;
+color:#cfd6ff;
+align-self:flex-start;
+}
+
+.conv-empty{
+color:#9da8d6;
+font-size:0.9rem;
+text-align:center;
+padding:40px 0;
+}
+
 </style>
 </head>
 <body style="visibility:hidden">
@@ -139,70 +252,68 @@ font-size:0.85rem;
 </script>
 
 <div class="sidebar">
-
-<div class="logo">NexaDesk</div>
-
-<div class="nav-item">Dashboard</div>
-<div class="nav-item">Leads</div>
-<div class="nav-item">Conversations</div>
-<div class="nav-item">Analytics</div>
-<div class="nav-item">Settings</div>
-
+  <div class="logo">NexaDesk</div>
+  <div class="nav-item active">Dashboard</div>
+  <div class="nav-item">Leads</div>
+  <div class="nav-item">Conversations</div>
+  <div class="nav-item">Analytics</div>
+  <div class="nav-item">Settings</div>
 </div>
 
 <div class="main">
 
-<div class="topbar">
-<h1>Dashboard</h1>
-</div>
+  <div class="topbar">
+    <h1>Dashboard</h1>
+  </div>
 
-<div class="cards">
+  <div class="cards">
+    <div class="card">
+      <p>Total Leads</p>
+      <h2 id="statLeads">—</h2>
+    </div>
+    <div class="card">
+      <p>New Today</p>
+      <h2 id="statToday">—</h2>
+    </div>
+    <div class="card">
+      <p>This Week</p>
+      <h2 id="statWeek">—</h2>
+    </div>
+    <div class="card">
+      <p>Active Clients</p>
+      <h2 id="statClients">—</h2>
+    </div>
+  </div>
 
-<div class="card">
-<p>Total Leads</p>
-<h2 id="statLeads">—</h2>
-</div>
-
-<div class="card">
-<p>New Today</p>
-<h2 id="statToday">—</h2>
-</div>
-
-<div class="card">
-<p>This Week</p>
-<h2 id="statWeek">—</h2>
-</div>
-
-<div class="card">
-<p>Active Clients</p>
-<h2 id="statClients">—</h2>
-</div>
-
-</div>
-
-<div class="table-wrap">
-
-<h2>Recent Leads</h2>
-
-<table>
-
-<thead>
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>Business</th>
-<th>Date</th>
-<th>Status</th>
-</tr>
-</thead>
-
-<tbody id="leadsTable">
-</tbody>
-
-</table>
+  <div class="table-wrap">
+    <h2>Recent Leads</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Preferred</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Conversation</th>
+        </tr>
+      </thead>
+      <tbody id="leadsTable"></tbody>
+    </table>
+  </div>
 
 </div>
 
+<!-- CONVERSATION MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Conversation</h3>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
 </div>
 
 <script src="dashboard.js"></script>
