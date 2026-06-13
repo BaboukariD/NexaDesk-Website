@@ -18,12 +18,12 @@
 
   .nd-chat{
     position:fixed;
-    bottom:90px;
+    bottom:85px;
     right:24px;
-    width:360px;
-    height:540px;
+    width:320px;
+    height:500px;
     background:#f5f5f5;
-    border-radius:24px;
+    border-radius:20px;
     overflow:hidden;
     display:none;
     flex-direction:column;
@@ -42,8 +42,8 @@
   .nd-header{
     background:linear-gradient(135deg,#8b5cf6,#7c3aed);
     color:white;
-    padding:18px;
-    font-size:15px;
+    padding:16px;
+    font-size:14px;
     font-weight:600;
     display:flex;
     align-items:center;
@@ -59,19 +59,19 @@
   .nd-messages{
     flex:1;
     overflow-y:auto;
-    padding:18px;
+    padding:14px;
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:10px;
     background:#f5f5f5;
   }
 
   .nd-msg{
     max-width:82%;
-    padding:13px 15px;
-    border-radius:18px;
+    padding:11px 13px;
+    border-radius:16px;
     line-height:1.45;
-    font-size:13.5px;
+    font-size:13px;
     white-space:pre-wrap;
   }
 
@@ -93,7 +93,7 @@
   .nd-input-wrap{
     display:flex;
     gap:10px;
-    padding:14px;
+    padding:12px;
     background:#f5f5f5;
     border-top:1px solid #e5e7eb;
   }
@@ -105,27 +105,27 @@
     background:white;
     color:#111827;
     border-radius:14px;
-    padding:13px;
+    padding:11px;
     font-size:13px;
     border:1px solid #e5e7eb;
   }
 
   .nd-send{
-    width:48px;
-    height:48px;
+    width:44px;
+    height:44px;
     border:none;
     border-radius:14px;
     background:#8b5cf6;
     color:white;
     cursor:pointer;
-    font-size:16px;
+    font-size:15px;
     flex-shrink:0;
   }
 
   .nd-footer{
     text-align:center;
-    padding:11px;
-    font-size:11px;
+    padding:8px;
+    font-size:10px;
     color:#6b7280;
     background:#f5f5f5;
     border-top:1px solid #e5e7eb;
@@ -135,8 +135,8 @@
     position:fixed;
     bottom:24px;
     right:24px;
-    width:66px;
-    height:66px;
+    width:60px;
+    height:60px;
     border:none;
     border-radius:50%;
     cursor:pointer;
@@ -149,8 +149,8 @@
   }
 
   .nd-btn svg{
-    width:28px;
-    height:28px;
+    width:26px;
+    height:26px;
     fill:white;
   }
 
@@ -161,8 +161,8 @@
   }
 
   .typing-dot{
-    width:7px;
-    height:7px;
+    width:6px;
+    height:6px;
     border-radius:50%;
     background:#8b5cf6;
     animation:blink 1.4s infinite both;
@@ -326,7 +326,7 @@
     });
 
     await new Promise(r =>
-      setTimeout(r,500 + text.length * 8)
+      setTimeout(r,400 + text.length * 7)
     );
 
     typing.remove();
@@ -350,7 +350,7 @@
         behavior:'smooth'
       });
 
-      await new Promise(r => setTimeout(r,10));
+      await new Promise(r => setTimeout(r,8));
     }
   }
 
