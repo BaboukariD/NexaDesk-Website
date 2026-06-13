@@ -102,7 +102,7 @@
 
 .nd-messages {
   padding: 16px;
-  height: 460px;
+  height: 340px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -221,6 +221,8 @@
 @media (max-width: 480px) {
   .nd-widget-wrap { right: 14px; bottom: 14px; }
   .nd-chat { width: calc(100vw - 28px); max-width: 320px; }
+  .nd-messages { height: 260px; }
+}
 }
 
 `;
