@@ -38,7 +38,6 @@ async function openConversation(leadId, leadName) {
       return;
     }
 
-    // Use the most recent conversation
     const messages = convos[convos.length - 1].messages;
 
     if (!messages || messages.length === 0) {
@@ -54,12 +53,127 @@ async function openConversation(leadId, leadName) {
       modalBody.appendChild(div);
     });
 
-    // Scroll to bottom
     modalBody.scrollTop = modalBody.scrollHeight;
 
   } catch (err) {
     modalBody.innerHTML = `<div class="conv-empty">Error loading conversation.</div>`;
   }
+}
+
+// =========================
+// CHART HELPERS
+// =========================
+
+function drawBarChart(canvasId, labels, values, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  const max = Math.max(...values, 1);
+  const padLeft = 28;
+  const padBottom = 32;
+  const padTop = 16;
+  const padRight = 16;
+  const chartW = W - padLeft - padRight;
+  const chartH = H - padBottom - padTop;
+  const barW = (chartW / labels.length) * 0.5;
+  const gap  = chartW / labels.length;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padTop + (chartH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(padLeft, y);
+    ctx.lineTo(W - padRight, y);
+    ctx.stroke();
+  }
+
+  // Bars
+  values.forEach((val, i) => {
+    const x = padLeft + gap * i + (gap - barW) / 2;
+    const barH = (val / max) * chartH;
+    const y = padTop + chartH - barH;
+
+    const grad = ctx.createLinearGradient(0, y, 0, y + barH);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, color + '44');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 4);
+    ctx.fill();
+
+    // Value label
+    if (val > 0) {
+      ctx.fillStyle = 'white';
+      ctx.font = '600 11px DM Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(val, x + barW / 2, y - 5);
+    }
+
+    // Day label
+    ctx.fillStyle = '#9da8d6';
+    ctx.font = '11px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[i], x + barW / 2, H - 8);
+  });
+}
+
+function drawDonutChart(canvasId, values, colors, labels) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const radius = Math.min(W, H) / 2 - 20;
+  const total = values.reduce((a, b) => a + b, 0);
+
+  ctx.clearRect(0, 0, W, H);
+
+  if (total === 0) {
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#9da8d6';
+    ctx.font = '12px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data', cx, cy + 4);
+    return;
+  }
+
+  let startAngle = -Math.PI / 2;
+  values.forEach((val, i) => {
+    const slice = (val / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, startAngle, startAngle + slice);
+    ctx.closePath();
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    startAngle += slice;
+  });
+
+  // Donut hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.58, 0, Math.PI * 2);
+  ctx.fillStyle = '#151d3b';
+  ctx.fill();
+
+  // Centre text
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 20px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(total, cx, cy + 4);
+  ctx.fillStyle = '#9da8d6';
+  ctx.font = '11px DM Sans, sans-serif';
+  ctx.fillText('total', cx, cy + 18);
 }
 
 // =========================
@@ -109,7 +223,45 @@ async function loadLeads() {
       document.getElementById('statClients').textContent = '—';
     }
 
-    // Leads table
+    // =========================
+    // ANALYTICS CHARTS
+    // =========================
+
+    // Last 7 days bar chart
+    const days = [];
+    const dayCounts = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const str = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString('en-GB', { weekday: 'short' });
+      days.push(label);
+      dayCounts.push(leads.filter(l => l.created_at && l.created_at.startsWith(str)).length);
+    }
+    drawBarChart('leadsChart', days, dayCounts, '#7c5cff');
+
+    // Contact preference donut
+    const emailCount = leads.filter(l => l.preferred_contact === 'email').length;
+    const phoneCount = leads.filter(l => l.preferred_contact === 'phone').length;
+    const otherCount = leads.length - emailCount - phoneCount;
+    drawDonutChart('contactChart', [emailCount, phoneCount, otherCount], ['#7c5cff', '#5ce1e6', '#ff6b9d'], ['Email', 'Phone', 'Other']);
+
+    // Legend
+    const legend = document.getElementById('contactLegend');
+    if (legend) {
+      legend.innerHTML = `
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+          <span style="font-size:12px;color:#9da8d6"><span style="color:#7c5cff">●</span> Email (${emailCount})</span>
+          <span style="font-size:12px;color:#9da8d6"><span style="color:#5ce1e6">●</span> Phone (${phoneCount})</span>
+          ${otherCount > 0 ? `<span style="font-size:12px;color:#9da8d6"><span style="color:#ff6b9d">●</span> Other (${otherCount})</span>` : ''}
+        </div>
+      `;
+    }
+
+    // =========================
+    // LEADS TABLE
+    // =========================
+
     const table = document.getElementById('leadsTable');
     table.innerHTML = '';
 
