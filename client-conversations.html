@@ -2,25 +2,17 @@
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8" />
-
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
-/>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>NexaDesk Conversations</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:Inter,sans-serif;
+font-family:Inter,Arial,sans-serif;
 }
 
 body{
@@ -30,18 +22,10 @@ height:100vh;
 overflow:hidden;
 }
 
-/* =========================
-LAYOUT
-========================= */
-
 .app{
 display:flex;
 height:100vh;
 }
-
-/* =========================
-SIDEBAR
-========================= */
 
 .sidebar{
 width:380px;
@@ -52,16 +36,36 @@ flex-direction:column;
 }
 
 .logo{
-padding:28px;
-font-size:32px;
+padding:24px 24px 16px;
+}
+
+.logo img{
+width:210px;
+max-width:100%;
+object-fit:contain;
+}
+
+.nav{
+display:flex;
+gap:10px;
+padding:0 20px 18px;
+flex-wrap:wrap;
+}
+
+.nav a{
+color:white;
+text-decoration:none;
+font-size:13px;
 font-weight:800;
-background:linear-gradient(
-135deg,
-#fff,
-#8b5cf6
-);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
+background:#111827;
+border:1px solid rgba(255,255,255,.07);
+padding:10px 12px;
+border-radius:12px;
+}
+
+.nav a.active{
+background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+border-color:transparent;
 }
 
 .search-wrap{
@@ -79,14 +83,6 @@ outline:none;
 font-size:14px;
 }
 
-.search::placeholder{
-color:#6b7280;
-}
-
-/* =========================
-CONVERSATION LIST
-========================= */
-
 .conversation-list{
 flex:1;
 overflow-y:auto;
@@ -103,11 +99,7 @@ cursor:pointer;
 transition:.2s;
 }
 
-.conversation-item:hover{
-border-color:#8b5cf6;
-transform:translateY(-1px);
-}
-
+.conversation-item:hover,
 .conversation-item.active{
 border-color:#8b5cf6;
 background:#141c30;
@@ -115,7 +107,7 @@ background:#141c30;
 
 .conversation-name{
 font-size:15px;
-font-weight:700;
+font-weight:800;
 margin-bottom:6px;
 }
 
@@ -125,6 +117,8 @@ color:#9ca3af;
 line-height:1.5;
 overflow:hidden;
 display:-webkit-box;
+display:box;
+line-clamp:2;
 -webkit-line-clamp:2;
 -webkit-box-orient:vertical;
 }
@@ -135,15 +129,12 @@ color:#6b7280;
 margin-top:10px;
 }
 
-/* =========================
-CHAT AREA
-========================= */
-
 .chat-area{
 flex:1;
 display:flex;
 flex-direction:column;
 background:#050816;
+min-width:0;
 }
 
 .chat-header{
@@ -152,17 +143,18 @@ border-bottom:1px solid rgba(255,255,255,.06);
 display:flex;
 justify-content:space-between;
 align-items:center;
+gap:18px;
 }
 
 .chat-title{
 font-size:22px;
-font-weight:700;
+font-weight:800;
 }
 
-.back-btn{
-color:#8b5cf6;
-text-decoration:none;
-font-weight:600;
+.chat-subtitle{
+font-size:13px;
+color:#9ca3af;
+margin-top:5px;
 }
 
 .messages{
@@ -181,6 +173,7 @@ border-radius:18px;
 line-height:1.7;
 font-size:14px;
 white-space:pre-wrap;
+overflow-wrap:anywhere;
 }
 
 .user{
@@ -194,18 +187,19 @@ align-self:flex-start;
 border:1px solid rgba(255,255,255,.05);
 }
 
+.empty{
+padding:20px;
+color:#6b7280;
+line-height:1.6;
+}
+
 .empty-chat{
 margin:auto;
 color:#6b7280;
 font-size:15px;
 }
 
-/* =========================
-SCROLLBAR
-========================= */
-
-::-webkit-scrollbar{
-width:8px;
+::-webkit-scrollbar{width:8px;
 }
 
 ::-webkit-scrollbar-thumb{
@@ -213,350 +207,239 @@ background:#2a3245;
 border-radius:20px;
 }
 
-/* =========================
-MOBILE
-========================= */
-
 @media(max-width:900px){
-
 .app{
 flex-direction:column;
 }
 
 .sidebar{
 width:100%;
-height:320px;
+height:330px;
 border-right:none;
 border-bottom:1px solid rgba(255,255,255,.06);
 }
 
 .chat-area{
-height:calc(100vh - 320px);
+height:calc(100vh - 330px);
 }
 
 .message{
 max-width:90%;
 }
-
 }
-
 </style>
-
 </head>
 
 <body>
-
 <div class="app">
 
-<!-- =========================
-SIDEBAR
-========================= -->
-
-<div class="sidebar">
-
-<div class="logo">
-  <img
-    src="./nexadesk-logo.png"
-    alt="NexaDesk"
-    style="
-      width:220px;
-      max-width:100%;
-      object-fit:contain;
-    "
-  />
-</div>
-
-<div class="search-wrap">
-
-<input
-type="text"
-class="search"
-id="searchInput"
-placeholder="Search conversations..."
-/>
-
-</div>
-
-<div
-class="conversation-list"
-id="conversationList"
->
-</div>
-
-</div>
-
-<!-- =========================
-CHAT AREA
-========================= -->
-
-<div class="chat-area">
-
-<div class="chat-header">
-
-<div class="chat-title">
-Conversation Viewer
-</div>
-
-<a
-href="/client-dashboard.html"
-class="back-btn"
->
-← Dashboard
+<aside class="sidebar">
+<a class="logo" href="/client-dashboard.html">
+<img src="./nexadesk-logo.png" alt="NexaDesk" />
 </a>
 
+<nav class="nav">
+<a href="/client-dashboard.html">Dashboard</a>
+<a class="active" href="/client-conversations.html">Conversations</a>
+<a href="/client-knowledge.html">AI Knowledge</a>
+</nav>
+
+<div class="search-wrap">
+<input type="text" class="search" id="searchInput" placeholder="Search conversations..." />
 </div>
 
-<div
-class="messages"
-id="messages"
->
-
-<div class="empty-chat">
-Select a conversation
+<div class="conversation-list" id="conversationList">
+<div class="empty">Loading conversations...</div>
 </div>
+</aside>
 
+<section class="chat-area">
+<header class="chat-header">
+<div>
+<div class="chat-title" id="chatTitle">Conversation Viewer</div>
+<div class="chat-subtitle" id="chatSubtitle">Select a conversation</div>
 </div>
+</header>
 
+<div class="messages" id="messages">
+<div class="empty-chat">Select a conversation</div>
 </div>
+</section>
 
 </div>
 
 <script>
-
 const SUPABASE_URL =
 'https://exqdmvloldvshzpxevht.supabase.co';
 
 const SUPABASE_ANON_KEY =
 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
 
-const sb =
-window.supabase.createClient(
+const sb = supabase.createClient(
 SUPABASE_URL,
 SUPABASE_ANON_KEY
 );
 
 let allConversations = [];
+let activeConversationId = null;
 
 function formatTime(dateString){
-
-const date =
-new Date(dateString);
-
-return date.toLocaleString(
-'en-GB',
-{
+return new Date(dateString).toLocaleString('en-GB',{
 day:'numeric',
 month:'short',
 hour:'2-digit',
 minute:'2-digit'
-}
-);
-
+});
 }
 
 function getPreview(messages){
+if(!messages || !Array.isArray(messages)) return 'No messages';
 
-if(!messages || !Array.isArray(messages))
-return 'No messages';
+const firstUserMessage = messages.find(message => message.role === 'user');
+const firstMessage = firstUserMessage || messages[0];
 
-const first =
-messages[0];
-
-return first?.content || 'Empty conversation';
-
+return firstMessage?.content || 'Empty conversation';
 }
-
 function renderConversationList(items){
-
-const list =
-document.getElementById(
-'conversationList'
-);
-
+const list = document.getElementById('conversationList');
 list.innerHTML = '';
 
 if(!items.length){
-
-list.innerHTML = `
-<div
-style="
-padding:20px;
-color:#6b7280;
-"
->
-No conversations found
-</div>
-`;
-
+list.innerHTML = '<div class="empty">No conversations found.</div>';
 return;
-
 }
 
 items.forEach((convo,index)=>{
+const item = document.createElement('div');
+item.className = 'conversation-item';
 
-const item =
-document.createElement('div');
-
-item.className =
-'conversation-item';
+if(convo.id === activeConversationId){
+item.classList.add('active');
+}
 
 item.innerHTML = `
-
-<div class="conversation-name">
-Conversation #${index + 1}
-</div>
-
-<div class="conversation-preview">
-${getPreview(convo.messages)}
-</div>
-
-<div class="conversation-time">
-${formatTime(convo.created_at)}
-</div>
-
+<div class="conversation-name">Conversation #${index + 1}</div>
+<div class="conversation-preview">${escapeHtml(getPreview(convo.messages))}</div>
+<div class="conversation-time">${formatTime(convo.created_at)}</div>
 `;
 
-item.addEventListener(
-'click',
-()=>{
+item.addEventListener('click',()=>{
+activeConversationId = convo.id;
 
-document
-.querySelectorAll(
-'.conversation-item'
-)
-.forEach(el=>
-el.classList.remove('active')
-);
-
-item.classList.add('active');
-
-renderMessages(
-convo.messages
-);
-
-}
-);
-
-list.appendChild(item);
-
+document.querySelectorAll('.conversation-item').forEach(element=>{
+element.classList.remove('active');
 });
 
+item.classList.add('active');
+renderMessages(convo);
+});
+
+list.appendChild(item);
+});
 }
 
-function renderMessages(messages){
+function renderMessages(convo){
+const container = document.getElementById('messages');
+const messages = convo.messages;
 
-const container =
-document.getElementById(
-'messages'
-);
+document.getElementById('chatTitle').textContent = 'Conversation';
+document.getElementById('chatSubtitle').textContent = formatTime(convo.created_at);
 
 container.innerHTML = '';
 
-if(
-!messages ||
-!Array.isArray(messages)
-){
-
-container.innerHTML = `
-<div class="empty-chat">
-No messages
-</div>
-`;
-
+if(!messages || !Array.isArray(messages) || !messages.length){
+container.innerHTML = '<div class="empty-chat">No messages</div>';
 return;
-
 }
 
-messages.forEach(msg=>{
+messages.forEach(message=>{
+const bubble = document.createElement('div');
+const isUser = message.role === 'user';
 
-const bubble =
-document.createElement('div');
+bubble.className = `message ${isUser ? 'user' : 'bot'}`;
+bubble.textContent = message.content || '';
 
-bubble.className =
-`message ${
-msg.role === 'user'
-? 'user'
-: 'bot'
-}`;
-
-bubble.textContent =
-msg.content || '';
-
-container.appendChild(
-bubble
-);
-
+container.appendChild(bubble);
 });
 
-container.scrollTop =
-container.scrollHeight;
+container.scrollTop = container.scrollHeight;
+}
 
+function escapeHtml(value){
+return String(value)
+.replaceAll('&','&amp;')
+.replaceAll('<','&lt;')
+.replaceAll('>','&gt;')
+.replaceAll('"','&quot;')
+.replaceAll("'",'&#039;');
+}
+
+async function getClientId(user){
+const linked = await sb
+.from('ClientUsers')
+.select('client_id')
+.eq('auth_user_id',user.id)
+.maybeSingle();
+
+if(linked.data?.client_id){
+return linked.data.client_id;
+}
+
+const fallback = await sb
+.from('Clients')
+.select('id')
+.eq('contact_email',user.email)
+.maybeSingle();
+
+return fallback.data?.id || null;
 }
 
 async function loadConversations(){
+const sessionResult = await sb.auth.getSession();
+const session = sessionResult.data.session;
 
-const {
-data,
-error
-} = await sb
+if(!session){
+window.location.href = '/client-login.html';
+return;
+}
+
+const clientId = await getClientId(session.user);
+
+if(!clientId){
+document.getElementById('conversationList').innerHTML =
+'<div class="empty">No client account found for this login.</div>';
+return;
+}
+
+const { data,error } = await sb
 .from('Conversations')
 .select('*')
-.order(
-'created_at',
-{
-ascending:false
-}
-);
+.eq('client_id',String(clientId))
+.order('created_at',{ ascending:false });
 
 if(error){
-
-console.error(error);
+document.getElementById('conversationList').innerHTML =
+`<div class="empty">${escapeHtml(error.message)}</div>`;
 return;
-
 }
 
-allConversations =
-data || [];
-
-renderConversationList(
-allConversations
-);
-
+allConversations = data || [];
+renderConversationList(allConversations);
 }
 
-document.getElementById(
-'searchInput'
-).addEventListener(
-'input',
-(e)=>{
+document.getElementById('searchInput').addEventListener('input',(event)=>{
+const query = event.target.value.toLowerCase().trim();
 
-const query =
-e.target.value
-.toLowerCase();
-
-const filtered =
-allConversations.filter(c=>{
-
-const text =
-JSON.stringify(
-c.messages || []
-).toLowerCase();
-
+const filtered = allConversations.filter(conversation=>{
+const text = JSON.stringify(conversation.messages || []).toLowerCase();
 return text.includes(query);
-
 });
 
-renderConversationList(
-filtered
-);
-
-}
-);
+renderConversationList(filtered);
+});
 
 loadConversations();
-
 </script>
 
 </body>
-
 </html>

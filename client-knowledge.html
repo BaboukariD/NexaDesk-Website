@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NexaDesk Knowledge Base</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Inter,Arial,sans-serif;
+}
+
+body{
+background:#050816;
+color:white;
+min-height:100vh;
+padding:32px;
+}
+
+.shell{
+max-width:1180px;
+margin:0 auto;
+display:flex;
+flex-direction:column;
+gap:24px;
+}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:20px;
+flex-wrap:wrap;
+}
+
+.logo img{
+width:210px;
+max-width:100%;
+object-fit:contain;
+}
+
+.nav{
+display:flex;
+gap:12px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.nav a,
+.logout-btn{
+border:1px solid rgba(255,255,255,.08);
+background:#0d111f;
+color:white;
+text-decoration:none;
+padding:12px 16px;
+border-radius:12px;
+font-weight:700;
+font-size:14px;
+cursor:pointer;
+}
+
+.nav a.active{
+background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+border-color:transparent;
+}
+
+.hero{
+background:
+linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.08)),
+#0b1020;
+border:1px solid rgba(255,255,255,.07);
+border-radius:22px;
+padding:28px;
+}
+
+.eyebrow{
+color:#a78bfa;
+font-size:13px;
+font-weight:800;
+text-transform:uppercase;
+letter-spacing:.08em;
+margin-bottom:10px;
+}
+
+h1{
+font-size:34px;
+line-height:1.15;
+margin-bottom:10px;
+}
+
+.hero p{
+color:#a1a1aa;
+line-height:1.7;
+max-width:780px;
+}
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.panel{
+background:#0d111f;
+border:1px solid rgba(255,255,255,.07);
+border-radius:20px;
+padding:22px;
+}
+
+.panel.full{
+grid-column:1 / -1;
+}
+
+.panel h2{
+font-size:20px;
+margin-bottom:8px;
+}
+
+.hint{
+color:#7f8797;
+font-size:14px;
+line-height:1.6;
+margin-bottom:18px;
+}
+
+label{
+display:block;
+font-size:13px;
+font-weight:800;
+color:#c4b5fd;
+margin-bottom:8px;
+}
+
+input,
+textarea{
+width:100%;
+border:1px solid rgba(255,255,255,.08);
+background:#111827;
+color:white;
+border-radius:14px;
+padding:14px;
+font-size:15px;
+outline:none;
+line-height:1.6;
+}
+
+textarea{
+min-height:180px;
+resize:vertical;
+}
+
+input:focus,
+textarea:focus{
+border-color:#8b5cf6;
+box-shadow:0 0 0 3px rgba(139,92,246,.16);
+}
+
+.field{
+margin-bottom:18px;
+}
+
+.faq-list{
+display:flex;
+flex-direction:column;
+gap:16px;
+}
+
+.faq-item{
+background:#111827;
+border:1px solid rgba(255,255,255,.07);
+border-radius:18px;
+padding:18px;
+}
+
+.faq-actions{
+display:flex;
+justify-content:flex-end;
+margin-top:12px;
+}
+
+.btn-row{
+display:flex;
+gap:12px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn{
+border:none;
+border-radius:14px;
+padding:14px 18px;
+font-weight:800;
+cursor:pointer;
+color:white;
+}
+
+.primary-btn{
+background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+box-shadow:0 16px 38px rgba(139,92,246,.28);
+}
+
+.secondary-btn{
+background:#1f2937;
+}
+
+.danger-btn{
+background:#3f1d2a;
+color:#fecdd3;
+}
+
+.status{
+min-height:22px;
+font-size:14px;
+color:#9ca3af;
+}
+
+.status.success{
+color:#34d399;
+}
+
+.status.error{
+color:#f87171;
+}
+
+.loading{
+font-size:22px;
+color:#9ca3af;
+padding:40px 0;
+}
+
+@media(max-width:820px){
+body{
+padding:20px;
+}
+
+.grid{
+grid-template-columns:1fr;
+}
+
+h1{
+font-size:28px;
+}
+}
+</style>
+</head>
+
+<body>
+<main class="shell">
+
+<div class="topbar">
+<a class="logo" href="/client-dashboard.html">
+<img src="./nexadesk-logo.png" alt="NexaDesk" />
+</a>
+
+<div class="nav">
+<a href="/client-dashboard.html">Dashboard</a>
+<a href="/client-conversations.html">Conversations</a>
+<a class="active" href="/client-knowledge.html">AI Knowledge</a>
+<button class="logout-btn" id="logoutBtn">Logout</button>
+</div>
+</div>
+
+<section class="hero">
+<div class="eyebrow">Client AI Settings</div>
+<h1>Teach your NexaDesk assistant what to say.</h1>
+<p>
+Add the business facts, services, FAQs, policies, pricing notes, and tone guidance your assistant should use when speaking to website visitors.
+</p>
+</section>
+
+<div class="loading" id="loading">Loading AI settings...</div>
+
+<form class="grid" id="settingsForm" style="display:none;">
+
+<section class="panel">
+<h2>Business Details</h2>
+<p class="hint">These details help the assistant stay specific to the client.</p>
+
+<div class="field">
+<label for="businessName">Business name</label>
+<input id="businessName" type="text" placeholder="Example: NexaDesk" />
+</div>
+
+<div class="field">
+<label for="website">Website</label>
+<input id="website" type="url" placeholder="https://example.com" />
+</div>
+</section>
+
+<section class="panel">
+<h2>Assistant Tone</h2>
+<p class="hint">Keep this short: who the AI is, how it should sound, and what action it should guide visitors toward.</p>
+
+<div class="field">
+<label for="systemPrompt">Core instructions</label>
+<textarea id="systemPrompt" placeholder="You are a friendly assistant for..."></textarea>
+</div>
+</section>
+
+<section class="panel full">
+<h2>Knowledge Base</h2>
+<p class="hint">
+Paste client-approved information here: services, locations, opening times, pricing ranges, guarantees, delivery areas, booking process, refund policy, and anything the AI must not guess.
+</p>
+
+<div class="field">
+<label for="knowledgeBase">Business knowledge</label>
+<textarea id="knowledgeBase" style="min-height:260px;" placeholder="Paste business information here..."></textarea>
+</div>
+</section>
+
+<section class="panel full">
+<h2>FAQs</h2>
+<p class="hint">Add common visitor questions and the exact answer the AI should give.</p>
+
+<div class="faq-list" id="faqList"></div>
+
+<div class="btn-row" style="margin-top:16px;">
+<button class="secondary-btn" id="addFaqBtn" type="button">Add FAQ</button>
+</div>
+</section>
+
+<section class="panel full">
+<div class="btn-row">
+<button class="primary-btn" id="saveBtn" type="submit">Save AI Knowledge</button>
+<div class="status" id="status"></div>
+</div>
+</section>
+
+</form>
+</main>
+
+<script>
+const SUPABASE_URL =
+'https://exqdmvloldvshzpxevht.supabase.co';
+
+const SUPABASE_ANON_KEY =
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+
+const sb = supabase.createClient(
+SUPABASE_URL,
+SUPABASE_ANON_KEY
+);
+
+let session = null;
+let faqs = [];
+
+const loading = document.getElementById('loading');
+const form = document.getElementById('settingsForm');
+const statusEl = document.getElementById('status');
+const faqList = document.getElementById('faqList');
+
+function setStatus(text,type=''){
+statusEl.textContent = text;
+statusEl.className = 'status ' + type;
+}
+
+function renderFaqs(){
+faqList.innerHTML = '';
+
+if(!faqs.length){
+faqs.push({ question:'', answer:'' });
+}
+
+faqs.forEach((faq,index)=>{
+const item = document.createElement('div');
+item.className = 'faq-item';
+item.innerHTML = `
+<div class="field">
+<label>Question</label>
+<input type="text" value="${escapeHtml(faq.question || '')}" data-faq-question="${index}" placeholder="What areas do you cover?" />
+</div>
+<div class="field">
+<label>Answer</label>
+<textarea data-faq-answer="${index}" placeholder="We cover...">${escapeHtml(faq.answer || '')}</textarea>
+</div>
+<div class="faq-actions">
+<button class="danger-btn" type="button" data-remove-faq="${index}">Remove</button>
+</div>
+`;
+
+faqList.appendChild(item);
+});
+
+document.querySelectorAll('[data-faq-question]').forEach(input=>{
+input.addEventListener('input',()=>{
+faqs[Number(input.dataset.faqQuestion)].question = input.value;
+});
+});
+
+document.querySelectorAll('[data-faq-answer]').forEach(input=>{
+input.addEventListener('input',()=>{
+faqs[Number(input.dataset.faqAnswer)].answer = input.value;
+});
+});
+
+document.querySelectorAll('[data-remove-faq]').forEach(button=>{
+button.addEventListener('click',()=>{
+faqs.splice(Number(button.dataset.removeFaq),1);
+renderFaqs();
+});
+});
+}
+
+function escapeHtml(value){
+return String(value)
+.replaceAll('&','&amp;')
+.replaceAll('<','&lt;')
+.replaceAll('>','&gt;')
+.replaceAll('"','&quot;')
+.replaceAll("'",'&#039;');
+}
+
+async function apiRequest(method,body){
+const response = await fetch('/api/client-settings',{
+method,
+headers:{
+'Content-Type':'application/json',
+Authorization:`Bearer ${session.access_token}`
+},
+body:body ? JSON.stringify(body) : undefined
+});
+
+const data = await response.json();
+
+if(!response.ok){
+throw new Error(data.error || 'Request failed');
+}
+
+return data;
+}
+
+async function loadSettings(){
+const result = await sb.auth.getSession();
+session = result.data.session;
+
+if(!session){
+window.location.href = '/client-login.html';
+return;
+}
+
+try{
+const data = await apiRequest('GET');
+const client = data.client;
+
+document.getElementById('businessName').value =
+client.business_name || '';
+
+document.getElementById('website').value =
+client.website || '';
+
+document.getElementById('systemPrompt').value =
+client.system_prompt || '';
+
+document.getElementById('knowledgeBase').value =
+client.knowledge_base || '';
+
+faqs = Array.isArray(client.faq_json)
+? client.faq_json
+: [];
+
+renderFaqs();
+
+loading.style.display = 'none';
+form.style.display = 'grid';
+}catch(error){
+loading.textContent = error.message;
+loading.style.color = '#f87171';
+}
+}
+
+document.getElementById('addFaqBtn').addEventListener('click',()=>{
+faqs.push({ question:'', answer:'' });
+renderFaqs();
+});
+
+form.addEventListener('submit',async(event)=>{
+event.preventDefault();
+setStatus('Saving...');
+
+const payload = {
+business_name: document.getElementById('businessName').value,
+website: document.getElementById('website').value,
+system_prompt: document.getElementById('systemPrompt').value,
+knowledge_base: document.getElementById('knowledgeBase').value,
+faq_json: faqs
+};
+
+try{
+await apiRequest('PATCH',payload);
+setStatus('Saved. Your AI will use this knowledge on the next chat.','success');
+}catch(error){
+setStatus(error.message,'error');
+}
+});
+
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
+await sb.auth.signOut();
+window.location.href = '/client-login.html';
+});
+
+loadSettings();
+</script>
+
+</body>
+</html>

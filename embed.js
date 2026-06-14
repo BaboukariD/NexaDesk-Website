@@ -1,49 +1,29 @@
 (async function () {
+  const script = document.currentScript;
+  const clientId = script?.getAttribute('data-client-id') || '';
+  const apiBase = script?.src ? new URL(script.src).origin : window.location.origin;
+  const logoUrl = `${apiBase}/nexadesk-logo.png`;
 
-  // =========================
-  // SCRIPT + CLIENT
-  // =========================
+  if (!clientId) {
+    console.error('NexaDesk: missing data-client-id on embed script.');
+    return;
+  }
 
-  const script =
-  document.currentScript;
-
-  const clientId =
-  script.getAttribute(
-    'data-client-id'
-  );
-
-  // =========================
-  // SUPABASE
-  // =========================
-
-  const SUPABASE_URL =
-  'https://exqdmvloldvshzpxevht.supabase.co';
-
-  const SUPABASE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
-
-  // =========================
-  // STYLES
-  // =========================
-
-  const style =
-  document.createElement('style');
-
+  const style = document.createElement('style');
   style.textContent = `
-
-  *{
+  .nd-widget *{
     box-sizing:border-box;
-    font-family:Inter,sans-serif;
+    font-family:Inter,Arial,sans-serif;
   }
 
   .nd-chat{
     position:fixed;
-    bottom:90px;
+    bottom:96px;
     right:24px;
     width:380px;
     height:640px;
-    background:#f5f5f5;
-    border-radius:30px;
+    background:#f8fafc;
+    border-radius:26px;
     overflow:hidden;
     display:none;
     flex-direction:column;
@@ -60,25 +40,13 @@
   }
 
   .nd-header{
-
-    background:
-    linear-gradient(
-      135deg,
-      #0b1020,
-      #111827
-    );
-
+    background:linear-gradient(135deg,#0b1020,#111827);
     color:white;
-
     padding:18px;
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
-    border-bottom:
-    1px solid rgba(255,255,255,.06);
-
+    border-bottom:1px solid rgba(255,255,255,.06);
   }
 
   .nd-header-left{
@@ -91,17 +59,14 @@
     width:46px;
     height:46px;
     border-radius:14px;
-    object-fit:cover;
-  }
-
-  .nd-header-info{
-    display:flex;
-    flex-direction:column;
+    object-fit:contain;
+    background:#050816;
+    padding:4px;
   }
 
   .nd-title{
     font-size:15px;
-    font-weight:700;
+    font-weight:800;
   }
 
   .nd-status{
@@ -128,38 +93,28 @@
     display:flex;
     flex-direction:column;
     gap:14px;
-    background:#f5f5f5;
+    background:#f8fafc;
   }
 
   .nd-msg{
-    max-width:82%;
+    max-width:84%;    
     padding:14px 16px;
     border-radius:20px;
-    line-height:1.65;
+    line-height:1.6;
     font-size:13px;
     white-space:pre-wrap;
-    animation:fadeIn .18s ease;
+    overflow-wrap:anywhere;
+    animation:ndFadeIn .18s ease;
   }
 
-  @keyframes fadeIn{
-    from{
-      opacity:0;
-      transform:translateY(6px);
-    }
-    to{
-      opacity:1;
-      transform:translateY(0);
-    }
+  @keyframes ndFadeIn{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
   }
 
   .nd-msg.user{
     align-self:flex-end;
-    background:
-    linear-gradient(
-      135deg,
-      #8b5cf6,
-      #7c3aed
-    );
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
     color:white;
     border-bottom-right-radius:6px;
   }
@@ -168,7 +123,7 @@
     align-self:flex-start;
     background:white;
     color:#111827;
-    border:1px solid #ececec;
+    border:1px solid #e5e7eb;
     border-bottom-left-radius:6px;
   }
 
@@ -176,18 +131,19 @@
     display:flex;
     gap:10px;
     padding:14px;
-    background:#ffffff;
-    border-top:1px solid #ececec;
+    background:white;
+    border-top:1px solid #e5e7eb;
   }
 
   .nd-input{
     flex:1;
     border:none;
     outline:none;
-    background:#f3f4f6;
+    background:#f1f5f9;
     border-radius:16px;
     padding:14px;
     font-size:13px;
+    color:#111827;
   }
 
   .nd-send{
@@ -195,12 +151,7 @@
     height:50px;
     border:none;
     border-radius:16px;
-    background:
-    linear-gradient(
-      135deg,
-      #8b5cf6,
-      #7c3aed
-    );
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
     color:white;
     cursor:pointer;
     font-size:16px;
@@ -212,13 +163,19 @@
     transform:translateY(-1px);
   }
 
+  .nd-send:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+    transform:none;
+  }
+
   .nd-footer{
     text-align:center;
     padding:8px;
     font-size:10px;
-    color:#6b7280;
+    color:#64748b;
     background:white;
-    border-top:1px solid #ececec;
+    border-top:1px solid #e5e7eb;
   }
 
   .nd-btn{
@@ -230,494 +187,284 @@
     border:none;
     border-radius:50%;
     cursor:pointer;
-
-    background:
-    linear-gradient(
-      135deg,
-      #8b5cf6,
-      #7c3aed
-    );
-
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
     display:flex;
     align-items:center;
     justify-content:center;
-
     z-index:999999;
-
-    box-shadow:
-    0 16px 45px rgba(139,92,246,.45);
-
+    box-shadow:0 16px 45px rgba(139,92,246,.45);
   }
 
   .nd-btn img{
-    width:34px;
-    height:34px;
+    width:38px;
+    height:38px;    
     object-fit:contain;
   }
 
-  ::-webkit-scrollbar{
-    width:8px;
-  }
-
-  ::-webkit-scrollbar-thumb{
-    background:#d1d5db;
-    border-radius:20px;
-  }
-
   @media(max-width:480px){
-
     .nd-chat{
       width:calc(100vw - 24px);
       right:12px;
       left:12px;
-      bottom:82px;
+      bottom:84px;
       height:74vh;
     }
-
   }
-
   `;
 
   document.head.appendChild(style);
 
-  // =========================
-  // HTML
-  // =========================
-
-  const wrapper =
-  document.createElement('div');
-
+  const wrapper = document.createElement('div');
+  wrapper.className = 'nd-widget';
   wrapper.innerHTML = `
-
   <div class="nd-chat" id="nd-chat">
-
     <div class="nd-header">
-
       <div class="nd-header-left">
-
-        <img
-          src="./nexadesk-logo.png"
-          class="nd-logo"
-        />
-
-        <div class="nd-header-info">
-
-          <div class="nd-title">
-            NexaDesk AI
-          </div>
-
-          <div class="nd-status">
-            Online now
-          </div>
-
+        <img src="${logoUrl}" class="nd-logo" alt="NexaDesk" />
+        <div>
+          <div class="nd-title">AI Assistant</div>
+          <div class="nd-status">Online now</div>
         </div>
-
       </div>
-
-      <div
-        class="nd-close"
-        id="nd-close"
-      >
-        ✕
-      </div>
-
+      <div class="nd-close" id="nd-close" aria-label="Close">x</div>
     </div>
 
-    <div
-      class="nd-messages"
-      id="nd-messages"
-    ></div>
+    <div class="nd-messages" id="nd-messages"></div>
 
     <div class="nd-input-wrap">
-
-      <input
-        id="nd-input"
-        class="nd-input"
-        placeholder="Type your message..."
-      />
-
-      <button
-        class="nd-send"
-        id="nd-send"
-      >
-        ➤
-      </button>
-
+      <input id="nd-input" class="nd-input" placeholder="Type your message..." />
+      <button class="nd-send" id="nd-send" aria-label="Send">Send</button>
     </div>
 
-    <div class="nd-footer">
-      Powered by NexaDesk
-    </div>
-
+    <div class="nd-footer">Powered by NexaDesk</div>
   </div>
 
-  <button
-    class="nd-btn"
-    id="nd-btn"
-  >
-
-    <img src="./nexadesk-logo.png" />
-
+  <button class="nd-btn" id="nd-btn" aria-label="Open chat">
+    <img src="${logoUrl}" alt="" />
   </button>
-
   `;
 
   document.body.appendChild(wrapper);
 
-  // =========================
-  // ELEMENTS
-  // =========================
-
-  const chat =
-  document.getElementById('nd-chat');
-
-  const btn =
-  document.getElementById('nd-btn');
-
-  const closeBtn =
-  document.getElementById('nd-close');
-
-  const input =
-  document.getElementById('nd-input');
-
-  const sendBtn =
-  document.getElementById('nd-send');
-
-  const messagesEl =
-  document.getElementById('nd-messages');
-
-  // =========================
-  // STATE
-  // =========================
+  const chat = document.getElementById('nd-chat');
+  const btn = document.getElementById('nd-btn');
+    const closeBtn = document.getElementById('nd-close');
+  const input = document.getElementById('nd-input');
+  const sendBtn = document.getElementById('nd-send');
+  const messagesEl = document.getElementById('nd-messages');
 
   let history = [];
-
   let conversationId = null;
+  let leadStep = null;
+  let leadSaved = false;
+  let lead = {
+    name: '',
+    email: '',
+    preferred_contact: '',
+    phone: ''
+  };
 
-  // =========================
-  // HELPERS
-  // =========================
-
-  function scrollBottom(){
-
+  function scrollBottom() {
     messagesEl.scrollTo({
-      top:messagesEl.scrollHeight,
-      behavior:'smooth'
+      top: messagesEl.scrollHeight,
+      behavior: 'smooth'
     });
-
   }
 
-  function addMessage(role,text){
+  function addMessage(role, text) {
+    history.push({ role, content: text });
 
-    history.push({
-      role,
-      content:text
-    });
-
-    const div =
-    document.createElement('div');
-
-    div.className =
-    `nd-msg ${
-      role === 'assistant'
-      ? 'bot'
-      : 'user'
-    }`;
-
-    div.textContent =
-    text;
+    const div = document.createElement('div');
+    div.className = `nd-msg ${role === 'assistant' ? 'bot' : 'user'}`;
+    div.textContent = text;
 
     messagesEl.appendChild(div);
+    scrollBottom();
+  }
 
+  function looksLikeBuyingIntent(text) {
+    return /\b(price|pricing|cost|quote|book|call|demo|hire|start|interested|contact|consultation|available|availability|buy|sign up)\b/i.test(text);
+  }
+
+  function isValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  function conversationSummary() {
+    return history
+      .map((message) => `${message.role === 'user' ? 'Visitor' : 'Assistant'}: ${message.content}`)
+      .join('\n\n')
+      .slice(0, 8000);
+  }
+
+  async function saveConversation() {
+    try {
+      const response = await fetch(`${apiBase}/api/save-conversation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: String(clientId),
+          conversation_id: conversationId,
+          messages: history
+        })
+      });
+
+      const data = await response.json();
+
+      if (data?.conversation?.id) {
+        conversationId = data.conversation.id;
+      }
+    } catch (error) {
+      console.error('NexaDesk conversation save failed:', error);
+    }
+  }
+
+  async function saveLead() {
+    if (leadSaved) return;
+
+    leadSaved = true;
+
+    try {
+      await fetch(`${apiBase}/api/save-lead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...lead,
+          client_id: Number(clientId),
+          message: conversationSummary()
+        })
+      });
+    } catch (error) {
+      leadSaved = false;
+      console.error('NexaDesk lead save failed:', error);
+    }
+  }
+
+  async function getAiReply() {
+    const typing = document.createElement('div');
+    typing.className = 'nd-msg bot';
+    typing.textContent = 'Typing...';
+    messagesEl.appendChild(typing);
     scrollBottom();
 
-  }
+    try {
+      const response = await fetch(`${apiBase}/api/widget`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId,
+          messages: history
+        })
+      });
 
-  // =========================
-  // SAVE CONVERSATION
-  // =========================
-
-  async function saveConversation(){
-
-    try{
-
-      if(!conversationId){
-
-        const response =
-        await fetch(
-
-          `${SUPABASE_URL}/rest/v1/Conversations`,
-
-          {
-            method:'POST',
-
-            headers:{
-              apikey:SUPABASE_KEY,
-
-              Authorization:
-              `Bearer ${SUPABASE_KEY}`,
-
-              'Content-Type':
-              'application/json',
-
-              Prefer:
-              'return=representation'
-            },
-
-            body:JSON.stringify({
-
-              client_id:
-              String(clientId),
-
-              messages:history
-
-            })
-
-          }
-
-        );
-
-        const data =
-        await response.json();
-
-        if(data && data[0]){
-
-          conversationId =
-          data[0].id;
-
-        }
-
-      }
-
-      else{
-
-        await fetch(
-
-          `${SUPABASE_URL}/rest/v1/Conversations?id=eq.${conversationId}`,
-
-          {
-            method:'PATCH',
-
-            headers:{
-              apikey:SUPABASE_KEY,
-
-              Authorization:
-              `Bearer ${SUPABASE_KEY}`,
-
-              'Content-Type':
-              'application/json'
-            },
-
-            body:JSON.stringify({
-              messages:history
-            })
-
-          }
-
-        );
-
-      }
-
-    }
-
-    catch(err){
-
-      console.error(err);
-
-    }
-
-  }
-
-  // =========================
-  // AI RESPONSE
-  // =========================
-
-  async function realAIReply(){
-
-    try{
-
-      const typing =
-      document.createElement('div');
-
-      typing.className =
-      'nd-msg bot';
-
-      typing.textContent =
-      'Typing...';
-
-      messagesEl.appendChild(
-        typing
-      );
-
-      scrollBottom();
-
-      const response =
-      await fetch(
-        '/api/chat',
-        {
-          method:'POST',
-
-          headers:{
-            'Content-Type':
-            'application/json'
-          },
-
-          body:JSON.stringify({
-
-            businessName:
-            'NexaDesk',
-
-            messages:history
-
-          })
-
-        }
-      );
-
-      const data =
-      await response.json();
-
+      const data = await response.json();
       typing.remove();
 
-      const aiReply =
-      data.reply ||
-      'Sorry, something went wrong.';
-
       addMessage(
         'assistant',
-        aiReply
+        data.reply || 'Sorry, I had trouble replying just now.'
       );
-
-      await saveConversation();
-
+    } catch (error) {
+      typing.remove();
+      console.error('NexaDesk AI failed:', error);
+      addMessage('assistant', 'Sorry, the assistant is temporarily unavailable.');
     }
-
-    catch(err){
-
-      console.error(err);
-
-      addMessage(
-        'assistant',
-        'AI is temporarily unavailable.'
-      );
-
-    }
-
   }
 
-  // =========================
-  // SEND
-  // =========================
+  async function handleLeadCapture(text) {
+    if (leadStep === 'name') {
+      lead.name = text;
+      leadStep = 'email';
+      addMessage('assistant', 'Thanks. What email address should the team use to contact you?');
+      return true;
+    }
 
-  async function sendMessage(){
+    if (leadStep === 'email') {
+      if (!isValidEmail(text)) {
+        addMessage('assistant', 'That email does not look quite right. Could you send it again?');
+        return true;
+      }
 
-    const text =
-    input.value.trim();
+      lead.email = text;
+      leadStep = 'preferred_contact';
+      addMessage('assistant', 'Great. Would you prefer email, phone, or WhatsApp?');
+      return true;
+    }
 
-    if(!text) return;
+    if (leadStep === 'preferred_contact') {
+      lead.preferred_contact = text;
+      leadStep = 'phone';
+      addMessage('assistant', 'Last thing: what phone number should they use if needed?');
+      return true;
+    }
 
-    addMessage(
-      'user',
-      text
-    );
+    if (leadStep === 'phone') {
+            lead.phone = text;
+      leadStep = null;
+      await saveLead();
+      addMessage('assistant', 'Perfect. I have passed your details to the team and they will follow up soon.');
+      return true;
+    }
+
+    return false;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
 
     input.value = '';
+    sendBtn.disabled = true;
+
+    addMessage('user', text);
+
+    const handledLeadStep = await handleLeadCapture(text);
+
+    if (!handledLeadStep) {
+      if (!leadSaved && !leadStep && looksLikeBuyingIntent(text)) {
+        await getAiReply();
+        leadStep = 'name';
+        addMessage('assistant', 'I can ask the team to follow up with you. What is your name?');
+      } else {
+        await getAiReply();
+      }
+    }
 
     await saveConversation();
-
-    await realAIReply();
-
+    sendBtn.disabled = false;
+    input.focus();
   }
 
-  // =========================
-  // EVENTS
-  // =========================
+  function openChat() {
+    chat.style.display = 'flex';
+    setTimeout(() => chat.classList.add('open'), 10);
+    input.focus();
+  }
 
-  btn.addEventListener(
-    'click',
-    ()=>{
+  function closeChat() {
+    chat.classList.remove('open');
+    setTimeout(() => {
+      chat.style.display = 'none';
+    }, 200);
+  }
 
-      if(
-        chat.style.display ===
-        'flex'
-      ){
-
-        chat.classList.remove(
-          'open'
-        );
-
-        setTimeout(()=>{
-
-          chat.style.display =
-          'none';
-
-        },200);
-
-      }
-
-      else{
-
-        chat.style.display =
-        'flex';
-
-        setTimeout(()=>{
-
-          chat.classList.add(
-            'open'
-          );
-
-        },10);
-
-      }
-
+  btn.addEventListener('click', () => {
+    if (chat.style.display === 'flex') {
+      closeChat();
+    } else {
+      openChat();
     }
-  );
+  });
 
-  closeBtn.addEventListener(
-    'click',
-    ()=>{
+  closeBtn.addEventListener('click', closeChat);
+  sendBtn.addEventListener('click', sendMessage);
 
-      chat.classList.remove(
-        'open'
-      );
-
-      setTimeout(()=>{
-
-        chat.style.display =
-        'none';
-
-      },200);
-
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      sendMessage();
     }
-  );
+  });
 
-  sendBtn.addEventListener(
-    'click',
-    sendMessage
-  );
-
-  input.addEventListener(
-    'keydown',
-    (e)=>{
-
-      if(e.key === 'Enter'){
-
-        sendMessage();
-
-      }
-
-    }
-  );
-
-  // =========================
-  // WELCOME
-  // =========================
-
-  addMessage(
-    'assistant',
-    '👋 Hey! Welcome to NexaDesk — how can I help you today?'
-  );
-
+  addMessage('assistant', 'Hi, how can I help you today?');
   await saveConversation();
-
 })();
