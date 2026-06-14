@@ -208,7 +208,10 @@ ${formatTime(convo.created_at)}
 
 <div class="text">
 
-${convo.message || 'No conversation'}
+${
+convo.messages?.[0]?.content
+|| 'No conversation'
+}
 
 </div>
 

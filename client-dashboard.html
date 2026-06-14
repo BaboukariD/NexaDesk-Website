@@ -481,7 +481,10 @@ convo.created_at
 
 <div class="conversation-text">
 
-${convo.message || 'No conversation'}
+${
+convo.messages?.[0]?.content
+|| 'No conversation'
+}
 
 </div>
 
