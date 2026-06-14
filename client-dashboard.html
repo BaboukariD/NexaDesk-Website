@@ -1,615 +1,511 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8" />
-
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
-/>
-
-<title>NexaDesk Dashboard</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NexaDesk — Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Inter,sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
 }
 
-body{
-background:#050816;
-color:white;
-min-height:100vh;
-padding:40px;
-overflow-x:hidden;
+body {
+  background: #050816;
+  color: white;
+  min-height: 100vh;
 }
 
-.loading{
-font-size:28px;
-color:#9ca3af;
+.app {
+  display: none;
+  min-height: 100vh;
 }
 
-.app{
-display:none;
-flex-direction:column;
-gap:24px;
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #6b7280;
+  font-size: 16px;
 }
 
-.topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-gap:20px;
-flex-wrap:wrap;
+/* ── SIDEBAR ── */
+
+.sidebar {
+  width: 240px;
+  background: #070b18;
+  border-right: 1px solid rgba(255,255,255,.05);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 16px;
+  z-index: 100;
 }
 
-.logo{
-font-size:32px;
-font-weight:800;
-background:linear-gradient(
-135deg,
-#fff,
-#8b5cf6
-);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
+.sidebar-logo {
+  margin-bottom: 36px;
+  padding: 0 8px;
 }
 
-.business-name{
-margin-top:8px;
-color:#9ca3af;
-font-size:15px;
+.sidebar-logo img {
+  width: 140px;
+  object-fit: contain;
 }
 
-.logout-btn{
-padding:12px 18px;
-border:none;
-border-radius:12px;
-background:#8b5cf6;
-color:white;
-font-weight:600;
-cursor:pointer;
-transition:.2s;
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all .18s;
 }
 
-.grid{
-display:grid;
-grid-template-columns:
-repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
+.nav-item:hover {
+  background: #0d1117;
+  color: white;
 }
 
-.card{
-background:#0d1117;
-border:1px solid rgba(255,255,255,.06);
-padding:24px;
-border-radius:20px;
+.nav-item.active {
+  background: rgba(139,92,246,.15);
+  color: #a78bfa;
 }
 
-.card-title{
-font-size:14px;
-color:#6b7280;
-margin-bottom:12px;
+.nav-icon { font-size: 16px; }
+
+.sidebar-bottom {
+  margin-top: auto;
 }
 
-.big{
-font-size:38px;
-font-weight:800;
+.logout-btn {
+  width: 100%;
+  padding: 13px 14px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all .18s;
 }
 
-.section{
-background:#0d1117;
-border-radius:20px;
-border:1px solid rgba(255,255,255,.06);
-overflow:hidden;
+.logout-btn:hover {
+  background: rgba(248,113,113,.1);
+  color: #f87171;
 }
 
-.section-header{
-padding:24px;
-font-size:22px;
-font-weight:700;
-border-bottom:1px solid rgba(255,255,255,.06);
+/* ── MAIN ── */
+
+.main {
+  margin-left: 240px;
+  padding: 40px;
+  min-height: 100vh;
 }
 
-.view-all{
-padding:0 24px 20px;
+.topbar {
+  margin-bottom: 32px;
 }
 
-.view-all a{
-color:#8b5cf6;
-text-decoration:none;
-font-size:14px;
-font-weight:600;
+.topbar-greeting {
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 6px;
 }
 
-.conversation-list{
-display:flex;
-flex-direction:column;
-gap:18px;
-padding:24px;
+.topbar-sub {
+  color: #6b7280;
+  font-size: 14px;
 }
 
-.conversation-card{
-background:#111827;
-padding:20px;
-border-radius:18px;
-border:1px solid rgba(255,255,255,.06);
+/* ── STAT CARDS ── */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
-.conversation-time{
-font-size:13px;
-color:#9ca3af;
-margin-bottom:12px;
+.stat-card {
+  background: #070b18;
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 20px;
+  padding: 24px;
+  transition: border-color .2s;
 }
 
-.conversation-text{
-white-space:pre-wrap;
-line-height:1.7;
-font-size:14px;
-color:white;
-max-height:120px;
-overflow:hidden;
+.stat-card:hover {
+  border-color: rgba(139,92,246,.3);
 }
 
-.table-wrap{
-margin-top:24px;
-background:#0d1117;
-border-radius:20px;
-overflow:auto;
-border:1px solid rgba(255,255,255,.06);
+.stat-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-min-width:700px;
+.stat-value {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
 }
 
-th,
-td{
-padding:18px;
-text-align:left;
-border-bottom:1px solid rgba(255,255,255,.05);
+.stat-value.purple { color: #a78bfa; }
+.stat-value.teal   { color: #34d399; }
+.stat-value.pink   { color: #f472b6; }
+
+/* ── SECTIONS ── */
+
+.section {
+  background: #070b18;
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 24px;
 }
 
-th{
-color:#9ca3af;
-font-size:14px;
+.section-head {
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-td{
-font-size:14px;
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.empty{
-padding:30px;
-text-align:center;
-color:#6b7280;
+.view-all {
+  color: #8b5cf6;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity .2s;
 }
 
-@media(max-width:700px){
+.view-all:hover { opacity: 0.7; }
 
-body{
-padding:20px;
+/* ── CONVERSATIONS ── */
+
+.convo-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.big{
-font-size:28px;
+.convo-card {
+  background: #0d1117;
+  border: 1px solid rgba(255,255,255,.04);
+  border-radius: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all .18s;
 }
 
-.logo{
-font-size:26px;
+.convo-card:hover {
+  border-color: rgba(139,92,246,.3);
+  transform: translateY(-1px);
 }
 
+.convo-meta {
+  font-size: 12px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.convo-preview {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.6;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ── LEADS TABLE ── */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+th, td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-size: 14px;
+}
+
+th {
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td { color: #e5e7eb; }
+
+tr:last-child td { border-bottom: none; }
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(139,92,246,.15);
+  color: #a78bfa;
+}
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 20px; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 20px; }
+  .stat-value { font-size: 28px; }
 }
 
 </style>
-
 </head>
-
 <body>
 
-<div
-class="loading"
-id="loading"
->
-Loading dashboard...
-</div>
+<div class="loading" id="loading">Loading your dashboard...</div>
 
-<div
-class="app"
-id="app"
->
+<div class="app" id="app">
 
-<div class="topbar">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
 
-<div>
+    <div class="sidebar-logo">
+      <img src="./nexadesk-logo.png" alt="NexaDesk" />
+    </div>
 
-<div class="logo">
-  <img
-    src="./nexadesk-logo.png"
-    alt="NexaDesk"
-    style="
-      width:220px;
-      max-width:100%;
-      object-fit:contain;
-    "
-  />
-</div>
+    <a class="nav-item active" href="/client-dashboard.html">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+    <a class="nav-item" href="/client-conversations.html">
+      <span class="nav-icon">💬</span> Conversations
+    </a>
 
-<div
-class="business-name"
-id="businessName"
->
-Loading...
-</div>
+    <div class="sidebar-bottom">
+      <div style="padding:12px 14px;margin-bottom:8px">
+        <div style="font-size:12px;color:#4b5563;margin-bottom:4px">Logged in as</div>
+        <div style="font-size:13px;font-weight:600;color:#9ca3af;word-break:break-all" id="userEmailSidebar">—</div>
+      </div>
+      <button class="logout-btn" id="logoutBtn">
+        <span>🚪</span> Logout
+      </button>
+    </div>
 
-</div>
+  </div>
 
-<button
-class="logout-btn"
-id="logoutBtn"
->
-Logout
-</button>
+  <!-- MAIN -->
+  <div class="main">
 
-</div>
+    <div class="topbar">
+      <div class="topbar-greeting">Welcome back, <span id="businessName">—</span> 👋</div>
+      <div class="topbar-sub">Here's what's happening with your AI assistant today.</div>
+    </div>
 
-<div class="grid">
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">💬 Total Conversations</div>
+        <div class="stat-value purple" id="statConvos">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🎯 Total Leads</div>
+        <div class="stat-value teal" id="statLeads">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">📅 Leads This Week</div>
+        <div class="stat-value pink" id="statWeek">—</div>
+      </div>
+    </div>
 
-<div class="card">
+    <!-- RECENT CONVERSATIONS -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Recent Conversations</div>
+        <a href="/client-conversations.html" class="view-all">View all →</a>
+      </div>
+      <div class="convo-list" id="convoList">
+        <div class="empty">No conversations yet.</div>
+      </div>
+    </div>
 
-<div class="card-title">
-Total Leads
-</div>
+    <!-- LEADS -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Recent Leads</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Contact Method</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTable"></tbody>
+        </table>
+        <div class="empty" id="emptyLeads" style="display:none">No leads captured yet.</div>
+      </div>
+    </div>
 
-<div
-class="big"
-id="leadCount"
->
-0
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="card-title">
-Recent Conversations
-</div>
-
-<div
-class="big"
-id="conversationCount"
->
-0
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="card-title">
-Logged in as
-</div>
-
-<div
-style="
-font-size:16px;
-font-weight:600;
-margin-top:10px;
-word-break:break-word;
-"
-id="userEmail"
->
--
-</div>
-
-</div>
-
-</div>
-
-<!-- RECENT CONVERSATIONS -->
-
-<div class="section">
-
-<div class="section-header">
-Recent Conversations
-</div>
-
-<div class="view-all">
-
-<a href="/client-conversations.html">
-View All Conversations →
-</a>
-
-</div>
-
-<div
-class="conversation-list"
-id="conversationList"
->
-</div>
-
-</div>
-
-<!-- LEADS -->
-
-<div class="table-wrap">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Name</th>
-<th>Email</th>
-<th>Phone</th>
-<th>Contact Method</th>
-
-</tr>
-
-</thead>
-
-<tbody id="leadsTable">
-
-</tbody>
-
-</table>
-
-<div
-class="empty"
-id="emptyState"
-style="display:none;"
->
-No leads yet.
-</div>
-
-</div>
+  </div>
 
 </div>
 
 <script>
+const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const SUPABASE_URL =
-'https://exqdmvloldvshzpxevht.supabase.co';
+async function load() {
+  // Auth check
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/client-login.html'; return; }
 
-const SUPABASE_ANON_KEY =
-'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+  const user = session.user;
+  document.getElementById('userEmailSidebar').textContent = user.email;
 
-const sb =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_ANON_KEY
-);
+  // Get client info
+  const { data: client } = await sb
+    .from('Clients')
+    .select('*')
+    .eq('contact_email', user.email)
+    .maybeSingle();
 
-async function loadDashboard(){
+  if (!client) {
+    document.getElementById('loading').textContent = 'Client account not found. Please contact support.';
+    return;
+  }
 
-try{
+  document.getElementById('businessName').textContent = client.business_name || 'there';
 
-const {
-data:{ session }
-} = await sb.auth.getSession();
+  // Conversations
+  const { data: convos } = await sb
+    .from('Conversations')
+    .select('*')
+    .eq('client_id', String(client.id))
+    .order('created_at', { ascending: false });
 
-if(!session){
+  document.getElementById('statConvos').textContent = convos?.length || 0;
 
-window.location.href =
-'/client-login.html';
+  const convoList = document.getElementById('convoList');
+  convoList.innerHTML = '';
 
-return;
+  if (convos && convos.length) {
+    convos.slice(0, 5).forEach(c => {
+      const preview = Array.isArray(c.messages) && c.messages.length
+        ? (c.messages.find(m => m.role === 'user')?.content || c.messages[0]?.content || 'Empty')
+        : 'No messages';
 
+      const time = new Date(c.created_at).toLocaleString('en-GB', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      });
+
+      convoList.innerHTML += `
+        <div class="convo-card" onclick="window.location.href='/client-conversations.html'">
+          <div class="convo-meta">${time}</div>
+          <div class="convo-preview">${preview}</div>
+        </div>
+      `;
+    });
+  } else {
+    convoList.innerHTML = '<div class="empty">No conversations yet.</div>';
+  }
+
+  // Leads
+  const { data: leads } = await sb
+    .from('Leads')
+    .select('*')
+    .eq('client_id', client.id)
+    .order('created_at', { ascending: false });
+
+  const now     = new Date();
+  const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+  const weekCount = leads ? leads.filter(l => new Date(l.created_at) >= weekAgo).length : 0;
+
+  document.getElementById('statLeads').textContent = leads?.length || 0;
+  document.getElementById('statWeek').textContent  = weekCount;
+
+  const table = document.getElementById('leadsTable');
+  table.innerHTML = '';
+
+  if (leads && leads.length) {
+    leads.forEach(lead => {
+      const date = new Date(lead.created_at).toLocaleDateString('en-GB');
+      table.innerHTML += `
+        <tr>
+          <td>${lead.name || '—'}</td>
+          <td>${lead.email || '—'}</td>
+          <td>${lead.phone || '—'}</td>
+          <td><span class="badge">${lead.preferred_contact || '—'}</span></td>
+          <td>${date}</td>
+        </tr>
+      `;
+    });
+  } else {
+    document.getElementById('emptyLeads').style.display = 'block';
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
 }
 
-const user =
-session.user;
-
-document.getElementById(
-'userEmail'
-).textContent =
-user.email;
-
-const {
-data:client
-} = await sb
-.from('Clients')
-.select('*')
-.eq(
-'contact_email',
-user.email
-)
-.maybeSingle();
-
-if(client){
-
-document.getElementById(
-'businessName'
-).textContent =
-client.business_name || 'NexaDesk Client';
-
-}
-
-// CONVERSATIONS
-
-const {
-data:conversations
-} = await sb
-.from('Conversations')
-.select('*')
-.eq(
-'client_id',
-client.id
-)
-.order(
-'created_at',
-{ ascending:false }
-)
-.limit(3);
-
-document.getElementById(
-'conversationCount'
-).textContent =
-conversations
-? conversations.length
-: 0;
-
-const conversationList =
-document.getElementById(
-'conversationList'
-);
-
-conversationList.innerHTML = '';
-
-if(
-conversations &&
-conversations.length
-){
-
-for(const convo of conversations){
-
-conversationList.innerHTML += `
-
-<div class="conversation-card">
-
-<div class="conversation-time">
-
-${new Date(
-convo.created_at
-).toLocaleString('en-GB')}
-
-</div>
-
-<div class="conversation-text">
-
-${
-convo.messages?.[0]?.content
-|| 'No conversation'
-}
-
-</div>
-
-</div>
-
-`;
-
-}
-
-}else{
-
-conversationList.innerHTML = `
-
-<div class="empty">
-No conversations yet.
-</div>
-
-`;
-
-}
-
-// LEADS
-
-const {
-data:leads
-} = await sb
-.from('Leads')
-.select('*')
-.eq(
-'client_id',
-client.id
-)
-.order(
-'created_at',
-{ ascending:false }
-);
-
-document.getElementById(
-'leadCount'
-).textContent =
-leads
-? leads.length
-: 0;
-
-const table =
-document.getElementById(
-'leadsTable'
-);
-
-table.innerHTML = '';
-
-if(leads && leads.length){
-
-for(const lead of leads){
-
-table.innerHTML += `
-
-<tr>
-
-<td>${lead.name || '-'}</td>
-
-<td>${lead.email || '-'}</td>
-
-<td>${lead.phone || '-'}</td>
-
-<td>${lead.preferred_contact || '-'}</td>
-
-</tr>
-
-`;
-
-}
-
-}else{
-
-document.getElementById(
-'emptyState'
-).style.display =
-'block';
-
-}
-
-document.getElementById(
-'loading'
-).style.display =
-'none';
-
-document.getElementById(
-'app'
-).style.display =
-'flex';
-
-}catch(err){
-
-console.error(err);
-
-alert(err.message);
-
-}
-
-}
-
-document.getElementById(
-'logoutBtn'
-).onclick = async ()=>{
-
-await sb.auth.signOut();
-
-window.location.href =
-'/client-login.html';
-
+document.getElementById('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  window.location.href = '/client-login.html';
 };
 
-loadDashboard();
-
+load();
 </script>
 
 </body>
-
 </html>
