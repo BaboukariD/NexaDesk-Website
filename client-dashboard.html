@@ -109,8 +109,49 @@ font-size:38px;
 font-weight:800;
 }
 
+.section{
+background:#0d1117;
+border-radius:20px;
+border:1px solid rgba(255,255,255,.06);
+overflow:hidden;
+}
+
+.section-header{
+padding:24px;
+font-size:22px;
+font-weight:700;
+border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.conversation-list{
+display:flex;
+flex-direction:column;
+gap:18px;
+padding:24px;
+}
+
+.conversation-card{
+background:#111827;
+padding:20px;
+border-radius:18px;
+border:1px solid rgba(255,255,255,.06);
+}
+
+.conversation-time{
+font-size:13px;
+color:#9ca3af;
+margin-bottom:12px;
+}
+
+.conversation-text{
+white-space:pre-wrap;
+line-height:1.7;
+font-size:14px;
+color:white;
+}
+
 .table-wrap{
-margin-top:20px;
+margin-top:24px;
 background:#0d1117;
 border-radius:20px;
 overflow:auto;
@@ -143,7 +184,6 @@ font-size:14px;
 padding:30px;
 text-align:center;
 color:#6b7280;
-display:none;
 }
 
 @media(max-width:700px){
@@ -260,6 +300,24 @@ id="userEmail"
 
 </div>
 
+<!-- CONVERSATIONS -->
+
+<div class="section">
+
+<div class="section-header">
+Recent Conversations
+</div>
+
+<div
+class="conversation-list"
+id="conversationList"
+>
+</div>
+
+</div>
+
+<!-- LEADS TABLE -->
+
 <div class="table-wrap">
 
 <table>
@@ -286,6 +344,7 @@ id="userEmail"
 <div
 class="empty"
 id="emptyState"
+style="display:none;"
 >
 No leads yet.
 </div>
@@ -340,7 +399,6 @@ document.getElementById(
 ).textContent =
 user.email;
 
-// LOAD CLIENT
 const {
 data:client,
 error:clientError
@@ -368,7 +426,89 @@ client.business_name || 'NexaDesk Client';
 
 }
 
+// LOAD CONVERSATIONS
+
+const {
+data:conversations,
+error:conversationError
+} = await sb
+.from('Conversations')
+.select('*')
+.eq(
+'client_id',
+client.id
+)
+.order(
+'created_at',
+{ ascending:false }
+)
+.limit(10);
+
+if(conversationError){
+
+throw conversationError;
+
+}
+
+document.getElementById(
+'conversationCount'
+).textContent =
+conversations
+? conversations.length
+: 0;
+
+const conversationList =
+document.getElementById(
+'conversationList'
+);
+
+conversationList.innerHTML = '';
+
+if(
+conversations &&
+conversations.length
+){
+
+for(const convo of conversations){
+
+conversationList.innerHTML += `
+
+<div class="conversation-card">
+
+<div class="conversation-time">
+
+${new Date(
+convo.created_at
+).toLocaleString()}
+
+</div>
+
+<div class="conversation-text">
+
+${convo.message || 'No conversation'}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+}else{
+
+conversationList.innerHTML = `
+
+<div class="empty">
+No conversations yet.
+</div>
+
+`;
+
+}
+
 // LOAD LEADS
+
 const {
 data:leads,
 error:leadError
@@ -392,13 +532,6 @@ throw leadError;
 
 document.getElementById(
 'leadCount'
-).textContent =
-leads
-? leads.length
-: 0;
-
-document.getElementById(
-'conversationCount'
 ).textContent =
 leads
 ? leads.length
@@ -466,6 +599,7 @@ err.message
 }
 
 // LOGOUT
+
 document.getElementById(
 'logoutBtn'
 ).onclick = async ()=>{
