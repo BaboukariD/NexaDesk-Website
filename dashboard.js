@@ -301,7 +301,7 @@ async function loadLeads() {
 // =========================
 
 const enteredPassword = sessionStorage.getItem('nd_auth');
-if (enteredPassword === "YourPasswordHere") {
+if (enteredPassword === "PasswordBabusabi123!") {
   loadLeads();
 } else {
   document.body.style.visibility = 'visible';
