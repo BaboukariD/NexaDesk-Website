@@ -314,9 +314,10 @@ data:client
 'contact_email',
 user.email
 )
-.single();
+.maybeSingle();
 
 if(client){
+    console.log(client);
 
 document.getElementById(
 'businessName'
@@ -404,8 +405,7 @@ document.getElementById(
 
 console.error(err);
 
-window.location.href =
-'/client-login.html';
+alert(err.message);
 
 }
 
