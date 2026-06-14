@@ -10,7 +10,7 @@ name="viewport"
 content="width=device-width, initial-scale=1.0"
 />
 
-<title>NexaDesk Conversations</title>
+<title>NexaDesk Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -28,15 +28,27 @@ background:#050816;
 color:white;
 min-height:100vh;
 padding:40px;
+overflow-x:hidden;
+}
+
+.loading{
+font-size:28px;
+color:#9ca3af;
+}
+
+.app{
+display:none;
+flex-direction:column;
+gap:24px;
 }
 
 .topbar{
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:30px;
-flex-wrap:wrap;
+margin-bottom:20px;
 gap:20px;
+flex-wrap:wrap;
 }
 
 .logo{
@@ -51,56 +63,152 @@ background:linear-gradient(
 -webkit-text-fill-color:transparent;
 }
 
-.back{
-color:#8b5cf6;
-text-decoration:none;
-font-weight:600;
-}
-
-.search{
-width:100%;
-padding:16px;
-background:#111827;
-border:none;
-border-radius:16px;
-color:white;
+.business-name{
+margin-top:8px;
+color:#9ca3af;
 font-size:15px;
-margin-bottom:24px;
-outline:none;
 }
 
-.conversations{
-display:flex;
-flex-direction:column;
-gap:18px;
-height:75vh;
-overflow-y:auto;
-padding-right:6px;
+.logout-btn{
+padding:12px 18px;
+border:none;
+border-radius:12px;
+background:#8b5cf6;
+color:white;
+font-weight:600;
+cursor:pointer;
+transition:.2s;
+}
+
+.grid{
+display:grid;
+grid-template-columns:
+repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
 }
 
 .card{
-background:#111827;
-padding:22px;
+background:#0d1117;
+border:1px solid rgba(255,255,255,.06);
+padding:24px;
 border-radius:20px;
+}
+
+.card-title{
+font-size:14px;
+color:#6b7280;
+margin-bottom:12px;
+}
+
+.big{
+font-size:38px;
+font-weight:800;
+}
+
+.section{
+background:#0d1117;
+border-radius:20px;
+border:1px solid rgba(255,255,255,.06);
+overflow:hidden;
+}
+
+.section-header{
+padding:24px;
+font-size:22px;
+font-weight:700;
+border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.view-all{
+padding:0 24px 20px;
+}
+
+.view-all a{
+color:#8b5cf6;
+text-decoration:none;
+font-size:14px;
+font-weight:600;
+}
+
+.conversation-list{
+display:flex;
+flex-direction:column;
+gap:18px;
+padding:24px;
+}
+
+.conversation-card{
+background:#111827;
+padding:20px;
+border-radius:18px;
 border:1px solid rgba(255,255,255,.06);
 }
 
-.time{
+.conversation-time{
 font-size:13px;
 color:#9ca3af;
-margin-bottom:14px;
+margin-bottom:12px;
 }
 
-.text{
+.conversation-text{
 white-space:pre-wrap;
 line-height:1.7;
+font-size:14px;
+color:white;
+max-height:120px;
+overflow:hidden;
+}
+
+.table-wrap{
+margin-top:24px;
+background:#0d1117;
+border-radius:20px;
+overflow:auto;
+border:1px solid rgba(255,255,255,.06);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+min-width:700px;
+}
+
+th,
+td{
+padding:18px;
+text-align:left;
+border-bottom:1px solid rgba(255,255,255,.05);
+}
+
+th{
+color:#9ca3af;
+font-size:14px;
+}
+
+td{
 font-size:14px;
 }
 
 .empty{
+padding:30px;
 text-align:center;
-padding:40px;
 color:#6b7280;
+}
+
+@media(max-width:700px){
+
+body{
+padding:20px;
+}
+
+.big{
+font-size:28px;
+}
+
+.logo{
+font-size:26px;
+}
+
 }
 
 </style>
@@ -109,32 +217,157 @@ color:#6b7280;
 
 <body>
 
+<div
+class="loading"
+id="loading"
+>
+Loading dashboard...
+</div>
+
+<div
+class="app"
+id="app"
+>
+
 <div class="topbar">
+
+<div>
 
 <div class="logo">
 NexaDesk
 </div>
 
-<a
-href="/client-dashboard.html"
-class="back"
+<div
+class="business-name"
+id="businessName"
 >
-← Back to Dashboard
+Loading...
+</div>
+
+</div>
+
+<button
+class="logout-btn"
+id="logoutBtn"
+>
+Logout
+</button>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+
+<div class="card-title">
+Total Leads
+</div>
+
+<div
+class="big"
+id="leadCount"
+>
+0
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="card-title">
+Recent Conversations
+</div>
+
+<div
+class="big"
+id="conversationCount"
+>
+0
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="card-title">
+Logged in as
+</div>
+
+<div
+style="
+font-size:16px;
+font-weight:600;
+margin-top:10px;
+word-break:break-word;
+"
+id="userEmail"
+>
+-
+</div>
+
+</div>
+
+</div>
+
+<!-- RECENT CONVERSATIONS -->
+
+<div class="section">
+
+<div class="section-header">
+Recent Conversations
+</div>
+
+<div class="view-all">
+
+<a href="/client-conversations.html">
+View All Conversations →
 </a>
 
 </div>
 
-<input
-type="text"
-id="searchInput"
-class="search"
-placeholder="Search conversations..."
-/>
-
 <div
-class="conversations"
+class="conversation-list"
 id="conversationList"
 >
+</div>
+
+</div>
+
+<!-- LEADS -->
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Contact Method</th>
+
+</tr>
+
+</thead>
+
+<tbody id="leadsTable">
+
+</tbody>
+
+</table>
+
+<div
+class="empty"
+id="emptyState"
+style="display:none;"
+>
+No leads yet.
+</div>
+
+</div>
+
 </div>
 
 <script>
@@ -151,76 +384,9 @@ SUPABASE_URL,
 SUPABASE_ANON_KEY
 );
 
-let allConversations = [];
+async function loadDashboard(){
 
-function formatTime(dateString){
-
-const date =
-new Date(dateString);
-
-return date.toLocaleString(
-'en-GB',
-{
-day:'numeric',
-month:'short',
-year:'numeric',
-hour:'2-digit',
-minute:'2-digit'
-}
-);
-
-}
-
-function renderConversations(items){
-
-const list =
-document.getElementById(
-'conversationList'
-);
-
-list.innerHTML = '';
-
-if(!items.length){
-
-list.innerHTML = `
-
-<div class="empty">
-No conversations found.
-</div>
-
-`;
-
-return;
-
-}
-
-for(const convo of items){
-
-list.innerHTML += `
-
-<div class="card">
-
-<div class="time">
-
-${formatTime(convo.created_at)}
-
-</div>
-
-<div class="text">
-
-${convo.message || 'No conversation'}
-
-</div>
-
-</div>
-
-`;
-
-}
-
-}
-
-async function loadConversations(){
+try{
 
 const {
 data:{ session }
@@ -238,6 +404,11 @@ return;
 const user =
 session.user;
 
+document.getElementById(
+'userEmail'
+).textContent =
+user.email;
+
 const {
 data:client
 } = await sb
@@ -249,11 +420,16 @@ user.email
 )
 .maybeSingle();
 
-if(!client){
+if(client){
 
-return;
+document.getElementById(
+'businessName'
+).textContent =
+client.business_name || 'NexaDesk Client';
 
 }
+
+// CONVERSATIONS
 
 const {
 data:conversations
@@ -267,45 +443,159 @@ client.id
 .order(
 'created_at',
 { ascending:false }
+)
+.limit(3);
+
+document.getElementById(
+'conversationCount'
+).textContent =
+conversations
+? conversations.length
+: 0;
+
+const conversationList =
+document.getElementById(
+'conversationList'
 );
 
-allConversations =
-conversations || [];
+conversationList.innerHTML = '';
 
-renderConversations(
-allConversations
+if(
+conversations &&
+conversations.length
+){
+
+for(const convo of conversations){
+
+conversationList.innerHTML += `
+
+<div class="conversation-card">
+
+<div class="conversation-time">
+
+${new Date(
+convo.created_at
+).toLocaleString('en-GB')}
+
+</div>
+
+<div class="conversation-text">
+
+${convo.message || 'No conversation'}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+}else{
+
+conversationList.innerHTML = `
+
+<div class="empty">
+No conversations yet.
+</div>
+
+`;
+
+}
+
+// LEADS
+
+const {
+data:leads
+} = await sb
+.from('Leads')
+.select('*')
+.eq(
+'client_id',
+client.id
+)
+.order(
+'created_at',
+{ ascending:false }
 );
+
+document.getElementById(
+'leadCount'
+).textContent =
+leads
+? leads.length
+: 0;
+
+const table =
+document.getElementById(
+'leadsTable'
+);
+
+table.innerHTML = '';
+
+if(leads && leads.length){
+
+for(const lead of leads){
+
+table.innerHTML += `
+
+<tr>
+
+<td>${lead.name || '-'}</td>
+
+<td>${lead.email || '-'}</td>
+
+<td>${lead.phone || '-'}</td>
+
+<td>${lead.preferred_contact || '-'}</td>
+
+</tr>
+
+`;
+
+}
+
+}else{
+
+document.getElementById(
+'emptyState'
+).style.display =
+'block';
 
 }
 
 document.getElementById(
-'searchInput'
-).addEventListener(
-'input',
-(e)=>{
+'loading'
+).style.display =
+'none';
 
-const query =
-e.target.value
-.toLowerCase();
+document.getElementById(
+'app'
+).style.display =
+'flex';
 
-const filtered =
-allConversations.filter(
-c =>
+}catch(err){
 
-(c.message || '')
-.toLowerCase()
-.includes(query)
+console.error(err);
 
-);
-
-renderConversations(
-filtered
-);
+alert(err.message);
 
 }
-);
 
-loadConversations();
+}
+
+document.getElementById(
+'logoutBtn'
+).onclick = async ()=>{
+
+await sb.auth.signOut();
+
+window.location.href =
+'/client-login.html';
+
+};
+
+loadDashboard();
 
 </script>
 
