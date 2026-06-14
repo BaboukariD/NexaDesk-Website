@@ -56,7 +56,7 @@ body {
 }
 
 .sidebar-logo img {
-  width: 140px;
+  width: 110px;
   object-fit: contain;
 }
 
@@ -414,11 +414,23 @@ async function load() {
   const user = session.user;
   document.getElementById('userEmailSidebar').textContent = user.email;
 
-  // Get client info
+  // Get client via ClientUsers table
+  const { data: clientUser } = await sb
+    .from('ClientUsers')
+    .select('client_id')
+    .eq('auth_user_id', user.id)
+    .maybeSingle();
+
+  if (!clientUser) {
+    document.getElementById('loading').textContent = 'Client account not found. Please contact support.';
+    return;
+  }
+
+  // Get full client info
   const { data: client } = await sb
     .from('Clients')
     .select('*')
-    .eq('contact_email', user.email)
+    .eq('id', clientUser.client_id)
     .maybeSingle();
 
   if (!client) {
