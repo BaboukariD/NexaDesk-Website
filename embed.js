@@ -40,15 +40,15 @@
     position:fixed;
     bottom:90px;
     right:24px;
-    width:360px;
-    height:600px;
+    width:380px;
+    height:640px;
     background:#f5f5f5;
-    border-radius:28px;
+    border-radius:30px;
     overflow:hidden;
     display:none;
     flex-direction:column;
     z-index:999999;
-    box-shadow:0 24px 70px rgba(0,0,0,.25);
+    box-shadow:0 28px 80px rgba(0,0,0,.28);
     opacity:0;
     transform:translateY(15px);
     transition:all .22s ease;
@@ -60,38 +60,65 @@
   }
 
   .nd-header{
+
     background:
     linear-gradient(
       135deg,
-      #8b5cf6,
-      #7c3aed
+      #0b1020,
+      #111827
     );
+
     color:white;
+
     padding:18px;
+
     display:flex;
-    justify-content:space-between;
     align-items:center;
+    justify-content:space-between;
+
+    border-bottom:
+    1px solid rgba(255,255,255,.06);
+
   }
 
   .nd-header-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+
+  .nd-logo{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    object-fit:cover;
+  }
+
+  .nd-header-info{
     display:flex;
     flex-direction:column;
   }
 
   .nd-title{
-    font-size:16px;
+    font-size:15px;
     font-weight:700;
   }
 
   .nd-status{
     font-size:12px;
-    opacity:.8;
-    margin-top:4px;
+    color:#9ca3af;
+    margin-top:3px;
   }
 
   .nd-close{
     cursor:pointer;
     font-size:22px;
+    opacity:.7;
+    transition:.2s;
+  }
+
+  .nd-close:hover{
+    opacity:1;
   }
 
   .nd-messages{
@@ -106,8 +133,8 @@
 
   .nd-msg{
     max-width:82%;
-    padding:13px 15px;
-    border-radius:18px;
+    padding:14px 16px;
+    border-radius:20px;
     line-height:1.65;
     font-size:13px;
     white-space:pre-wrap;
@@ -127,7 +154,12 @@
 
   .nd-msg.user{
     align-self:flex-end;
-    background:#8b5cf6;
+    background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #7c3aed
+    );
     color:white;
     border-bottom-right-radius:6px;
   }
@@ -144,27 +176,31 @@
     display:flex;
     gap:10px;
     padding:14px;
-    background:#f5f5f5;
-    border-top:1px solid #e5e7eb;
+    background:#ffffff;
+    border-top:1px solid #ececec;
   }
 
   .nd-input{
     flex:1;
     border:none;
     outline:none;
-    background:white;
+    background:#f3f4f6;
     border-radius:16px;
-    padding:13px;
+    padding:14px;
     font-size:13px;
-    border:1px solid #e5e7eb;
   }
 
   .nd-send{
-    width:48px;
-    height:48px;
+    width:50px;
+    height:50px;
     border:none;
     border-radius:16px;
-    background:#8b5cf6;
+    background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #7c3aed
+    );
     color:white;
     cursor:pointer;
     font-size:16px;
@@ -181,37 +217,42 @@
     padding:8px;
     font-size:10px;
     color:#6b7280;
-    background:#f5f5f5;
-    border-top:1px solid #e5e7eb;
+    background:white;
+    border-top:1px solid #ececec;
   }
 
   .nd-btn{
     position:fixed;
     bottom:24px;
     right:24px;
-    width:66px;
-    height:66px;
+    width:68px;
+    height:68px;
     border:none;
     border-radius:50%;
     cursor:pointer;
+
     background:
     linear-gradient(
       135deg,
       #8b5cf6,
       #7c3aed
     );
+
     display:flex;
     align-items:center;
     justify-content:center;
+
     z-index:999999;
+
     box-shadow:
-    0 14px 40px rgba(139,92,246,.42);
+    0 16px 45px rgba(139,92,246,.45);
+
   }
 
-  .nd-btn svg{
-    width:30px;
-    height:30px;
-    fill:white;
+  .nd-btn img{
+    width:34px;
+    height:34px;
+    object-fit:contain;
   }
 
   ::-webkit-scrollbar{
@@ -230,7 +271,7 @@
       right:12px;
       left:12px;
       bottom:82px;
-      height:72vh;
+      height:74vh;
     }
 
   }
@@ -254,12 +295,21 @@
 
       <div class="nd-header-left">
 
-        <div class="nd-title">
-          NexaDesk Assistant
-        </div>
+        <img
+          src="/nexadesk-logo.png"
+          class="nd-logo"
+        />
 
-        <div class="nd-status">
-          Online now
+        <div class="nd-header-info">
+
+          <div class="nd-title">
+            NexaDesk AI
+          </div>
+
+          <div class="nd-status">
+            Online now
+          </div>
+
         </div>
 
       </div>
@@ -276,8 +326,7 @@
     <div
       class="nd-messages"
       id="nd-messages"
-    >
-    </div>
+    ></div>
 
     <div class="nd-input-wrap">
 
@@ -307,9 +356,7 @@
     id="nd-btn"
   >
 
-    <svg viewBox="0 0 24 24">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
+    <img src="/nexadesk-logo.png" />
 
   </button>
 
@@ -394,8 +441,6 @@
 
     try{
 
-      // CREATE NEW
-
       if(!conversationId){
 
         const response =
@@ -444,8 +489,6 @@
 
       }
 
-      // UPDATE EXISTING
-
       else{
 
         await fetch(
@@ -486,7 +529,7 @@
   }
 
   // =========================
-  // REAL AI
+  // AI RESPONSE
   // =========================
 
   async function realAIReply(){
@@ -507,10 +550,6 @@
       );
 
       scrollBottom();
-
-      // =====================
-      // CALL API
-      // =====================
 
       const response =
       await fetch(
