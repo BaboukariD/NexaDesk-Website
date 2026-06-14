@@ -28,6 +28,7 @@ background:#050816;
 color:white;
 min-height:100vh;
 padding:40px;
+overflow:hidden;
 }
 
 .topbar{
@@ -69,6 +70,10 @@ margin-bottom:24px;
 outline:none;
 }
 
+.search::placeholder{
+color:#6b7280;
+}
+
 .conversations{
 display:flex;
 flex-direction:column;
@@ -93,14 +98,41 @@ margin-bottom:14px;
 
 .text{
 white-space:pre-wrap;
-line-height:1.7;
+line-height:1.8;
 font-size:14px;
+color:white;
 }
 
 .empty{
 text-align:center;
 padding:40px;
 color:#6b7280;
+}
+
+::-webkit-scrollbar{
+width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+background:#2b3340;
+border-radius:20px;
+}
+
+@media(max-width:700px){
+
+body{
+padding:20px;
+overflow:auto;
+}
+
+.logo{
+font-size:26px;
+}
+
+.conversations{
+height:70vh;
+}
+
 }
 
 </style>
@@ -171,6 +203,22 @@ minute:'2-digit'
 
 }
 
+function getConversationText(messages){
+
+if(!messages) return 'No conversation';
+
+if(Array.isArray(messages)){
+
+return messages
+.map(m => m.content || '')
+.join(' ');
+
+}
+
+return 'No conversation';
+
+}
+
 function renderConversations(items){
 
 const list =
@@ -208,10 +256,7 @@ ${formatTime(convo.created_at)}
 
 <div class="text">
 
-${
-convo.messages?.[0]?.content
-|| 'No conversation'
-}
+${getConversationText(convo.messages)}
 
 </div>
 
@@ -259,18 +304,29 @@ return;
 }
 
 const {
-data:conversations
+data:conversations,
+error
 } = await sb
 .from('Conversations')
 .select('*')
 .eq(
 'client_id',
-client.id
+String(client.id)
 )
 .order(
 'created_at',
 { ascending:false }
 );
+
+console.log(conversations);
+
+if(error){
+
+console.error(error);
+
+return;
+
+}
 
 allConversations =
 conversations || [];
@@ -292,14 +348,15 @@ e.target.value
 .toLowerCase();
 
 const filtered =
-allConversations.filter(
-c =>
+allConversations.filter(c => {
 
-(c.message || '')
-.toLowerCase()
-.includes(query)
+const text =
+JSON.stringify(c.messages || [])
+.toLowerCase();
 
-);
+return text.includes(query);
+
+});
 
 renderConversations(
 filtered
