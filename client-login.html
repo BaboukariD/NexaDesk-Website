@@ -34,11 +34,12 @@ color:white;
 }
 
 .bg{
-position:absolute;
+position:fixed;
 inset:0;
 background:
-radial-gradient(circle at top,#7c3aed22,transparent 40%),
-radial-gradient(circle at bottom,#8b5cf622,transparent 40%);
+radial-gradient(circle at 20% 20%, #7c3aed22, transparent 50%),
+radial-gradient(circle at 80% 80%, #8b5cf622, transparent 50%);
+pointer-events:none;
 }
 
 .card{
@@ -70,7 +71,7 @@ margin-bottom:34px;
 .tabs{
 display:flex;
 gap:10px;
-margin-bottom:24px;
+margin-bottom:26px;
 background:#0f172a;
 padding:6px;
 border-radius:20px;
@@ -83,10 +84,14 @@ border:none;
 border-radius:16px;
 background:transparent;
 color:#94a3b8;
-font-size:18px;
+font-size:17px;
 font-weight:700;
 cursor:pointer;
-transition:.2s;
+transition:.25s;
+}
+
+.tab:hover{
+color:white;
 }
 
 .tab.active{
@@ -99,6 +104,19 @@ color:white;
 box-shadow:0 0 25px rgba(139,92,246,.35);
 }
 
+.form-title{
+font-size:28px;
+font-weight:800;
+margin-bottom:8px;
+}
+
+.form-desc{
+color:#6b7280;
+font-size:15px;
+line-height:1.6;
+margin-bottom:24px;
+}
+
 .input{
 width:100%;
 padding:20px;
@@ -107,13 +125,17 @@ border-radius:18px;
 background:#0f172a;
 margin-bottom:18px;
 color:white;
-font-size:18px;
+font-size:17px;
 outline:none;
 border:1px solid transparent;
 }
 
 .input:focus{
 border-color:#8b5cf6;
+}
+
+.input::placeholder{
+color:#4b5563;
 }
 
 .btn{
@@ -127,7 +149,7 @@ background:linear-gradient(
 #7c3aed
 );
 color:white;
-font-size:20px;
+font-size:18px;
 font-weight:800;
 cursor:pointer;
 margin-top:10px;
@@ -136,14 +158,45 @@ transition:.2s;
 
 .btn:hover{
 transform:translateY(-2px);
+box-shadow:0 10px 30px rgba(139,92,246,.35);
 }
 
 .msg{
 margin-top:18px;
-color:#9ca3af;
 line-height:1.6;
-font-size:15px;
+font-size:14px;
 text-align:center;
+min-height:24px;
+color:#9ca3af;
+}
+
+.msg.error{
+color:#f87171;
+}
+
+.msg.success{
+color:#34d399;
+}
+
+.success-box{
+display:none;
+text-align:center;
+padding:20px 0;
+}
+
+.success-box .icon{
+font-size:60px;
+margin-bottom:18px;
+}
+
+.success-box h3{
+font-size:28px;
+margin-bottom:10px;
+}
+
+.success-box p{
+color:#6b7280;
+line-height:1.7;
 }
 
 </style>
@@ -160,31 +213,44 @@ text-align:center;
 NexaDesk
 </div>
 
-<div
-class="sub"
-id="subText"
->
+<div class="sub">
 Secure client portal access
 </div>
+
+<div id="mainForm">
 
 <div class="tabs">
 
 <button
-id="loginTab"
 class="tab active"
+id="loginTab"
 type="button"
 >
 Login
 </button>
 
 <button
-id="activateTab"
 class="tab"
+id="activateTab"
 type="button"
 >
 Activate Account
 </button>
 
+</div>
+
+<div
+class="form-title"
+id="formTitle"
+>
+Welcome back
+</div>
+
+<div
+class="form-desc"
+id="formDesc"
+>
+Login to access your dashboard and leads.
 </div>
 
 <input
@@ -202,25 +268,43 @@ placeholder="Password"
 />
 
 <button
-id="submitBtn"
 class="btn"
+id="submitBtn"
 type="button"
 >
 Login
 </button>
 
 <div
-id="msg"
 class="msg"
+id="msg"
 ></div>
 
 </div>
 
-<script>
+<div
+class="success-box"
+id="successBox"
+>
 
-// ======================
-// SUPABASE
-// ======================
+<div class="icon">
+📧
+</div>
+
+<h3>
+Check your email
+</h3>
+
+<p>
+We've sent you an activation link.<br>
+Open your email to create your password.
+</p>
+
+</div>
+
+</div>
+
+<script>
 
 const SUPABASE_URL =
 'https://exqdmvloldvshzpxevht.supabase.co';
@@ -228,15 +312,14 @@ const SUPABASE_URL =
 const SUPABASE_ANON_KEY =
 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
 
-const supabase =
-window.supabase.createClient(
+const { createClient } =
+supabase;
+
+const sb =
+createClient(
 SUPABASE_URL,
 SUPABASE_ANON_KEY
 );
-
-// ======================
-// ELEMENTS
-// ======================
 
 const loginTab =
 document.getElementById('loginTab');
@@ -244,141 +327,147 @@ document.getElementById('loginTab');
 const activateTab =
 document.getElementById('activateTab');
 
+const formTitle =
+document.getElementById('formTitle');
+
+const formDesc =
+document.getElementById('formDesc');
+
 const passwordInput =
 document.getElementById('password');
 
 const submitBtn =
 document.getElementById('submitBtn');
 
-const subText =
-document.getElementById('subText');
-
 const msg =
 document.getElementById('msg');
 
-const emailInput =
-document.getElementById('email');
+const mainForm =
+document.getElementById('mainForm');
+
+const successBox =
+document.getElementById('successBox');
 
 let mode = 'login';
 
-// ======================
-// SWITCH LOGIN
-// ======================
+function setMsg(text,type=''){
 
-function setLoginMode(){
+msg.textContent = text;
+msg.className = 'msg ' + type;
 
-mode = 'login';
+}
 
-loginTab.classList.add('active');
+function switchMode(newMode){
+
+mode = newMode;
+
+loginTab.classList.remove('active');
 activateTab.classList.remove('active');
 
-passwordInput.style.display =
-'block';
+setMsg('');
 
-passwordInput.value = '';
+if(mode === 'login'){
+
+loginTab.classList.add('active');
+
+formTitle.textContent =
+'Welcome back';
+
+formDesc.textContent =
+'Login to access your dashboard and leads.';
 
 submitBtn.textContent =
 'Login';
 
-subText.textContent =
-'Secure client portal access';
+passwordInput.style.display =
+'block';
 
-msg.textContent = '';
-
-}
-
-// ======================
-// SWITCH ACTIVATE
-// ======================
-
-function setActivateMode(){
-
-mode = 'activate';
+}else{
 
 activateTab.classList.add('active');
-loginTab.classList.remove('active');
 
-passwordInput.style.display =
-'none';
+formTitle.textContent =
+'Activate your account';
 
-passwordInput.value = '';
+formDesc.textContent =
+'Enter the email we already have on file and we’ll send you a secure activation link.';
 
 submitBtn.textContent =
 'Send Activation Link';
 
-subText.textContent =
-'Activate your business portal';
-
-msg.textContent = '';
+passwordInput.style.display =
+'none';
 
 }
 
-// ======================
-// CLICK EVENTS
-// ======================
+}
 
-loginTab.addEventListener(
-'click',
-setLoginMode
-);
+loginTab.onclick = () =>
+switchMode('login');
 
-activateTab.addEventListener(
-'click',
-setActivateMode
-);
+activateTab.onclick = () =>
+switchMode('activate');
 
-// ======================
-// SUBMIT
-// ======================
-
-submitBtn.addEventListener(
-'click',
-async () => {
+submitBtn.onclick = async () => {
 
 const email =
-emailInput.value.trim();
+document.getElementById('email')
+.value
+.trim();
 
 const password =
 passwordInput.value.trim();
 
 if(!email){
 
-msg.textContent =
-'Please enter your email';
+setMsg(
+'Please enter your email.',
+'error'
+);
 
 return;
 
 }
 
 // ======================
-// ACTIVATE
+// ACTIVATE ACCOUNT
 // ======================
 
 if(mode === 'activate'){
 
-msg.textContent =
-'Checking account...';
+submitBtn.disabled = true;
 
 const {
-data: client
-} = await supabase
+data:clients,
+error:clientError
+} = await sb
 .from('Clients')
-.select('*')
-.eq('contact_email', email)
-.single();
+.select('id')
+.eq(
+'contact_email',
+email
+);
 
-if(!client){
+if(
+clientError ||
+!clients ||
+clients.length === 0
+){
 
-msg.textContent =
-'No business account found for this email';
+setMsg(
+'This email is not registered with NexaDesk.',
+'error'
+);
+
+submitBtn.disabled = false;
 
 return;
 
 }
 
 const {
-error
-} = await supabase.auth.signInWithOtp({
+error:otpError
+} = await sb.auth.signInWithOtp({
 
 email,
 
@@ -389,17 +478,24 @@ emailRedirectTo:
 
 });
 
-if(error){
+if(otpError){
 
-msg.textContent =
-error.message;
+setMsg(
+otpError.message,
+'error'
+);
+
+submitBtn.disabled = false;
 
 return;
 
 }
 
-msg.textContent =
-'Activation email sent successfully.';
+mainForm.style.display =
+'none';
+
+successBox.style.display =
+'block';
 
 return;
 
@@ -411,36 +507,52 @@ return;
 
 if(!password){
 
-msg.textContent =
-'Please enter your password';
+setMsg(
+'Please enter your password.',
+'error'
+);
 
 return;
 
 }
 
+submitBtn.disabled = true;
+
 const {
-error
-} = await supabase.auth.signInWithPassword({
+error:loginError
+} = await sb.auth.signInWithPassword({
 
 email,
 password
 
 });
 
-if(error){
+if(loginError){
 
-msg.textContent =
-error.message;
+setMsg(
+loginError.message,
+'error'
+);
+
+submitBtn.disabled = false;
 
 return;
 
 }
 
+setMsg(
+'Login successful.',
+'success'
+);
+
+setTimeout(()=>{
+
 window.location.href =
 '/client-dashboard.html';
 
-}
-);
+},1200);
+
+};
 
 </script>
 
