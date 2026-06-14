@@ -28,10 +28,11 @@ background:#050816;
 color:white;
 min-height:100vh;
 padding:40px;
+overflow-x:hidden;
 }
 
 .loading{
-font-size:24px;
+font-size:28px;
 color:#9ca3af;
 }
 
@@ -46,6 +47,8 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 margin-bottom:20px;
+gap:20px;
+flex-wrap:wrap;
 }
 
 .logo{
@@ -60,6 +63,12 @@ background:linear-gradient(
 -webkit-text-fill-color:transparent;
 }
 
+.business-name{
+margin-top:8px;
+color:#9ca3af;
+font-size:15px;
+}
+
 .logout-btn{
 padding:12px 18px;
 border:none;
@@ -68,6 +77,11 @@ background:#8b5cf6;
 color:white;
 font-weight:600;
 cursor:pointer;
+transition:.2s;
+}
+
+.logout-btn:hover{
+opacity:.9;
 }
 
 .grid{
@@ -99,13 +113,14 @@ font-weight:800;
 margin-top:20px;
 background:#0d1117;
 border-radius:20px;
-overflow:hidden;
+overflow:auto;
 border:1px solid rgba(255,255,255,.06);
 }
 
 table{
 width:100%;
 border-collapse:collapse;
+min-width:700px;
 }
 
 th,
@@ -129,6 +144,22 @@ padding:30px;
 text-align:center;
 color:#6b7280;
 display:none;
+}
+
+@media(max-width:700px){
+
+body{
+padding:20px;
+}
+
+.big{
+font-size:28px;
+}
+
+.logo{
+font-size:26px;
+}
+
 }
 
 </style>
@@ -158,10 +189,7 @@ NexaDesk
 </div>
 
 <div
-style="
-margin-top:8px;
-color:#9ca3af;
-"
+class="business-name"
 id="businessName"
 >
 Loading...
@@ -221,6 +249,7 @@ style="
 font-size:16px;
 font-weight:600;
 margin-top:10px;
+word-break:break-word;
 "
 id="userEmail"
 >
@@ -273,7 +302,7 @@ const SUPABASE_URL =
 const SUPABASE_ANON_KEY =
 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
 
-const supabase =
+const sb =
 window.supabase.createClient(
 SUPABASE_URL,
 SUPABASE_ANON_KEY
@@ -284,8 +313,15 @@ async function loadDashboard(){
 try{
 
 const {
-data:{ session }
-} = await supabase.auth.getSession();
+data:{ session },
+error:sessionError
+} = await sb.auth.getSession();
+
+if(sessionError){
+
+throw sessionError;
+
+}
 
 if(!session){
 
@@ -306,8 +342,9 @@ user.email;
 
 // LOAD CLIENT
 const {
-data:client
-} = await supabase
+data:client,
+error:clientError
+} = await sb
 .from('Clients')
 .select('*')
 .eq(
@@ -316,20 +353,26 @@ user.email
 )
 .maybeSingle();
 
+if(clientError){
+
+throw clientError;
+
+}
+
 if(client){
-    console.log(client);
 
 document.getElementById(
 'businessName'
 ).textContent =
-client.business_name;
+client.business_name || 'NexaDesk Client';
 
 }
 
 // LOAD LEADS
 const {
-data:leads
-} = await supabase
+data:leads,
+error:leadError
+} = await sb
 .from('Leads')
 .select('*')
 .eq(
@@ -340,6 +383,12 @@ client.id
 'created_at',
 { ascending:false }
 );
+
+if(leadError){
+
+throw leadError;
+
+}
 
 document.getElementById(
 'leadCount'
@@ -359,6 +408,8 @@ const table =
 document.getElementById(
 'leadsTable'
 );
+
+table.innerHTML = '';
 
 if(leads && leads.length){
 
@@ -405,7 +456,10 @@ document.getElementById(
 
 console.error(err);
 
-alert(err.message);
+alert(
+'Dashboard failed to load: ' +
+err.message
+);
 
 }
 
@@ -416,7 +470,7 @@ document.getElementById(
 'logoutBtn'
 ).onclick = async ()=>{
 
-await supabase.auth.signOut();
+await sb.auth.signOut();
 
 window.location.href =
 '/client-login.html';
