@@ -296,7 +296,7 @@
       <div class="nd-header-left">
 
         <img
-          src="/nexadesk-logo.png"
+          src="./nexadesk-logo.png"
           class="nd-logo"
         />
 
@@ -356,7 +356,7 @@
     id="nd-btn"
   >
 
-    <img src="/nexadesk-logo.png" />
+    <img src="./nexadesk-logo.png" />
 
   </button>
 
