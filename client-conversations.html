@@ -175,7 +175,7 @@ const SUPABASE_URL =
 'https://exqdmvloldvshzpxevht.supabase.co';
 
 const SUPABASE_ANON_KEY =
-'YOUR_REAL_ANON_KEY';
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
 
 const sb =
 window.supabase.createClient(
@@ -205,7 +205,8 @@ minute:'2-digit'
 
 function getConversationText(messages){
 
-if(!messages) return 'No conversation';
+if(!messages)
+return 'No conversation';
 
 if(Array.isArray(messages)){
 
@@ -215,7 +216,7 @@ return messages
 
 }
 
-return 'No conversation';
+return JSON.stringify(messages);
 
 }
 
@@ -271,65 +272,25 @@ ${getConversationText(convo.messages)}
 async function loadConversations(){
 
 const {
-data:{ session }
-} = await sb.auth.getSession();
-
-if(!session){
-
-window.location.href =
-'/client-login.html';
-
-return;
-
-}
-
-const user =
-session.user;
-
-const {
-data:client
-} = await sb
-.from('Clients')
-.select('*')
-.eq(
-'contact_email',
-user.email
-)
-.maybeSingle();
-
-if(!client){
-
-return;
-
-}
-
-const {
-data:conversations,
+data,
 error
 } = await sb
 .from('Conversations')
 .select('*')
-.eq(
-'client_id',
-client.id
-)
 .order(
 'created_at',
 { ascending:false }
 );
 
-console.log(conversations);
-
 if(error){
 
 console.error(error);
-
 return;
 
 }
 
 allConversations =
-conversations || [];
+data || [];
 
 renderConversations(
 allConversations
