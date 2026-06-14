@@ -1,17 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>NexaDesk</title>
+<meta charset="UTF-8" />
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+/>
+
+<title>NexaDesk AI</title>
 
 <link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+  rel="preconnect"
+  href="https://fonts.googleapis.com"
+/>
+
+<link
+  rel="preconnect"
+  href="https://fonts.gstatic.com"
+  crossorigin
+/>
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap"
   rel="stylesheet"
 />
 
 <style>
+
+/* =========================
+   RESET
+========================= */
 
 *{
   margin:0;
@@ -24,9 +43,9 @@ html{
 }
 
 body{
+  font-family:'Inter',sans-serif;
   background:#050816;
   color:white;
-  font-family:'Inter',sans-serif;
   overflow-x:hidden;
 }
 
@@ -41,8 +60,8 @@ body{
   z-index:0;
 
   background:
-    radial-gradient(circle at 20% 20%, rgba(139,92,246,0.16), transparent 30%),
-    radial-gradient(circle at 80% 60%, rgba(99,102,241,0.12), transparent 30%);
+    radial-gradient(circle at 15% 20%, rgba(139,92,246,.18), transparent 35%),
+    radial-gradient(circle at 80% 70%, rgba(124,58,237,.14), transparent 35%);
 }
 
 /* =========================
@@ -50,8 +69,9 @@ body{
 ========================= */
 
 .navbar{
+
   width:100%;
-  height:84px;
+  height:88px;
 
   display:flex;
   align-items:center;
@@ -59,45 +79,53 @@ body{
 
   padding:0 48px;
 
-  border-bottom:1px solid rgba(255,255,255,0.06);
-
   position:sticky;
   top:0;
 
-  background:rgba(5,8,22,0.85);
+  background:rgba(5,8,22,.84);
 
-  backdrop-filter:blur(14px);
+  backdrop-filter:blur(18px);
 
-  z-index:100;
+  border-bottom:
+  1px solid rgba(255,255,255,.06);
+
+  z-index:1000;
+
 }
 
-.logo-wrap{
+.nav-logo{
   display:flex;
   align-items:center;
   gap:12px;
+  text-decoration:none;
 }
 
-.logo-icon{
+.nav-logo-img{
   height:48px;
   width:auto;
   object-fit:contain;
   display:block;
 }
 
-.logo-text{
-  font-size:32px;
+.nav-logo-text{
+
+  font-family:'Syne',sans-serif;
+
+  font-size:1.9rem;
   font-weight:800;
 
-  background:linear-gradient(
-    90deg,
-    #ffffff,
-    #9b6bff
+  letter-spacing:-0.04em;
+
+  background:
+  linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #a78bfa 100%
   );
 
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 
-  letter-spacing:-1px;
 }
 
 .nav-links{
@@ -107,10 +135,10 @@ body{
 }
 
 .nav-links a{
-  color:#9f9db7;
+  color:#9ca3af;
   text-decoration:none;
   font-size:15px;
-  transition:0.2s;
+  transition:.2s;
 }
 
 .nav-links a:hover{
@@ -118,20 +146,25 @@ body{
 }
 
 .demo-btn{
-  padding:14px 24px;
-  border-radius:14px;
 
-  background:#8b5cf6;
+  background:
+  linear-gradient(
+    135deg,
+    #8b5cf6,
+    #7c3aed
+  );
+
+  padding:14px 24px;
+
+  border-radius:14px;
 
   color:white !important;
 
   font-weight:700;
 
-  transition:0.2s;
-}
+  box-shadow:
+  0 10px 30px rgba(139,92,246,.35);
 
-.demo-btn:hover{
-  transform:translateY(-2px);
 }
 
 /* =========================
@@ -139,7 +172,8 @@ body{
 ========================= */
 
 .hero{
-  min-height:calc(100vh - 84px);
+
+  min-height:92vh;
 
   display:flex;
   flex-direction:column;
@@ -152,74 +186,94 @@ body{
 
   position:relative;
   z-index:2;
+
 }
 
 .hero-badge{
-  margin-bottom:28px;
-
-  border:1px solid rgba(139,92,246,0.4);
-
-  background:rgba(139,92,246,0.1);
-
-  color:#b89cff;
-
-  padding:12px 22px;
-
-  border-radius:999px;
-
-  font-size:14px;
-  font-weight:600;
 
   display:flex;
   align-items:center;
   gap:10px;
+
+  padding:12px 20px;
+
+  border-radius:999px;
+
+  border:
+  1px solid rgba(139,92,246,.35);
+
+  background:
+  rgba(139,92,246,.08);
+
+  color:#b89cff;
+
+  font-size:14px;
+  font-weight:600;
+
+  margin-bottom:32px;
+
 }
 
 .hero h1{
-  font-size:clamp(58px,8vw,120px);
 
-  line-height:0.95;
+  font-family:'Syne',sans-serif;
 
-  letter-spacing:-4px;
+  font-size:
+  clamp(58px,9vw,120px);
 
-  max-width:1300px;
+  line-height:.95;
 
-  font-weight:800;
+  letter-spacing:-0.06em;
 
-  margin-bottom:34px;
+  max-width:1200px;
+
+  margin-bottom:32px;
+
 }
 
 .gradient{
-  background:linear-gradient(
-    90deg,
+
+  background:
+  linear-gradient(
+    135deg,
     #8b5cf6,
-    #b993ff
+    #c084fc
   );
 
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
+
 }
 
 .hero p{
-  max-width:760px;
 
-  color:#8f90aa;
+  max-width:780px;
 
-  font-size:24px;
+  color:#9ca3af;
+
+  font-size:23px;
 
   line-height:1.7;
 
-  margin-bottom:48px;
+  margin-bottom:46px;
+
 }
 
 .hero-actions{
   display:flex;
-  align-items:center;
-  gap:20px;
+  gap:18px;
+  flex-wrap:wrap;
+  justify-content:center;
 }
 
 .primary-btn{
-  background:#8b5cf6;
+
+  background:
+  linear-gradient(
+    135deg,
+    #8b5cf6,
+    #7c3aed
+  );
 
   color:white;
 
@@ -229,11 +283,14 @@ body{
 
   border-radius:18px;
 
+  font-size:17px;
   font-weight:700;
 
-  font-size:18px;
+  transition:.2s;
 
-  transition:0.2s;
+  box-shadow:
+  0 16px 40px rgba(139,92,246,.35);
+
 }
 
 .primary-btn:hover{
@@ -241,7 +298,9 @@ body{
 }
 
 .secondary-btn{
-  border:1px solid rgba(255,255,255,0.08);
+
+  border:
+  1px solid rgba(255,255,255,.08);
 
   color:white;
 
@@ -251,20 +310,223 @@ body{
 
   border-radius:18px;
 
+  font-size:17px;
   font-weight:600;
 
-  font-size:18px;
 }
 
 /* =========================
-   CHAT WIDGET SPACE
+   SECTION
 ========================= */
 
-#nexadesk-chatbot{
-  position:fixed;
-  bottom:24px;
-  right:24px;
-  z-index:9999;
+.section{
+  padding:110px 24px;
+  position:relative;
+  z-index:2;
+}
+
+.container{
+  max-width:1250px;
+  margin:auto;
+}
+
+.section-title{
+
+  font-family:'Syne',sans-serif;
+
+  font-size:54px;
+
+  margin-bottom:18px;
+
+  text-align:center;
+
+}
+
+.section-sub{
+
+  color:#9ca3af;
+
+  text-align:center;
+
+  max-width:760px;
+
+  margin:0 auto 70px;
+
+  line-height:1.7;
+
+  font-size:18px;
+
+}
+
+/* =========================
+   FEATURES
+========================= */
+
+.features-grid{
+
+  display:grid;
+
+  grid-template-columns:
+  repeat(auto-fit,minmax(280px,1fr));
+
+  gap:26px;
+
+}
+
+.feature-card{
+
+  background:
+  rgba(255,255,255,.03);
+
+  border:
+  1px solid rgba(255,255,255,.06);
+
+  border-radius:26px;
+
+  padding:34px;
+
+  transition:.25s;
+
+  backdrop-filter:blur(12px);
+
+}
+
+.feature-card:hover{
+  transform:translateY(-6px);
+  border-color:rgba(139,92,246,.35);
+}
+
+.feature-card h3{
+  font-size:24px;
+  margin-bottom:14px;
+}
+
+.feature-card p{
+  color:#9ca3af;
+  line-height:1.7;
+}
+
+/* =========================
+   TESTIMONIALS
+========================= */
+
+.testimonials{
+  display:grid;
+  grid-template-columns:
+  repeat(auto-fit,minmax(320px,1fr));
+  gap:26px;
+}
+
+.testimonial{
+
+  background:
+  rgba(255,255,255,.03);
+
+  border:
+  1px solid rgba(255,255,255,.06);
+
+  border-radius:26px;
+
+  padding:34px;
+
+}
+
+.testimonial-text{
+  color:#d1d5db;
+  line-height:1.8;
+  margin-bottom:22px;
+}
+
+.testimonial-author{
+  color:#8b5cf6;
+  font-weight:700;
+}
+
+/* =========================
+   FAQ
+========================= */
+
+.faq{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.faq-item{
+
+  background:
+  rgba(255,255,255,.03);
+
+  border:
+  1px solid rgba(255,255,255,.06);
+
+  border-radius:20px;
+
+  padding:24px;
+
+}
+
+.faq-item h4{
+  margin-bottom:10px;
+  font-size:18px;
+}
+
+.faq-item p{
+  color:#9ca3af;
+  line-height:1.7;
+}
+
+/* =========================
+   CTA
+========================= */
+
+.cta-box{
+
+  background:
+  linear-gradient(
+    135deg,
+    rgba(139,92,246,.14),
+    rgba(124,58,237,.12)
+  );
+
+  border:
+  1px solid rgba(139,92,246,.2);
+
+  border-radius:32px;
+
+  padding:70px 40px;
+
+  text-align:center;
+
+}
+
+.cta-box h2{
+  font-size:56px;
+  margin-bottom:22px;
+}
+
+.cta-box p{
+  color:#c4c7d1;
+  max-width:720px;
+  margin:0 auto 38px;
+  line-height:1.8;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.footer{
+
+  padding:40px 24px;
+
+  text-align:center;
+
+  color:#6b7280;
+
+  border-top:
+  1px solid rgba(255,255,255,.06);
+
 }
 
 /* =========================
@@ -274,34 +536,27 @@ body{
 @media(max-width:900px){
 
   .navbar{
-    padding:0 22px;
-  }
-
-  .logo-text{
-    font-size:24px;
+    padding:0 20px;
   }
 
   .nav-links{
-    gap:18px;
+    display:none;
   }
 
   .hero h1{
-    letter-spacing:-2px;
+    font-size:68px;
   }
 
   .hero p{
     font-size:18px;
   }
 
-  .hero-actions{
-    flex-direction:column;
-    width:100%;
+  .section-title{
+    font-size:42px;
   }
 
-  .primary-btn,
-  .secondary-btn{
-    width:100%;
-    text-align:center;
+  .cta-box h2{
+    font-size:40px;
   }
 
 }
@@ -319,36 +574,36 @@ body{
 
 <header class="navbar">
 
-  <div class="logo-wrap">
+  <a href="#" class="nav-logo">
 
     <img
       src="./nexadesk-logo.png"
       alt="NexaDesk"
-      class="logo-icon"
+      class="nav-logo-img"
     />
 
-    <div class="logo-text">
+    <span class="nav-logo-text">
       NexaDesk
-    </div>
+    </span>
 
-  </div>
+  </a>
 
   <nav class="nav-links">
-
-    <a href="#how">
-      How it works
-    </a>
 
     <a href="#features">
       Features
     </a>
 
-    <a href="#pricing">
-      Pricing
+    <a href="#testimonials">
+      Testimonials
+    </a>
+
+    <a href="#faq">
+      FAQ
     </a>
 
     <a href="#demo" class="demo-btn">
-      Book a Demo
+      Book Demo
     </a>
 
   </nav>
@@ -362,28 +617,30 @@ body{
 <section class="hero">
 
   <div class="hero-badge">
-    ● AI-POWERED CUSTOMER SERVICE
+    ● AI CUSTOMER CONVERSION SYSTEM
   </div>
 
   <h1>
-    Turn every visitor<br>
-    into a <span class="gradient">customer</span>
+    Turn visitors into
+    <span class="gradient">
+      paying customers
+    </span>
   </h1>
 
   <p>
     NexaDesk gives your business a 24/7 AI assistant
-    that answers questions, captures leads,
-    and converts visitors automatically.
+    that answers questions, qualifies leads,
+    and converts website visitors automatically.
   </p>
 
   <div class="hero-actions">
 
     <a href="#demo" class="primary-btn">
-      Book a Free Demo →
+      Book Free Demo →
     </a>
 
-    <a href="#how" class="secondary-btn">
-      See how it works
+    <a href="#features" class="secondary-btn">
+      Explore Features
     </a>
 
   </div>
@@ -391,10 +648,248 @@ body{
 </section>
 
 <!-- =========================
+     FEATURES
+========================= -->
+
+<section class="section" id="features">
+
+  <div class="container">
+
+    <h2 class="section-title">
+      Built to grow your business
+    </h2>
+
+    <p class="section-sub">
+      NexaDesk combines AI, automation,
+      lead capture, and intelligent conversations
+      into one powerful platform.
+    </p>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <h3>24/7 AI Support</h3>
+        <p>
+          Answer customer questions instantly at any time of day.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3>Lead Qualification</h3>
+        <p>
+          Automatically identify serious customers and collect leads.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3>Human Conversations</h3>
+        <p>
+          AI responses feel natural, intelligent, and personalized.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3>Client Dashboard</h3>
+        <p>
+          Track conversations, leads, analytics, and performance.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3>Real-Time AI</h3>
+        <p>
+          Powered by advanced AI infrastructure for intelligent replies.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3>Easy Integration</h3>
+        <p>
+          Add NexaDesk to your website in minutes.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- =========================
+     TESTIMONIALS
+========================= -->
+
+<section class="section" id="testimonials">
+
+  <div class="container">
+
+    <h2 class="section-title">
+      Businesses love NexaDesk
+    </h2>
+
+    <p class="section-sub">
+      Companies are already improving
+      customer experience and increasing conversions.
+    </p>
+
+    <div class="testimonials">
+
+      <div class="testimonial">
+
+        <div class="testimonial-text">
+          “NexaDesk helped us capture leads
+          even outside business hours.”
+        </div>
+
+        <div class="testimonial-author">
+          — Fitness Studio Owner
+        </div>
+
+      </div>
+
+      <div class="testimonial">
+
+        <div class="testimonial-text">
+          “The AI sounds surprisingly human.
+          Customers actually engage with it.”
+        </div>
+
+        <div class="testimonial-author">
+          — Marketing Agency
+        </div>
+
+      </div>
+
+      <div class="testimonial">
+
+        <div class="testimonial-text">
+          “The dashboard makes it easy to
+          track every conversation and lead.”
+        </div>
+
+        <div class="testimonial-author">
+          — E-commerce Brand
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- =========================
+     FAQ
+========================= -->
+
+<section class="section" id="faq">
+
+  <div class="container">
+
+    <h2 class="section-title">
+      Frequently asked questions
+    </h2>
+
+    <p class="section-sub">
+      Everything you need to know about NexaDesk.
+    </p>
+
+    <div class="faq">
+
+      <div class="faq-item">
+
+        <h4>
+          Can NexaDesk work on any website?
+        </h4>
+
+        <p>
+          Yes — NexaDesk can be integrated into
+          almost any modern website.
+        </p>
+
+      </div>
+
+      <div class="faq-item">
+
+        <h4>
+          Does the AI use real GPT technology?
+        </h4>
+
+        <p>
+          Yes. NexaDesk uses advanced AI models
+          for natural intelligent conversations.
+        </p>
+
+      </div>
+
+      <div class="faq-item">
+
+        <h4>
+          Can I see customer conversations?
+        </h4>
+
+        <p>
+          Absolutely. Your dashboard stores
+          and organizes all conversations.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- =========================
+     CTA
+========================= -->
+
+<section class="section" id="demo">
+
+  <div class="container">
+
+    <div class="cta-box">
+
+      <h2>
+        Ready to transform your website?
+      </h2>
+
+      <p>
+        Give your business a powerful AI assistant
+        that works 24/7 to answer questions,
+        convert visitors, and generate leads.
+      </p>
+
+      <a href="#" class="primary-btn">
+        Book Your Demo →
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer class="footer">
+
+  © 2026 NexaDesk AI. All rights reserved.
+
+</footer>
+
+<!-- =========================
      CHATBOT
 ========================= -->
 
-<script src="./embed.js"></script>
+<script
+  src="./embed.js"
+  data-client-id="1"
+></script>
 
 </body>
 </html>
