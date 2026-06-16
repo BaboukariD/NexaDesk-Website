@@ -222,18 +222,18 @@
       <div class="nd-header-left">
         <img src="${logoUrl}" class="nd-logo" alt="NexaDesk" />
         <div>
-          <div class="nd-title">AI Assistant</div>
+          <div class="nd-title" id="nd-title">AI Assistant</div>
           <div class="nd-status">Online now</div>
         </div>
       </div>
-      <div class="nd-close" id="nd-close" aria-label="Close">x</div>
+      <div class="nd-close" id="nd-close" aria-label="Close">✕</div>
     </div>
 
     <div class="nd-messages" id="nd-messages"></div>
 
     <div class="nd-input-wrap">
       <input id="nd-input" class="nd-input" placeholder="Type your message..." />
-      <button class="nd-send" id="nd-send" aria-label="Send">Send</button>
+      <button class="nd-send" id="nd-send" aria-label="Send">➤</button>
     </div>
 
     <div class="nd-footer">Powered by NexaDesk</div>
@@ -343,7 +343,8 @@
   async function getAiReply() {
     const typing = document.createElement('div');
     typing.className = 'nd-msg bot';
-    typing.textContent = 'Typing...';
+    typing.innerHTML = '<span style="display:flex;gap:4px;align-items:center;height:18px"><span style="width:7px;height:7px;background:#8b5cf6;border-radius:50%;animation:ndDot 1.2s infinite both"></span><span style="width:7px;height:7px;background:#8b5cf6;border-radius:50%;animation:ndDot 1.2s .2s infinite both"></span><span style="width:7px;height:7px;background:#8b5cf6;border-radius:50%;animation:ndDot 1.2s .4s infinite both"></span></span>';
+    if(!document.getElementById('ndDotStyle')){const s=document.createElement('style');s.id='ndDotStyle';s.textContent='@keyframes ndDot{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}';document.head.appendChild(s);}
     messagesEl.appendChild(typing);
     scrollBottom();
 
@@ -359,6 +360,12 @@
 
       const data = await response.json();
       typing.remove();
+
+      // Update header with business name if returned
+      if (data.businessName) {
+        const titleEl = document.getElementById('nd-title');
+        if (titleEl) titleEl.textContent = data.businessName;
+      }
 
       addMessage(
         'assistant',
