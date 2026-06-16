@@ -626,6 +626,7 @@
     <li><a href="#how">How it works</a></li>
     <li><a href="#features">Features</a></li>
     <li><a href="#pricing">Pricing</a></li>
+    <li><a href="/client-login.html" style="color:#9ca3af;text-decoration:none;font-size:0.875rem;font-weight:500;">Client Login</a></li>
     <li><a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="nav-cta">Book a Demo</a></li>
   </ul>
 </nav>
@@ -760,7 +761,7 @@
         <li>Mobile friendly</li>
         <li>Email support</li>
       </ul>
-      <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-plan">Get Started</a>
+      <a href="/contact.html?plan=starter" class="btn-plan" style="display:block;text-align:center;text-decoration:none;">Get Started</a>
     </div>
     <div class="price-card featured">
       <div class="price-name">Growth</div>
@@ -773,7 +774,7 @@
         <li>Monthly performance updates</li>
         <li>Priority support</li>
       </ul>
-      <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-plan">Get Started</a>
+      <a href="/contact.html?plan=growth" class="btn-plan" style="display:block;text-align:center;text-decoration:none;">Get Started</a>
     </div>
     <div class="price-card">
       <div class="price-name">Pro</div>
@@ -786,7 +787,7 @@
         <li>Analytics dashboard</li>
         <li>Dedicated account manager</li>
       </ul>
-      <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-plan">Get Started</a>
+      <a href="/contact.html?plan=pro" class="btn-plan" style="display:block;text-align:center;text-decoration:none;">Get Started</a>
     </div>
   </div>
 </div>
@@ -799,7 +800,7 @@
     <h2>Ready to convert more customers?</h2>
     <p>Book a free 30-minute demo and see NexaDesk live on your website within 24 hours.</p>
     <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-primary" style="display:inline-flex">
-      Book Your Free Demo
+      Get Started Today
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
   </div>
@@ -923,8 +924,8 @@
     Your website should be<br><em style="font-style:normal;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">working for you 24/7</em>
   </h2>
   <p style="color:var(--muted);font-size:1rem;max-width:460px;margin:0 auto 40px;line-height:1.7">Book a free 30-minute demo. We'll show you exactly how NexaDesk works and set it up live on your site.</p>
-  <a href="https://calendly.com/contact-nexadesk/30min" target="_blank" class="btn-primary" style="display:inline-flex;font-size:1rem;padding:16px 36px">
-    Book Your Free Demo
+  <a href="/contact.html" class="btn-primary" style="display:inline-flex;font-size:1rem;padding:16px 36px">
+    Get Started Today
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </a>
   <p style="margin-top:16px;font-size:0.8rem;color:var(--muted)">No credit card required · Live within 24 hours · Cancel anytime</p>
@@ -1373,5 +1374,33 @@ setTimeout(r, 1200)
   widgetInput.addEventListener('keydown', e => { if (e.key === 'Enter') widgetSendMsg(); });
 </script>
 
+
+<script>
+async function startCheckout(plan) {
+  const btn = event.target;
+  const original = btn.textContent;
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan })
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Something went wrong. Please try again.');
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  } catch(err) {
+    alert('Something went wrong. Please try again.');
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+}
+</script>
 </body>
 </html>

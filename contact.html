@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Get Started — NexaDesk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0b0e1a;--card:#0f1422;--border:rgba(255,255,255,.07);--accent:#7c5cff;--text:white;--muted:#9ca3af;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* NAV */
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(11,14,26,.95);backdrop-filter:blur(12px);z-index:100;}
+.nav-logo{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:0.875rem;font-weight:500;transition:.2s;}
+.nav-back:hover{color:white;}
+
+/* HERO */
+.hero{text-align:center;padding:80px 24px 60px;}
+.eyebrow{display:inline-block;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.25);color:#a78bfa;font-size:0.75rem;font-weight:600;padding:6px 14px;border-radius:100px;margin-bottom:24px;letter-spacing:.06em;text-transform:uppercase;}
+h1{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1.1;margin-bottom:16px;}
+h1 span{background:linear-gradient(135deg,var(--accent),#9b7bff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{color:var(--muted);font-size:1rem;line-height:1.7;max-width:520px;margin:0 auto;}
+
+/* FORM SECTION */
+.form-wrap{max-width:640px;margin:0 auto;padding:0 24px 80px;}
+
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px;}
+
+.field{margin-bottom:22px;}
+.field label{display:block;font-size:13px;font-weight:600;color:#c4b5fd;margin-bottom:8px;letter-spacing:.02em;}
+.field input,.field select,.field textarea{
+  width:100%;padding:16px;
+  background:#0b0e1a;
+  border:1px solid var(--border);
+  border-radius:14px;
+  color:white;font-size:15px;
+  outline:none;font-family:'Inter',sans-serif;
+  transition:border-color .2s,box-shadow .2s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px rgba(124,92,255,.12);
+}
+.field input::placeholder,.field textarea::placeholder{color:#4b5563;}
+.field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;}
+.field select option{background:#0f1422;}
+.field textarea{min-height:130px;resize:vertical;line-height:1.6;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+.submit-btn{
+  width:100%;padding:18px;border:none;
+  border-radius:16px;
+  background:linear-gradient(135deg,var(--accent),#9b7bff);
+  color:white;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all .2s;margin-top:8px;
+}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(124,92,255,.4);}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+.msg{margin-top:16px;text-align:center;font-size:14px;line-height:1.6;min-height:20px;}
+.msg.error{color:#f87171;}
+.msg.success{color:#34d399;}
+
+/* SUCCESS STATE */
+.success-state{display:none;text-align:center;padding:40px 0;}
+.success-state .icon{font-size:56px;margin-bottom:20px;}
+.success-state h2{font-size:24px;font-weight:800;margin-bottom:10px;}
+.success-state p{color:var(--muted);line-height:1.7;}
+
+/* TRUST */
+.trust{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;padding:0 24px 60px;color:var(--muted);font-size:13px;}
+.trust-item{display:flex;align-items:center;gap:8px;}
+.trust-item span{font-size:16px;}
+
+@media(max-width:600px){
+  nav{padding:16px 20px;}
+  .hero{padding:60px 20px 40px;}
+  .form-card{padding:24px;}
+  .grid2{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">NexaDesk</div>
+  <a href="/" class="nav-back">← Back to home</a>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Get Started</div>
+  <h1>Let's get your AI assistant <span>live in 24 hours</span></h1>
+  <p class="hero-sub">Fill in the form below and we'll call you to learn about your business and get everything set up.</p>
+</div>
+
+<div class="form-wrap">
+  <div class="form-card">
+
+    <div id="formContent">
+      <div class="grid2">
+        <div class="field">
+          <label>Your Name</label>
+          <input type="text" id="f_name" placeholder="John Smith"/>
+        </div>
+        <div class="field">
+          <label>Business Name</label>
+          <input type="text" id="f_business" placeholder="Joe's Pizza"/>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="f_email" placeholder="john@business.com"/>
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="f_phone" placeholder="+44 7700 000000"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Business Website</label>
+        <input type="url" id="f_website" placeholder="https://yourbusiness.com"/>
+      </div>
+
+      <div class="field">
+        <label>Type of Business</label>
+        <select id="f_type" onchange="document.getElementById('f_other_wrap').style.display=this.value==='Other'?'block':'none'">
+          <option value="">Select your industry...</option>
+          <option>Restaurant / Café</option>
+          <option>Barbershop / Hair Salon</option>
+          <option>Dental / Medical</option>
+          <option>Gym / Fitness</option>
+          <option>Estate Agency</option>
+          <option>Retail / E-commerce</option>
+          <option>Trades / Home Services</option>
+          <option>Legal / Accountancy</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field" id="f_other_wrap" style="display:none;">
+        <label>Please specify</label>
+        <input type="text" id="f_other" placeholder="e.g. Photography studio, Car dealership..."/>
+      </div>
+
+      <div class="field">
+        <label>Which plan are you interested in?</label>
+        <select id="f_plan">
+          <option value="starter">Starter — £49/month</option>
+          <option value="growth" selected>Growth — £99/month</option>
+          <option value="pro">Pro — £199/month</option>
+          <option value="unsure">Not sure yet</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>What do you want the AI to help with?</label>
+        <textarea id="f_message" placeholder="e.g. Answer customer questions about our menu, take reservation enquiries, capture leads for callbacks..."></textarea>
+      </div>
+
+      <button class="submit-btn" id="submitBtn">Send my details →</button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="success-state" id="successState">
+      <div class="icon">🎉</div>
+      <h2>Got it — we'll be in touch soon!</h2>
+      <p>Thanks for reaching out. We'll review your details and call you within 1 business day to get everything set up.</p>
+    </div>
+
+  </div>
+</div>
+
+<div class="trust">
+  <div class="trust-item"><span>⚡</span> Live within 24 hours</div>
+  <div class="trust-item"><span>🔒</span> No contracts</div>
+  <div class="trust-item"><span>💬</span> Real human setup call</div>
+  <div class="trust-item"><span>↩️</span> Cancel anytime</div>
+</div>
+
+<script>
+// Pre-select plan from URL
+const urlPlan = new URLSearchParams(window.location.search).get('plan');
+if(urlPlan) {
+  const sel = document.getElementById('f_plan');
+  if(sel) [...sel.options].forEach(o => { if(o.value===urlPlan) o.selected=true; });
+}
+
+const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+
+const msg = document.getElementById('msg');
+const btn = document.getElementById('submitBtn');
+
+function setMsg(text, type=''){msg.textContent=text;msg.className='msg '+type;}
+
+document.getElementById('submitBtn').onclick = async () => {
+  const name     = document.getElementById('f_name').value.trim();
+  const business = document.getElementById('f_business').value.trim();
+  const email    = document.getElementById('f_email').value.trim();
+  const phone    = document.getElementById('f_phone').value.trim();
+  const website  = document.getElementById('f_website').value.trim();
+  const type     = document.getElementById('f_type').value === 'Other'
+    ? (document.getElementById('f_other').value.trim() || 'Other')
+    : document.getElementById('f_type').value;
+  const plan     = document.getElementById('f_plan').value;
+  const message  = document.getElementById('f_message').value.trim();
+
+  if(!name||!email||!business){
+    setMsg('Please fill in your name, email and business name.','error');
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent='Sending...';
+  setMsg('');
+
+  try {
+    // Save as a lead in Supabase
+    await fetch(`${SUPABASE_URL}/rest/v1/Leads`, {
+      method:'POST',
+      headers:{
+        apikey:SUPABASE_KEY,
+        Authorization:`Bearer ${SUPABASE_KEY}`,
+        'Content-Type':'application/json',
+        Prefer:'return=minimal'
+      },
+      body:JSON.stringify({
+        name,
+        email,
+        phone,
+        preferred_contact:'phone',
+        message:`Business: ${business} | Website: ${website} | Type: ${type} | Plan: ${plan} | Notes: ${message}`,
+        client_id: null
+      })
+    });
+
+    // Also notify you by email
+    await fetch('/api/send-lead-email', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        name,
+        email,
+        phone,
+        preferred_contact:'phone',
+        message:`Business: ${business}\nWebsite: ${website}\nIndustry: ${type}\nPlan Interest: ${plan}\n\nNotes:\n${message}`
+      })
+    });
+
+    document.getElementById('formContent').style.display='none';
+    document.getElementById('successState').style.display='block';
+
+  } catch(err) {
+    setMsg('Something went wrong. Please email us at contact@nexadesk.co.uk','error');
+    btn.disabled=false;
+    btn.textContent='Send my details →';
+  }
+};
+</script>
+
+</body>
+</html>
