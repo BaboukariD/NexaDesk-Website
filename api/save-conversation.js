@@ -1,90 +1,48 @@
-const SUPABASE_URL =
-  process.env.SUPABASE_URL || 'https://exqdmvloldvshzpxevht.supabase.co';
-
-const SUPABASE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  'sb_publishable__bJTNHHD95Uop41LMarPsQ_zjZzk4af';
-
-function setCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
-
-function cleanMessages(messages) {
-  if (!Array.isArray(messages)) return [];
-
-  return messages
-    .filter((message) => message && message.role && message.content)
-    .map((message) => ({
-      role: String(message.role),
-      content: String(message.content).slice(0, 8000)
-    }))
-    .slice(-80);
-}
-
 export default async function handler(req, res) {
-  setCors(res);
+  if (req.method !== 'POST') return res.status(405).end();
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
+  const { client_id, conversation_id, messages } = req.body;
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  }
-
-  const {
-    client_id,
-    lead_id,
-    messages,
-    conversation_id
-  } = req.body || {};
-
-  if (!client_id) {
-    return res.status(400).json({ success: false, error: 'Missing client_id' });
-  }
+  const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
 
   try {
-    const payload = {
-      client_id: String(client_id),
-      lead_id: lead_id || null,
-      messages: cleanMessages(messages)
-    };
+    let conversation = null;
 
-    const url = conversation_id
-      ? `${SUPABASE_URL}/rest/v1/Conversations?id=eq.${conversation_id}`
-      : `${SUPABASE_URL}/rest/v1/Conversations`;
-
-    const response = await fetch(url, {
-      method: conversation_id ? 'PATCH' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(500).json({
-        success: false,
-        error: data?.message || 'Could not save conversation'
+    if (conversation_id) {
+      // Update existing conversation
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/Conversations?id=eq.${conversation_id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ messages })
+        }
+      );
+      conversation = { id: conversation_id };
+    } else {
+      // Create new conversation
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/Conversations`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify({ client_id: String(client_id), messages })
       });
+      const data = await r.json();
+      conversation = data?.[0] || null;
     }
 
-    return res.status(200).json({
-      success: true,
-      conversation: data?.[0] || null
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    return res.status(200).json({ success: true, conversation });
+  } catch (err) {
+    console.error('Save conversation error:', err);
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
