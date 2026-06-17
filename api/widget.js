@@ -17,8 +17,9 @@ export default async function handler(req, res) {
     if (!clients?.length) return res.status(404).json({ error: 'Client not found' });
 
     const client = clients[0];
+    const plan = client.plan || 'starter';
 
-    // Build full system prompt from base prompt + knowledge base + FAQs
+    // Build system prompt
     let systemPrompt = client.system_prompt || `You are a helpful AI assistant for ${client.business_name || 'this business'}. Be friendly, concise and professional.`;
 
     if (client.knowledge_base?.trim()) {
@@ -52,7 +53,13 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     const reply = data.content?.[0]?.text || 'Sorry, I had trouble responding.';
-    return res.status(200).json({ reply, businessName: client.business_name || 'AI Assistant' });
+
+    // Return plan so embed.js knows what features to enable
+    return res.status(200).json({
+      reply,
+      businessName: client.business_name || 'AI Assistant',
+      plan
+    });
 
   } catch (err) {
     console.error('Widget error:', err);

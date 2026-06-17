@@ -257,6 +257,7 @@
   let conversationId = null;
   let leadStep = null;
   let leadSaved = false;
+  let clientPlan = 'starter'; // updated from API response
   let lead = {
     name: '',
     email: '',
@@ -361,11 +362,14 @@
       const data = await response.json();
       typing.remove();
 
-      // Update header with business name if returned
+      // Update header with business name
       if (data.businessName) {
         const titleEl = document.getElementById('nd-title');
         if (titleEl) titleEl.textContent = data.businessName;
       }
+
+      // Store plan for feature gating
+      if (data.plan) clientPlan = data.plan;
 
       addMessage(
         'assistant',
@@ -428,7 +432,8 @@
     const handledLeadStep = await handleLeadCapture(text);
 
     if (!handledLeadStep) {
-      if (!leadSaved && !leadStep && looksLikeBuyingIntent(text)) {
+      const canCapture = clientPlan === 'growth' || clientPlan === 'pro';
+      if (canCapture && !leadSaved && !leadStep && looksLikeBuyingIntent(text)) {
         await getAiReply();
         leadStep = 'name';
         addMessage('assistant', 'I can ask the team to follow up with you. What is your name?');

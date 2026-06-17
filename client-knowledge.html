@@ -446,6 +446,20 @@ window.location.href = '/client-login.html';
 return;
 }
 
+// Plan check - knowledge base is Growth+ only
+  const sbk = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const {data:cuk} = await sbk.from('ClientUsers').select('client_id').eq('auth_user_id',session.user.id).maybeSingle();
+  let cidk = cuk?.client_id;
+  if(!cidk){const {data:clk} = await sbk.from('Clients').select('id').eq('contact_email',session.user.email).maybeSingle();cidk=clk?.id;}
+  if(cidk){
+    const {data:pk} = await sbk.from('Clients').select('plan').eq('id',cidk).maybeSingle();
+    if(pk?.plan === 'starter'){
+      loading.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:20px">⚡</div><h2 style="font-size:22px;margin-bottom:12px">AI Knowledge Base is a Growth feature</h2><p style="color:#6b7280;margin-bottom:24px;font-size:15px">Upgrade to Growth to customise your AI with your own knowledge base and FAQs.</p><a href="/contact.html?plan=growth" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;padding:14px 28px;border-radius:14px;text-decoration:none;font-weight:700;font-size:15px;">Upgrade to Growth — £99/mo</a></div>';
+      loading.style.display = 'block';
+      return;
+    }
+  }
+
 try{
 const data = await apiRequest('GET');
 const client = data.client;

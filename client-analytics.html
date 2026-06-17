@@ -59,6 +59,7 @@ canvas{display:block;width:100%!important;}
     <a href="/client-conversations.html">Conversations</a>
     <a class="active" href="/client-analytics.html">Analytics</a>
     <a href="/client-knowledge.html">AI Knowledge</a>
+    <a href="/client-account.html">Account</a>
     <button class="logout-btn" id="logoutBtn">Logout</button>
   </div>
 </div>
@@ -223,6 +224,14 @@ async function load(){
     clientId=cl?.id||null;
   }
   if(!clientId){document.getElementById('loading').textContent='Client not found.';return;}
+
+  // Plan check - analytics only for growth and pro
+  const {data:clientData} = await sb.from('Clients').select('plan,business_name').eq('id',clientId).maybeSingle();
+  const plan = clientData?.plan || 'starter';
+  if(plan === 'starter'){
+    document.getElementById('loading').innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:20px">⚡</div><h2 style="margin-bottom:12px">Analytics is a Growth feature</h2><p style="color:#6b7280;margin-bottom:24px">Upgrade your plan to unlock analytics, lead capture and the AI knowledge base.</p><a href="/contact.html?plan=growth" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;padding:14px 28px;border-radius:14px;text-decoration:none;font-weight:700;">Upgrade to Growth — £99/mo</a></div>';
+    return;
+  }
 
   // Fetch data
   const [{data:leads},{data:convos}]=await Promise.all([

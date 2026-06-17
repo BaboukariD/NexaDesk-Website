@@ -278,6 +278,7 @@ font-size:30px;
 <a href="/client-conversations.html">Conversations</a>
 <a href="/client-analytics.html">Analytics</a>
 <a href="/client-knowledge.html">AI Knowledge</a>
+    <a href="/client-account.html">Account</a>
 <button class="logout-btn" id="logoutBtn">Logout</button>
 </div>
 </div>
@@ -434,6 +435,25 @@ throw new Error('No client account found for this login.');
 
 document.getElementById('businessName').textContent =
 client.business_name || 'NexaDesk Client';
+
+// Plan-based nav gating
+const plan = client.plan || 'starter';
+const analyticsLink = document.querySelector('a[href="/client-analytics.html"]');
+const knowledgeLink = document.querySelector('a[href="/client-knowledge.html"]');
+
+if(plan === 'starter') {
+  // Starter: hide analytics and knowledge base nav links
+  if(analyticsLink) analyticsLink.style.display = 'none';
+  if(knowledgeLink) knowledgeLink.style.display = 'none';
+  // Show upgrade banner
+  const hero = document.querySelector('.hero');
+  if(hero) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:14px 20px;font-size:14px;color:#a78bfa;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;';
+    banner.innerHTML = `<span>⚡ You're on the Starter plan. <strong>Upgrade to Growth</strong> to unlock lead capture, analytics and AI knowledge base.</span><a href="/contact.html?plan=growth" style="background:#8b5cf6;color:white;padding:8px 16px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap;">Upgrade</a>`;
+    hero.after(banner);
+  }
+}
 
 const conversationsResult = await sb
 .from('Conversations')

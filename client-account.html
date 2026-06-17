@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NexaDesk — Account Settings</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif;}
+body{background:#050816;color:white;min-height:100vh;padding:32px;overflow-x:hidden;}
+.shell{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:24px;}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.logo img{width:160px;max-width:100%;object-fit:contain;}
+.nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.nav a,.logout-btn{border:1px solid rgba(255,255,255,.08);background:#0d111f;color:white;text-decoration:none;padding:12px 16px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;}
+.nav a.active{background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-color:transparent;}
+.hero{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.08)),#0b1020;border:1px solid rgba(255,255,255,.07);border-radius:22px;padding:28px;}
+.eyebrow{color:#a78bfa;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.hero h1{font-size:28px;font-weight:800;margin-bottom:8px;}
+.hero p{color:#a1a1aa;font-size:14px;line-height:1.7;}
+.panel{background:#0d111f;border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:28px;}
+.panel h2{font-size:18px;font-weight:800;margin-bottom:6px;}
+.panel-desc{color:#6b7280;font-size:14px;margin-bottom:22px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;font-weight:700;color:#c4b5fd;margin-bottom:8px;}
+.field-row{position:relative;}
+.input{width:100%;padding:16px 50px 16px 16px;background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;color:white;font-size:15px;outline:none;transition:border-color .2s;}
+.input:focus{border-color:#8b5cf6;}
+.input::placeholder{color:#4b5563;}
+.input:disabled{opacity:.5;cursor:not-allowed;}
+.eye{position:absolute;right:16px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;color:#6b7280;user-select:none;}
+.eye:hover{color:white;}
+.btn{background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;color:white;padding:14px 24px;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;transition:.2s;font-family:Inter,sans-serif;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(139,92,246,.35);}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.status{margin-top:14px;font-size:14px;min-height:20px;color:#6b7280;}
+.status.success{color:#34d399;}
+.status.error{color:#f87171;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.info-row:last-child{border-bottom:none;}
+.info-label{font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.info-value{font-size:15px;font-weight:600;}
+.badge{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;}
+.badge.starter{background:#1e2a56;color:#a78bfa;}
+.badge.growth{background:#1a3040;color:#60a5fa;}
+.badge.pro{background:#2a1a40;color:#c084fc;}
+.badge.active{background:#1a3a2a;color:#34d399;}
+.loading{color:#6b7280;padding:40px 0;font-size:18px;}
+@media(max-width:600px){body{padding:20px;}}
+</style>
+</head>
+<body>
+<main class="shell">
+
+<div class="topbar">
+  <a class="logo" href="/client-dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
+  <div class="nav">
+    <a href="/client-dashboard.html">Dashboard</a>
+    <a href="/client-conversations.html">Conversations</a>
+    <a href="/client-analytics.html">Analytics</a>
+    <a href="/client-knowledge.html">AI Knowledge</a>
+    <a class="active" href="/client-account.html">Account</a>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="eyebrow">Account Settings</div>
+  <h1>Your account</h1>
+  <p>Manage your login details and view your plan information.</p>
+</section>
+
+<div class="loading" id="loading">Loading...</div>
+
+<div id="accountApp" style="display:none;flex-direction:column;gap:20px;">
+
+  <!-- Plan Info -->
+  <div class="panel">
+    <h2>Plan & Account</h2>
+    <p class="panel-desc">Your current NexaDesk subscription details.</p>
+    <div id="planInfo"></div>
+  </div>
+
+  <!-- Change Password -->
+  <div class="panel">
+    <h2>Change Password</h2>
+    <p class="panel-desc">Set a new password for your client portal login.</p>
+    <div class="field">
+      <label>New Password</label>
+      <div class="field-row">
+        <input type="password" id="newPassword" class="input" placeholder="Enter new password (min 6 chars)"/>
+        <span class="eye" id="eye1">👁</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Confirm New Password</label>
+      <div class="field-row">
+        <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password"/>
+        <span class="eye" id="eye2">👁</span>
+      </div>
+    </div>
+    <button class="btn" id="changePasswordBtn">Update Password</button>
+    <div class="status" id="passwordStatus"></div>
+  </div>
+
+  <!-- Upgrade -->
+  <div class="panel" id="upgradePanel" style="display:none;">
+    <h2>Upgrade Your Plan</h2>
+    <p class="panel-desc">Unlock more features by upgrading your NexaDesk plan.</p>
+    <a href="/contact.html?plan=growth" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;padding:14px 24px;border-radius:14px;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;">Upgrade to Growth — £99/mo</a>
+  </div>
+
+</div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function setStatus(id, text, type=''){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'status ' + type;
+}
+
+// Eye toggles
+document.getElementById('eye1').onclick = () => { const i = document.getElementById('newPassword'); i.type = i.type === 'password' ? 'text' : 'password'; };
+document.getElementById('eye2').onclick = () => { const i = document.getElementById('confirmPassword'); i.type = i.type === 'password' ? 'text' : 'password'; };
+
+async function load() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/client-login.html'; return; }
+
+  const user = session.user;
+
+  // Get client
+  let client = null;
+  const { data: cu } = await sb.from('ClientUsers').select('client_id').eq('auth_user_id', user.id).maybeSingle();
+  if (cu?.client_id) {
+    const { data: cl } = await sb.from('Clients').select('*').eq('id', cu.client_id).maybeSingle();
+    client = cl;
+  }
+  if (!client) {
+    const { data: cl } = await sb.from('Clients').select('*').eq('contact_email', user.email).maybeSingle();
+    client = cl;
+  }
+
+  if (!client) { document.getElementById('loading').textContent = 'Client not found.'; return; }
+
+  const plan = client.plan || 'starter';
+
+  // Render plan info
+  const planLabels = { starter: 'Starter — £49/mo', growth: 'Growth — £99/mo', pro: 'Pro — £199/mo' };
+  document.getElementById('planInfo').innerHTML = `
+    <div class="info-row">
+      <span class="info-label">Business</span>
+      <span class="info-value">${client.business_name || '—'}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Email</span>
+      <span class="info-value">${user.email}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Plan</span>
+      <span class="badge ${plan}">${planLabels[plan] || plan}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Status</span>
+      <span class="badge active">Active</span>
+    </div>
+  `;
+
+  if (plan === 'starter') document.getElementById('upgradePanel').style.display = 'block';
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('accountApp').style.display = 'flex';
+}
+
+document.getElementById('changePasswordBtn').onclick = async () => {
+  const newPw = document.getElementById('newPassword').value.trim();
+  const confirm = document.getElementById('confirmPassword').value.trim();
+
+  if (!newPw || !confirm) { setStatus('passwordStatus', 'Please fill in both fields.', 'error'); return; }
+  if (newPw.length < 6) { setStatus('passwordStatus', 'Password must be at least 6 characters.', 'error'); return; }
+  if (newPw !== confirm) { setStatus('passwordStatus', 'Passwords do not match.', 'error'); return; }
+
+  document.getElementById('changePasswordBtn').disabled = true;
+  setStatus('passwordStatus', 'Updating...');
+
+  const { error } = await sb.auth.updateUser({ password: newPw });
+  document.getElementById('changePasswordBtn').disabled = false;
+
+  if (error) { setStatus('passwordStatus', error.message, 'error'); return; }
+
+  setStatus('passwordStatus', 'Password updated successfully!', 'success');
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+};
+
+document.getElementById('logoutBtn').onclick = async () => { await sb.auth.signOut(); window.location.href = '/client-login.html'; };
+load();
+</script>
+</body>
+</html>
