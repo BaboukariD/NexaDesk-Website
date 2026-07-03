@@ -3,327 +3,319 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NexaDesk — Analytics</title>
+<title>Analytics — NexaDesk</title>
+<link rel="stylesheet" href="/portal.css"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif;}
-body{background:#050816;color:white;min-height:100vh;padding:32px;overflow-x:hidden;}
-.shell{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px;}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
-.logo img{width:160px;max-width:100%;object-fit:contain;}
-.nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-.nav a,.logout-btn{border:1px solid rgba(255,255,255,.08);background:#0d111f;color:white;text-decoration:none;padding:12px 16px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;}
-.nav a.active{background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-color:transparent;}
-.hero{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.08)),#0b1020;border:1px solid rgba(255,255,255,.07);border-radius:22px;padding:28px;}
-.eyebrow{color:#a78bfa;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
-.hero h1{font-size:28px;font-weight:800;margin-bottom:8px;}
-.hero p{color:#a1a1aa;line-height:1.7;font-size:14px;}
-.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
-.card{background:#0d111f;border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:22px;}
-.card-label{font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;}
-.card-value{font-size:36px;font-weight:900;}
-.card-value.purple{color:#a78bfa;}
-.card-value.green{color:#34d399;}
-.card-value.pink{color:#f472b6;}
-.card-value.blue{color:#60a5fa;}
-.card-sub{font-size:13px;color:#4b5563;margin-top:8px;}
-.section{background:#0d111f;border:1px solid rgba(255,255,255,.07);border-radius:20px;overflow:hidden;}
-.section-head{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);font-size:16px;font-weight:700;}
-.chart-wrap{padding:24px;position:relative;}
-canvas{display:block;width:100%!important;}
-.grid2{display:grid;grid-template-columns:2fr 1fr;gap:20px;}
-.bar-labels{display:flex;justify-content:space-between;padding:0 24px 16px;font-size:12px;color:#4b5563;}
-.donut-wrap{padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;}
-.legend{display:flex;flex-direction:column;gap:8px;width:100%;}
-.legend-item{display:flex;align-items:center;gap:10px;font-size:13px;color:#9ca3af;}
-.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.top-questions{padding:20px 24px;display:flex;flex-direction:column;gap:12px;}
-.question-row{display:flex;align-items:center;gap:14px;}
-.question-bar-wrap{flex:1;background:#111827;border-radius:999px;height:8px;overflow:hidden;}
-.question-bar{height:100%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);border-radius:999px;transition:width .6s ease;}
-.question-text{font-size:13px;color:#e5e7eb;flex:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.question-count{font-size:13px;color:#6b7280;width:30px;text-align:right;flex-shrink:0;}
-.loading{color:#6b7280;padding:40px;text-align:center;}
-.empty{color:#4b5563;padding:30px;text-align:center;font-size:14px;}
-@media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr);}.grid2{grid-template-columns:1fr;}}
-@media(max-width:600px){body{padding:16px;}.grid4{grid-template-columns:1fr;}}
-</style>
 </head>
 <body>
-<main class="shell">
 
-<div class="topbar">
-  <a class="logo" href="/client-dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
-  <div class="nav">
-    <a href="/client-dashboard.html">Dashboard</a>
-    <a href="/client-conversations.html">Conversations</a>
-    <a class="active" href="/client-analytics.html">Analytics</a>
-    <a href="/client-knowledge.html">AI Knowledge</a>
-    <a href="/client-account.html">Account</a>
-    <button class="logout-btn" id="logoutBtn">Logout</button>
-  </div>
-</div>
+<div class="shell">
 
-<section class="hero">
-  <div class="eyebrow">Analytics</div>
-  <h1>How is your AI performing?</h1>
-  <p>Track leads, conversations, peak activity times and what your visitors are asking most.</p>
-</section>
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="/client-dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
 
-<div id="loading" class="loading">Loading analytics...</div>
+    <a class="side-link" href="/client-dashboard.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Overview
+    </a>
+    <a class="side-link" href="/client-conversations.html">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Conversations
+    </a>
+    <a class="side-link active" href="/client-analytics.html">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>
+      Analytics
+    </a>
+    <a class="side-link" href="/client-knowledge.html">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      AI Knowledge
+    </a>
+    <a class="side-link" href="/client-account.html">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Account
+    </a>
 
-<div id="analyticsApp" style="display:none;flex-direction:column;gap:24px;">
+    <div class="sidebar-foot">
+      <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Log out</span>
+      </button>
+    </div>
+  </aside>
 
-  <div class="grid4">
-    <div class="card"><div class="card-label">Total Leads</div><div class="card-value purple" id="aLeads">0</div><div class="card-sub">All time</div></div>
-    <div class="card"><div class="card-label">This Week</div><div class="card-value green" id="aWeek">0</div><div class="card-sub">Last 7 days</div></div>
-    <div class="card"><div class="card-label">Conversations</div><div class="card-value blue" id="aConvos">0</div><div class="card-sub">All time</div></div>
-    <div class="card"><div class="card-label">Avg Messages</div><div class="card-value pink" id="aAvg">0</div><div class="card-sub">Per conversation</div></div>
-  </div>
+  <main class="main">
 
-  <div class="grid2">
-
-    <div class="section">
-      <div class="section-head">Leads — Last 14 Days</div>
-      <div class="chart-wrap"><canvas id="barChart" height="160"></canvas></div>
-      <div class="bar-labels" id="barLabels"></div>
+    <div class="page-head">
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-sub">Leads, activity patterns and what your visitors ask most.</p>
     </div>
 
-    <div class="section">
-      <div class="section-head">Contact Preference</div>
-      <div class="donut-wrap">
-        <canvas id="donutChart" width="160" height="160" style="width:160px;height:160px;"></canvas>
-        <div class="legend" id="donutLegend"></div>
+    <div class="loading-state" id="loading"><div class="spinner"></div>Loading analytics…</div>
+
+    <div id="analyticsApp" style="display:none;">
+
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Total leads</div><div class="stat-value accent" id="aLeads">0</div><div class="stat-sub">All time</div></div>
+        <div class="stat"><div class="stat-label">This week</div><div class="stat-value green" id="aWeek">0</div><div class="stat-sub">Last 7 days</div></div>
+        <div class="stat"><div class="stat-label">Conversations</div><div class="stat-value blue" id="aConvos">0</div><div class="stat-sub">All time</div></div>
+        <div class="stat"><div class="stat-label">Avg messages</div><div class="stat-value pink" id="aAvg">0</div><div class="stat-sub">Per conversation</div></div>
       </div>
+
+      <div class="chart-grid">
+        <div class="section" style="margin-bottom:0;">
+          <div class="section-head"><div class="section-title">Leads — last 14 days</div></div>
+          <div class="chart-pad"><canvas id="barChart" height="160"></canvas></div>
+          <div class="axis-labels" id="barLabels"></div>
+        </div>
+
+        <div class="section" style="margin-bottom:0;">
+          <div class="section-head"><div class="section-title">Contact preference</div></div>
+          <div class="chart-pad" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+            <canvas id="donutChart" width="150" height="150" style="width:150px;height:150px;"></canvas>
+            <div class="legend" id="donutLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><div class="section-title">Top questions from visitors</div></div>
+        <div class="section-body" id="topQuestions" style="display:flex;flex-direction:column;gap:12px;"></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="section" style="margin-bottom:0;">
+          <div class="section-head"><div class="section-title">Busiest days</div></div>
+          <div class="chart-pad"><canvas id="dayChart" height="140"></canvas></div>
+          <div class="axis-labels" id="dayLabels"></div>
+        </div>
+
+        <div class="section" style="margin-bottom:0;">
+          <div class="section-head"><div class="section-title">Leads by month</div></div>
+          <div class="chart-pad"><canvas id="monthChart" height="140"></canvas></div>
+          <div class="axis-labels" id="monthLabels"></div>
+        </div>
+      </div>
+
     </div>
-
-  </div>
-
-  <div class="section">
-    <div class="section-head">Top Questions from Visitors</div>
-    <div class="top-questions" id="topQuestions"></div>
-  </div>
-
-  <div class="grid2">
-
-    <div class="section">
-      <div class="section-head">Busiest Days</div>
-      <div class="chart-wrap"><canvas id="dayChart" height="140"></canvas></div>
-      <div class="bar-labels" id="dayLabels"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-head">Leads by Month</div>
-      <div class="chart-wrap"><canvas id="monthChart" height="140"></canvas></div>
-      <div class="bar-labels" id="monthLabels"></div>
-    </div>
-
-  </div>
-
+  </main>
 </div>
-</main>
+
+<style>
+.question-row{display:flex;align-items:center;gap:14px;}
+.question-text{font-size:13px;color:var(--text);flex:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.question-bar-wrap{flex:1;background:var(--bg);border-radius:99px;height:6px;overflow:hidden;}
+.question-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-hover));border-radius:99px;transition:width .6s ease;}
+.question-count{font-size:12.5px;color:var(--faint);width:28px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+</style>
 
 <script>
-const SUPABASE_URL='https://exqdmvloldvshzpxevht.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function drawBar(canvasId,labels,values,color='#8b5cf6'){
-  const canvas=document.getElementById(canvasId);
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const W=canvas.offsetWidth||canvas.parentElement.offsetWidth||500;
-  canvas.width=W;
-  const H=canvas.height;
-  const max=Math.max(...values,1);
-  const padL=10,padR=10,padT=20,padB=10;
-  const cW=W-padL-padR,cH=H-padT-padB;
-  const bW=(cW/labels.length)*0.55;
-  const gap=cW/labels.length;
+function drawBar(canvasId, labels, values, color='#7C5CFF'){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 500;
+  canvas.width = W;
+  const H = canvas.height;
+  const max = Math.max(...values, 1);
+  const padL=10, padR=10, padT=20, padB=10;
+  const cW = W-padL-padR, cH = H-padT-padB;
+  const bW = (cW/labels.length)*0.55;
+  const gap = cW/labels.length;
   ctx.clearRect(0,0,W,H);
   values.forEach((val,i)=>{
-    const x=padL+gap*i+(gap-bW)/2;
-    const bH=(val/max)*cH;
-    const y=padT+cH-bH;
-    const grad=ctx.createLinearGradient(0,y,0,y+bH);
+    const x = padL + gap*i + (gap-bW)/2;
+    const bH = (val/max)*cH;
+    const y = padT + cH - bH;
+    const grad = ctx.createLinearGradient(0,y,0,y+bH);
     grad.addColorStop(0,color);
-    grad.addColorStop(1,color+'44');
-    ctx.fillStyle=grad;
+    grad.addColorStop(1,color+'33');
+    ctx.fillStyle = grad;
     ctx.beginPath();
-    if(ctx.roundRect)ctx.roundRect(x,y,bW,bH,4);
+    if(ctx.roundRect) ctx.roundRect(x,y,bW,bH,3);
     else ctx.rect(x,y,bW,bH);
     ctx.fill();
     if(val>0){
-      ctx.fillStyle='white';
-      ctx.font='600 10px Inter,sans-serif';
-      ctx.textAlign='center';
-      ctx.fillText(val,x+bW/2,y-5);
+      ctx.fillStyle = '#EEF0FA';
+      ctx.font = '600 10px Inter,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(val, x+bW/2, y-5);
     }
   });
 }
 
-function drawDonut(canvasId,values,colors){
-  const canvas=document.getElementById(canvasId);
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
-  const cx=W/2,cy=H/2,r=Math.min(W,H)/2-10;
-  const total=values.reduce((a,b)=>a+b,0);
+function drawDonut(canvasId, values, colors){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, r = Math.min(W,H)/2 - 8;
+  const total = values.reduce((a,b)=>a+b,0);
   ctx.clearRect(0,0,W,H);
   if(total===0){
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.fillStyle='#1f2937';ctx.fill();
-    ctx.beginPath();ctx.arc(cx,cy,r*0.6,0,Math.PI*2);
-    ctx.fillStyle='#0d111f';ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle = '#1B1F2E'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2);
+    ctx.fillStyle = '#0E1018'; ctx.fill();
     return;
   }
-  let start=-Math.PI/2;
+  let start = -Math.PI/2;
   values.forEach((val,i)=>{
-    const slice=(val/total)*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(cx,cy);
+    const slice = (val/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
     ctx.arc(cx,cy,r,start,start+slice);
-    ctx.closePath();ctx.fillStyle=colors[i];ctx.fill();
-    start+=slice;
+    ctx.closePath(); ctx.fillStyle = colors[i]; ctx.fill();
+    start += slice;
   });
-  ctx.beginPath();ctx.arc(cx,cy,r*0.6,0,Math.PI*2);
-  ctx.fillStyle='#0d111f';ctx.fill();
-  ctx.fillStyle='white';ctx.font='bold 18px Inter,sans-serif';
-  ctx.textAlign='center';ctx.fillText(total,cx,cy+4);
-  ctx.fillStyle='#6b7280';ctx.font='11px Inter,sans-serif';
-  ctx.fillText('total',cx,cy+18);
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2);
+  ctx.fillStyle = '#0E1018'; ctx.fill();
+  ctx.fillStyle = '#EEF0FA'; ctx.font = 'bold 17px Inter,sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText(total, cx, cy+3);
+  ctx.fillStyle = '#5A6180'; ctx.font = '10px Inter,sans-serif';
+  ctx.fillText('total', cx, cy+16);
 }
 
-function extractTopQuestions(conversations,limit=8){
-  const counts={};
+function extractTopQuestions(conversations, limit=8){
+  const counts = {};
   conversations.forEach(c=>{
-    if(!Array.isArray(c.messages))return;
+    if(!Array.isArray(c.messages)) return;
     c.messages.filter(m=>m.role==='user').forEach(m=>{
-      const text=(m.content||'').trim().toLowerCase();
-      if(text.length<5||text.length>200)return;
-      // Normalise to first 60 chars as key
-      const key=text.slice(0,60);
-      counts[key]=(counts[key]||0)+1;
+      const text = (m.content||'').trim().toLowerCase();
+      if(text.length<5 || text.length>200) return;
+      const key = text.slice(0,60);
+      counts[key] = (counts[key]||0)+1;
     });
   });
-  return Object.entries(counts)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,limit)
-    .map(([q,n])=>({q,n}));
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,limit).map(([q,n])=>({q,n}));
+}
+
+function escapeHtml(value){
+  return String(value)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 }
 
 async function load(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='/client-login.html';return;}
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){ window.location.href = '/client-login.html'; return; }
 
-  // Get client
-  let clientId=null;
-  const {data:cu}=await sb.from('ClientUsers').select('client_id').eq('auth_user_id',session.user.id).maybeSingle();
-  if(cu?.client_id){clientId=cu.client_id;}
-  else{
-    const {data:cl}=await sb.from('Clients').select('id').eq('contact_email',session.user.email).maybeSingle();
-    clientId=cl?.id||null;
+  let clientId = null;
+  const { data: cu } = await sb.from('ClientUsers').select('client_id').eq('auth_user_id', session.user.id).maybeSingle();
+  if(cu?.client_id){ clientId = cu.client_id; }
+  else {
+    const { data: cl } = await sb.from('Clients').select('id').eq('contact_email', session.user.email).maybeSingle();
+    clientId = cl?.id || null;
   }
-  if(!clientId){document.getElementById('loading').textContent='Client not found.';return;}
+  if(!clientId){ document.getElementById('loading').textContent = 'Client not found.'; return; }
 
-  // Plan check - analytics only for growth and pro
-  const {data:clientData} = await sb.from('Clients').select('plan,business_name').eq('id',clientId).maybeSingle();
+  // Plan gate — analytics is Growth+
+  const { data: clientData } = await sb.from('Clients').select('plan,business_name').eq('id', clientId).maybeSingle();
   const plan = clientData?.plan || 'starter';
   if(plan === 'starter'){
-    document.getElementById('loading').innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:20px">⚡</div><h2 style="margin-bottom:12px">Analytics is a Growth feature</h2><p style="color:#6b7280;margin-bottom:24px">Upgrade your plan to unlock analytics, lead capture and the AI knowledge base.</p><a href="/contact.html?plan=growth" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;padding:14px 28px;border-radius:14px;text-decoration:none;font-weight:700;">Upgrade to Growth — £99/mo</a></div>';
+    document.getElementById('loading').innerHTML = `
+      <div class="locked-state" style="margin-top:8px;">
+        <div class="locked-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2>Analytics is a Growth feature</h2>
+        <p>Upgrade your plan to unlock analytics, lead capture and the AI knowledge base.</p>
+        <a class="btn btn-primary btn-lg" href="/contact.html?plan=growth">Upgrade to Growth — £99/mo</a>
+      </div>`;
     return;
   }
 
-  // Fetch data
-  const [{data:leads},{data:convos}]=await Promise.all([
-    sb.from('Leads').select('*').eq('client_id',clientId).order('created_at',{ascending:true}),
-    sb.from('Conversations').select('*').eq('client_id',String(clientId)).order('created_at',{ascending:true})
+  const [{ data: leads }, { data: convos }] = await Promise.all([
+    sb.from('Leads').select('*').eq('client_id', clientId).order('created_at', { ascending: true }),
+    sb.from('Conversations').select('*').eq('client_id', String(clientId)).order('created_at', { ascending: true })
   ]);
 
-  const now=new Date();
-  const weekAgo=new Date(now-7*24*60*60*1000);
-  const weekLeads=(leads||[]).filter(l=>new Date(l.created_at)>=weekAgo).length;
-  const totalMsgs=(convos||[]).reduce((a,c)=>a+(Array.isArray(c.messages)?c.messages.length:0),0);
-  const avgMsgs=convos?.length?Math.round(totalMsgs/convos.length):0;
+  const now = new Date();
+  const weekAgo = new Date(now - 7*24*60*60*1000);
+  const weekLeads = (leads||[]).filter(l => new Date(l.created_at) >= weekAgo).length;
+  const totalMsgs = (convos||[]).reduce((a,c) => a + (Array.isArray(c.messages) ? c.messages.length : 0), 0);
+  const avgMsgs = convos?.length ? Math.round(totalMsgs/convos.length) : 0;
 
-  document.getElementById('aLeads').textContent=leads?.length||0;
-  document.getElementById('aWeek').textContent=weekLeads;
-  document.getElementById('aConvos').textContent=convos?.length||0;
-  document.getElementById('aAvg').textContent=avgMsgs;
+  document.getElementById('aLeads').textContent = leads?.length || 0;
+  document.getElementById('aWeek').textContent = weekLeads;
+  document.getElementById('aConvos').textContent = convos?.length || 0;
+  document.getElementById('aAvg').textContent = avgMsgs;
 
-  // Last 14 days bar chart
-  const days14=[],counts14=[];
-  const labelsBar=[];
-  for(let i=13;i>=0;i--){
-    const d=new Date(now);d.setDate(d.getDate()-i);
-    const str=d.toISOString().slice(0,10);
-    days14.push(str);
-    counts14.push((leads||[]).filter(l=>l.created_at?.startsWith(str)).length);
+  // Last 14 days
+  const counts14 = [], labelsBar = [];
+  for(let i=13; i>=0; i--){
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    const str = d.toISOString().slice(0,10);
+    counts14.push((leads||[]).filter(l => l.created_at?.startsWith(str)).length);
     labelsBar.push(d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
   }
   setTimeout(()=>{
-    drawBar('barChart',labelsBar,counts14,'#8b5cf6');
-    document.getElementById('barLabels').innerHTML=labelsBar.map(l=>`<span>${l}</span>`).join('');
+    drawBar('barChart', labelsBar, counts14, '#7C5CFF');
+    document.getElementById('barLabels').innerHTML = labelsBar.map(l=>`<span>${l}</span>`).join('');
   },50);
 
-  // Donut — contact preference
-  const emailC=(leads||[]).filter(l=>l.preferred_contact==='email').length;
-  const phoneC=(leads||[]).filter(l=>l.preferred_contact==='phone').length;
-  const otherC=(leads?.length||0)-emailC-phoneC;
-  drawDonut('donutChart',[emailC,phoneC,otherC],['#8b5cf6','#34d399','#f472b6']);
-  document.getElementById('donutLegend').innerHTML=`
-    <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>Email (${emailC})</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>Phone (${phoneC})</div>
-    ${otherC>0?`<div class="legend-item"><div class="legend-dot" style="background:#f472b6"></div>Other (${otherC})</div>`:''}
+  // Donut
+  const emailC = (leads||[]).filter(l=>l.preferred_contact==='email').length;
+  const phoneC = (leads||[]).filter(l=>l.preferred_contact==='phone').length;
+  const otherC = (leads?.length||0) - emailC - phoneC;
+  drawDonut('donutChart', [emailC, phoneC, otherC], ['#7C5CFF','#34D399','#F472B6']);
+  document.getElementById('donutLegend').innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:#7C5CFF"></div>Email (${emailC})</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34D399"></div>Phone (${phoneC})</div>
+    ${otherC>0 ? `<div class="legend-item"><div class="legend-dot" style="background:#F472B6"></div>Other (${otherC})</div>` : ''}
   `;
 
   // Top questions
-  const topQ=extractTopQuestions(convos||[]);
-  const maxQ=topQ[0]?.n||1;
-  const qEl=document.getElementById('topQuestions');
+  const topQ = extractTopQuestions(convos||[]);
+  const maxQ = topQ[0]?.n || 1;
+  const qEl = document.getElementById('topQuestions');
   if(topQ.length){
-    qEl.innerHTML=topQ.map(({q,n})=>`
+    qEl.innerHTML = topQ.map(({q,n})=>`
       <div class="question-row">
-        <div class="question-text">${q}</div>
+        <div class="question-text">${escapeHtml(q)}</div>
         <div class="question-bar-wrap"><div class="question-bar" style="width:${Math.round((n/maxQ)*100)}%"></div></div>
         <div class="question-count">${n}</div>
-      </div>
-    `).join('');
+      </div>`).join('');
   } else {
-    qEl.innerHTML='<div class="empty">No questions yet.</div>';
+    qEl.innerHTML = '<div class="empty-state" style="padding:20px;">No questions yet.</div>';
   }
 
-  // Busiest days of week
-  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const dayCounts=Array(7).fill(0);
-  (leads||[]).forEach(l=>{if(l.created_at)dayCounts[new Date(l.created_at).getDay()]++;});
+  // Busiest days
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dayCounts = Array(7).fill(0);
+  (leads||[]).forEach(l=>{ if(l.created_at) dayCounts[new Date(l.created_at).getDay()]++; });
   setTimeout(()=>{
-    drawBar('dayChart',dayNames,dayCounts,'#60a5fa');
-    document.getElementById('dayLabels').innerHTML=dayNames.map(d=>`<span>${d}</span>`).join('');
+    drawBar('dayChart', dayNames, dayCounts, '#60A5FA');
+    document.getElementById('dayLabels').innerHTML = dayNames.map(d=>`<span>${d}</span>`).join('');
   },50);
 
-  // Leads by month (last 6)
-  const monthLabels=[],monthCounts=[];
-  for(let i=5;i>=0;i--){
-    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    const label=d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'});
-    const yr=d.getFullYear(),mo=d.getMonth();
-    monthLabels.push(label);
+  // Leads by month
+  const monthLabels = [], monthCounts = [];
+  for(let i=5; i>=0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    monthLabels.push(d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}));
+    const yr = d.getFullYear(), mo = d.getMonth();
     monthCounts.push((leads||[]).filter(l=>{
-      if(!l.created_at)return false;
-      const ld=new Date(l.created_at);
-      return ld.getFullYear()===yr&&ld.getMonth()===mo;
+      if(!l.created_at) return false;
+      const ld = new Date(l.created_at);
+      return ld.getFullYear()===yr && ld.getMonth()===mo;
     }).length);
   }
   setTimeout(()=>{
-    drawBar('monthChart',monthLabels,monthCounts,'#f472b6');
-    document.getElementById('monthLabels').innerHTML=monthLabels.map(l=>`<span>${l}</span>`).join('');
+    drawBar('monthChart', monthLabels, monthCounts, '#F472B6');
+    document.getElementById('monthLabels').innerHTML = monthLabels.map(l=>`<span>${l}</span>`).join('');
   },50);
 
-  document.getElementById('loading').style.display='none';
-  document.getElementById('analyticsApp').style.display='flex';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('analyticsApp').style.display = 'block';
 }
 
-document.getElementById('logoutBtn').onclick=async()=>{await sb.auth.signOut();window.location.href='/client-login.html';};
+document.getElementById('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  window.location.href = '/client-login.html';
+};
 load();
 </script>
 </body>

@@ -1,544 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NexaDesk Dashboard</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — NexaDesk</title>
+<link rel="stylesheet" href="/portal.css"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Inter,Arial,sans-serif;
-}
-
-body{
-background:#050816;
-color:white;
-min-height:100vh;
-padding:32px;
-overflow-x:hidden;
-}
-
-.loading{
-font-size:24px;
-color:#9ca3af;
-}
-
-.app{
-display:none;
-flex-direction:column;
-gap:24px;
-max-width:1180px;
-margin:0 auto;
-}
-
-.topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:20px;
-flex-wrap:wrap;
-}
-
-.logo img{
-width:210px;
-max-width:100%;
-object-fit:contain;
-}
-
-.business-name{
-margin-top:8px;
-color:#9ca3af;
-font-size:15px;
-}
-
-.nav{
-display:flex;
-gap:12px;
-align-items:center;
-flex-wrap:wrap;
-}
-
-.nav a,
-.logout-btn{
-border:1px solid rgba(255,255,255,.08);
-background:#0d111f;
-color:white;
-text-decoration:none;
-padding:12px 16px;
-border-radius:12px;
-font-weight:700;
-font-size:14px;
-cursor:pointer;
-}
-
-.nav a.active{
-background:linear-gradient(135deg,#8b5cf6,#7c3aed);
-border-color:transparent;
-}
-
-.hero{
-background:
-linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.08)),
-#0b1020;
-border:1px solid rgba(255,255,255,.07);
-border-radius:22px;
-padding:28px;
-}
-
-.hero h1{
-font-size:32px;
-line-height:1.15;
-margin-bottom:10px;
-}
-
-.hero p{
-color:#a1a1aa;
-line-height:1.7;
-max-width:760px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(4,minmax(0,1fr));
-gap:18px;
-}
-
-.card,
-.section,
-.table-wrap{
-background:#0d111f;
-border:1px solid rgba(255,255,255,.07);
-border-radius:20px;
-}
-
-.card{
-padding:22px;
-min-height:130px;
-}
-
-.card-title{
-font-size:13px;
-color:#8b95a7;
-margin-bottom:12px;
-font-weight:800;
-text-transform:uppercase;
-letter-spacing:.04em;
-}
-
-.big{
-font-size:36px;
-font-weight:900;
-}
-
-.small{
-font-size:14px;
-color:#9ca3af;
-margin-top:10px;
-line-height:1.5;
-word-break:break-word;
-}
-
-.section{
-overflow:hidden;
-}
-
-.section-header{
-padding:22px;
-border-bottom:1px solid rgba(255,255,255,.06);
-display:flex;
-justify-content:space-between;
-gap:16px;
-align-items:center;
-flex-wrap:wrap;
-}
-
-.section-title{
-font-size:20px;
-font-weight:900;
-}
-
-.section-header a{
-color:#a78bfa;
-text-decoration:none;
-font-weight:800;
-font-size:14px;
-}
-
-.conversation-list{
-display:flex;
-flex-direction:column;
-gap:16px;
-padding:22px;
-}
-
-.conversation-card{
-background:#111827;
-padding:18px;
-border-radius:16px;
-border:1px solid rgba(255,255,255,.06);
-}
-
-.conversation-time{
-font-size:13px;
-color:#9ca3af;
-margin-bottom:10px;
-}
-
-.conversation-text{
-white-space:pre-wrap;
-line-height:1.65;
-font-size:14px;
-color:white;
-max-height:105px;
-overflow:hidden;
-}
-
-.table-wrap{
-overflow:auto;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-min-width:760px;
-}
-
-th,
-td{
-padding:17px;
-text-align:left;
-border-bottom:1px solid rgba(255,255,255,.05);
-}
-
-th{
-color:#9ca3af;
-font-size:13px;
-text-transform:uppercase;
-letter-spacing:.04em;
-}
-
-td{
-font-size:14px;
-}
-
-.empty{
-padding:28px;
-text-align:center;
-color:#6b7280;
-line-height:1.6;
-}
-
-@media(max-width:980px){
-.grid{
-grid-template-columns:repeat(2,minmax(0,1fr));
-}
-}
-
-@media(max-width:640px){
-body{
-padding:20px;
-}
-
-.grid{
-grid-template-columns:1fr;
-}
-
-.hero h1{
-font-size:26px;
-}
-
-.big{
-font-size:30px;
-}
-}
-</style>
 </head>
-
 <body>
 
-<div class="loading" id="loading">Loading dashboard...</div>
+<div class="loading-state" id="loading"><div class="spinner"></div>Loading your dashboard…</div>
 
-<main class="app" id="app">
+<div class="shell" id="app" style="display:none;">
 
-<div class="topbar">
-<div>
-<a class="logo" href="/client-dashboard.html">
-<img src="./nexadesk-logo.png" alt="NexaDesk" />
-</a>
-<div class="business-name" id="businessName">Loading...</div>
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="/client-dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
+
+    <a class="side-link active" href="/client-dashboard.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Overview
+    </a>
+    <a class="side-link" href="/client-conversations.html">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Conversations
+    </a>
+    <a class="side-link" href="/client-analytics.html" id="navAnalytics">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>
+      Analytics
+    </a>
+    <a class="side-link" href="/client-knowledge.html" id="navKnowledge">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      AI Knowledge
+    </a>
+    <a class="side-link" href="/client-account.html">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Account
+    </a>
+
+    <div class="sidebar-foot">
+      <div class="side-user" id="userEmail">—</div>
+      <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Log out</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-head">
+      <h1 class="page-title" id="businessName">Dashboard</h1>
+      <p class="page-sub">Your AI front desk at a glance — leads, chats and activity.</p>
+    </div>
+
+    <div id="upgradeSlot"></div>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-label">Total leads</div>
+        <div class="stat-value accent" id="leadCount">0</div>
+        <div class="stat-sub">All captured enquiries</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">This week</div>
+        <div class="stat-value green" id="weekLeadCount">0</div>
+        <div class="stat-sub">Last 7 days</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Conversations</div>
+        <div class="stat-value blue" id="conversationCount">0</div>
+        <div class="stat-sub">Saved chat histories</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Assistant status</div>
+        <div style="margin-top:2px;"><span class="badge active"><span class="badge-dot"></span>Live on your site</span></div>
+        <div class="stat-sub" style="margin-top:10px;">Answering visitors 24/7</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Recent conversations</div>
+        <a class="section-link" href="/client-conversations.html">View all →</a>
+      </div>
+      <div class="section-body" id="conversationList"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Latest leads</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Contact via</th>
+              <th>Captured</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTable"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        No leads yet.<br>They'll appear here the moment your assistant captures one.
+      </div>
+    </div>
+
+  </main>
 </div>
-
-<div class="nav">
-<a class="active" href="/client-dashboard.html">Dashboard</a>
-<a href="/client-conversations.html">Conversations</a>
-<a href="/client-analytics.html">Analytics</a>
-<a href="/client-knowledge.html">AI Knowledge</a>
-    <a href="/client-account.html">Account</a>
-<button class="logout-btn" id="logoutBtn">Logout</button>
-</div>
-</div>
-
-<section class="hero">
-<h1>Your AI front desk is working.</h1>
-<p>
-Track leads, review recent chats, and update what your assistant knows about the business.
-</p>
-</section>
-
-<section class="grid">
-<div class="card">
-<div class="card-title">Total Leads</div>
-<div class="big" id="leadCount">0</div>
-<div class="small">All captured visitor enquiries.</div>
-</div>
-
-<div class="card">
-<div class="card-title">Leads This Week</div>
-<div class="big" id="weekLeadCount">0</div>
-<div class="small">Captured in the last 7 days.</div>
-</div>
-
-<div class="card">
-<div class="card-title">Conversations</div>
-<div class="big" id="conversationCount">0</div>
-<div class="small">Total saved chat histories.</div>
-</div>
-
-<div class="card">
-<div class="card-title">Logged In As</div>
-<div class="small" id="userEmail">-</div>
-</div>
-</section>
-
-<section class="section">
-<div class="section-header">
-<div class="section-title">Recent Conversations</div>
-<a href="/client-conversations.html">View all conversations</a>
-</div>
-
-<div class="conversation-list" id="conversationList"></div>
-</section>
-
-<section class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>Phone</th>
-<th>Contact Method</th>
-<th>Captured</th>
-</tr>
-</thead>
-<tbody id="leadsTable"></tbody>
-</table>
-
-<div class="empty" id="emptyState" style="display:none;">
-No leads yet.
-</div>
-</section>
-
-</main>
 
 <script>
-const SUPABASE_URL =
-'https://exqdmvloldvshzpxevht.supabase.co';
-
-const SUPABASE_ANON_KEY =
-'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
-
-const sb = supabase.createClient(
-SUPABASE_URL,
-SUPABASE_ANON_KEY
-);
+const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function escapeHtml(value){
-return String(value)
-.replaceAll('&','&amp;')
-.replaceAll('<','&lt;')
-.replaceAll('>','&gt;')
-.replaceAll('"','&quot;')
-.replaceAll("'",'&#039;');
+  return String(value)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 }
 
 function formatDate(dateString){
-if(!dateString) return '-';
-return new Date(dateString).toLocaleString('en-GB',{
-day:'numeric',
-month:'short',
-hour:'2-digit',
-minute:'2-digit'
-});
+  if(!dateString) return '—';
+  return new Date(dateString).toLocaleString('en-GB',{ day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
 }
 
 function getPreview(messages){
-if(!messages || !Array.isArray(messages)) return 'No conversation';
-
-const firstUserMessage = messages.find(message => message.role === 'user');
-const firstMessage = firstUserMessage || messages[0];
-
-return firstMessage?.content || 'No conversation';
+  if(!messages || !Array.isArray(messages)) return 'No conversation';
+  const firstUserMessage = messages.find(m => m.role === 'user');
+  const firstMessage = firstUserMessage || messages[0];
+  return firstMessage?.content || 'No conversation';
 }
 
 async function getClient(user){
-const linked = await sb
-.from('ClientUsers')
-.select('client_id')
-.eq('auth_user_id',user.id)
-.maybeSingle();
-
-if(linked.data?.client_id){
-const clientByLink = await sb
-.from('Clients')
-.select('*')
-.eq('id',linked.data.client_id)
-.maybeSingle();
-
-if(clientByLink.data){
-return clientByLink.data;
-return clientByLink.data;
-}
-}
-
-const fallback = await sb
-.from('Clients')
-.select('*')
-.eq('contact_email',user.email)
-.maybeSingle();
-
-return fallback.data || null;
+  const linked = await sb.from('ClientUsers').select('client_id').eq('auth_user_id', user.id).maybeSingle();
+  if(linked.data?.client_id){
+    const clientByLink = await sb.from('Clients').select('*').eq('id', linked.data.client_id).maybeSingle();
+    if(clientByLink.data) return clientByLink.data;
+  }
+  const fallback = await sb.from('Clients').select('*').eq('contact_email', user.email).maybeSingle();
+  return fallback.data || null;
 }
 
 async function loadDashboard(){
-try{
-const sessionResult = await sb.auth.getSession();
-const session = sessionResult.data.session;
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){ window.location.href = '/client-login.html'; return; }
 
-if(!session){
-window.location.href = '/client-login.html';
-return;
-}
+    const user = session.user;
+    document.getElementById('userEmail').textContent = user.email;
 
-const user = session.user;
-document.getElementById('userEmail').textContent = user.email;
+    const client = await getClient(user);
+    if(!client) throw new Error('No client account found for this login.');
 
-const client = await getClient(user);
+    document.getElementById('businessName').textContent = client.business_name || 'Dashboard';
 
-if(!client){
-throw new Error('No client account found for this login.');
-}
+    // Plan gating
+    const plan = client.plan || 'starter';
+    if(plan === 'starter'){
+      document.getElementById('navAnalytics').style.display = 'none';
+      document.getElementById('navKnowledge').style.display = 'none';
+      document.getElementById('upgradeSlot').innerHTML = `
+        <div class="upgrade-banner">
+          <span>You're on the <strong>Starter</strong> plan. Upgrade to Growth to unlock lead capture, analytics and the AI knowledge base.</span>
+          <a href="/contact.html?plan=growth">Upgrade to Growth</a>
+        </div>`;
+    }
 
-document.getElementById('businessName').textContent =
-client.business_name || 'NexaDesk Client';
+    // Conversations
+    const conversationsResult = await sb.from('Conversations')
+      .select('*').eq('client_id', String(client.id))
+      .order('created_at', { ascending: false });
+    if(conversationsResult.error) throw conversationsResult.error;
 
-// Plan-based nav gating
-const plan = client.plan || 'starter';
-const analyticsLink = document.querySelector('a[href="/client-analytics.html"]');
-const knowledgeLink = document.querySelector('a[href="/client-knowledge.html"]');
+    const conversations = conversationsResult.data || [];
+    document.getElementById('conversationCount').textContent = conversations.length;
 
-if(plan === 'starter') {
-  // Starter: hide analytics and knowledge base nav links
-  if(analyticsLink) analyticsLink.style.display = 'none';
-  if(knowledgeLink) knowledgeLink.style.display = 'none';
-  // Show upgrade banner
-  const hero = document.querySelector('.hero');
-  if(hero) {
-    const banner = document.createElement('div');
-    banner.style.cssText = 'background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:14px 20px;font-size:14px;color:#a78bfa;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;';
-    banner.innerHTML = `<span>⚡ You're on the Starter plan. <strong>Upgrade to Growth</strong> to unlock lead capture, analytics and AI knowledge base.</span><a href="/contact.html?plan=growth" style="background:#8b5cf6;color:white;padding:8px 16px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap;">Upgrade</a>`;
-    hero.after(banner);
+    const conversationList = document.getElementById('conversationList');
+    if(conversations.length){
+      conversationList.innerHTML = conversations.slice(0,5).map(c => `
+        <div class="convo-card">
+          <div class="convo-card-time">${formatDate(c.created_at)}</div>
+          <div class="convo-card-text">${escapeHtml(getPreview(c.messages))}</div>
+        </div>`).join('');
+    } else {
+      conversationList.innerHTML = '<div class="empty-state" style="padding:24px;">No conversations yet. Once visitors start chatting, they\u2019ll show up here.</div>';
+    }
+
+    // Leads
+    const leadsResult = await sb.from('Leads')
+      .select('*').eq('client_id', client.id)
+      .order('created_at', { ascending: false });
+    if(leadsResult.error) throw leadsResult.error;
+
+    const leads = leadsResult.data || [];
+    const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const leadsThisWeek = leads.filter(l => l.created_at && new Date(l.created_at).getTime() >= weekAgo);
+
+    document.getElementById('leadCount').textContent = leads.length;
+    document.getElementById('weekLeadCount').textContent = leadsThisWeek.length;
+
+    const table = document.getElementById('leadsTable');
+    document.getElementById('emptyState').style.display = leads.length ? 'none' : 'block';
+
+    table.innerHTML = leads.map(lead => `
+      <tr>
+        <td><strong>${escapeHtml(lead.name || '—')}</strong></td>
+        <td class="td-muted">${escapeHtml(lead.email || '—')}</td>
+        <td class="td-muted">${escapeHtml(lead.phone || '—')}</td>
+        <td class="td-muted">${escapeHtml(lead.preferred_contact || '—')}</td>
+        <td class="td-muted">${formatDate(lead.created_at)}</td>
+      </tr>`).join('');
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+
+  }catch(error){
+    const l = document.getElementById('loading');
+    l.innerHTML = escapeHtml(error.message);
+    l.style.color = 'var(--red)';
   }
 }
 
-const conversationsResult = await sb
-.from('Conversations')
-.select('*')
-.eq('client_id',String(client.id))
-.order('created_at',{ ascending:false });
-
-if(conversationsResult.error){
-throw conversationsResult.error;
-}
-
-const conversations = conversationsResult.data || [];
-
-document.getElementById('conversationCount').textContent =
-conversations.length;
-
-const conversationList = document.getElementById('conversationList');
-conversationList.innerHTML = '';
-
-if(conversations.length){
-conversations.slice(0,5).forEach(conversation=>{
-conversationList.innerHTML += `
-<div class="conversation-card">
-<div class="conversation-time">${formatDate(conversation.created_at)}</div>
-<div class="conversation-text">${escapeHtml(getPreview(conversation.messages))}</div>
-</div>
-`;
-});
-}else{
-conversationList.innerHTML =
-'<div class="empty">No conversations yet.</div>';
-}
-
-const leadsResult = await sb
-.from('Leads')
-.select('*')
-.eq('client_id',client.id)
-.order('created_at',{ ascending:false });
-
-if(leadsResult.error){
-throw leadsResult.error;
-}
-
-const leads = leadsResult.data || [];
-const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-const leadsThisWeek = leads.filter(lead=>{
-return lead.created_at && new Date(lead.created_at).getTime() >= weekAgo;
-});
-
-document.getElementById('leadCount').textContent = leads.length;
-document.getElementById('weekLeadCount').textContent = leadsThisWeek.length;
-
-const table = document.getElementById('leadsTable');
-const emptyState = document.getElementById('emptyState');
-
-table.innerHTML = '';
-emptyState.style.display = leads.length ? 'none' : 'block';
-
-leads.forEach(lead=>{
-table.innerHTML += `
-<tr>
-<td>${escapeHtml(lead.name || '-')}</td>
-<td>${escapeHtml(lead.email || '-')}</td>
-<td>${escapeHtml(lead.phone || '-')}</td>
-<td>${escapeHtml(lead.preferred_contact || '-')}</td>
-<td>${formatDate(lead.created_at)}</td>
-</tr>
-`;
-});
-
-document.getElementById('loading').style.display = 'none';
-document.getElementById('app').style.display = 'flex';
-}catch(error){
-document.getElementById('loading').textContent = error.message;
-document.getElementById('loading').style.color = '#f87171';
-}
-}
-
-document.getElementById('logoutBtn').addEventListener('click',async()=>{
-await sb.auth.signOut();
-window.location.href = '/client-login.html';
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.href = '/client-login.html';
 });
 
 loadDashboard();
 </script>
-
 </body>
 </html>

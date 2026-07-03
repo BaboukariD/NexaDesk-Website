@@ -3,115 +3,99 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NexaDesk — Account Settings</title>
+<title>Account — NexaDesk</title>
+<link rel="stylesheet" href="/portal.css"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif;}
-body{background:#050816;color:white;min-height:100vh;padding:32px;overflow-x:hidden;}
-.shell{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:24px;}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
-.logo img{width:160px;max-width:100%;object-fit:contain;}
-.nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-.nav a,.logout-btn{border:1px solid rgba(255,255,255,.08);background:#0d111f;color:white;text-decoration:none;padding:12px 16px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;}
-.nav a.active{background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-color:transparent;}
-.hero{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.08)),#0b1020;border:1px solid rgba(255,255,255,.07);border-radius:22px;padding:28px;}
-.eyebrow{color:#a78bfa;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
-.hero h1{font-size:28px;font-weight:800;margin-bottom:8px;}
-.hero p{color:#a1a1aa;font-size:14px;line-height:1.7;}
-.panel{background:#0d111f;border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:28px;}
-.panel h2{font-size:18px;font-weight:800;margin-bottom:6px;}
-.panel-desc{color:#6b7280;font-size:14px;margin-bottom:22px;}
-.field{margin-bottom:18px;}
-.field label{display:block;font-size:13px;font-weight:700;color:#c4b5fd;margin-bottom:8px;}
-.field-row{position:relative;}
-.input{width:100%;padding:16px 50px 16px 16px;background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;color:white;font-size:15px;outline:none;transition:border-color .2s;}
-.input:focus{border-color:#8b5cf6;}
-.input::placeholder{color:#4b5563;}
-.input:disabled{opacity:.5;cursor:not-allowed;}
-.eye{position:absolute;right:16px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;color:#6b7280;user-select:none;}
-.eye:hover{color:white;}
-.btn{background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;color:white;padding:14px 24px;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;transition:.2s;font-family:Inter,sans-serif;}
-.btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(139,92,246,.35);}
-.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-.status{margin-top:14px;font-size:14px;min-height:20px;color:#6b7280;}
-.status.success{color:#34d399;}
-.status.error{color:#f87171;}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);}
-.info-row:last-child{border-bottom:none;}
-.info-label{font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
-.info-value{font-size:15px;font-weight:600;}
-.badge{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;}
-.badge.starter{background:#1e2a56;color:#a78bfa;}
-.badge.growth{background:#1a3040;color:#60a5fa;}
-.badge.pro{background:#2a1a40;color:#c084fc;}
-.badge.active{background:#1a3a2a;color:#34d399;}
-.loading{color:#6b7280;padding:40px 0;font-size:18px;}
-@media(max-width:600px){body{padding:20px;}}
-</style>
 </head>
 <body>
-<main class="shell">
 
-<div class="topbar">
-  <a class="logo" href="/client-dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
-  <div class="nav">
-    <a href="/client-dashboard.html">Dashboard</a>
-    <a href="/client-conversations.html">Conversations</a>
-    <a href="/client-analytics.html">Analytics</a>
-    <a href="/client-knowledge.html">AI Knowledge</a>
-    <a class="active" href="/client-account.html">Account</a>
-    <button class="logout-btn" id="logoutBtn">Logout</button>
-  </div>
-</div>
+<div class="shell">
 
-<section class="hero">
-  <div class="eyebrow">Account Settings</div>
-  <h1>Your account</h1>
-  <p>Manage your login details and view your plan information.</p>
-</section>
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="/client-dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
 
-<div class="loading" id="loading">Loading...</div>
+    <a class="side-link" href="/client-dashboard.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Overview
+    </a>
+    <a class="side-link" href="/client-conversations.html">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Conversations
+    </a>
+    <a class="side-link" href="/client-analytics.html">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>
+      Analytics
+    </a>
+    <a class="side-link" href="/client-knowledge.html">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      AI Knowledge
+    </a>
+    <a class="side-link active" href="/client-account.html">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Account
+    </a>
 
-<div id="accountApp" style="display:none;flex-direction:column;gap:20px;">
-
-  <!-- Plan Info -->
-  <div class="panel">
-    <h2>Plan & Account</h2>
-    <p class="panel-desc">Your current NexaDesk subscription details.</p>
-    <div id="planInfo"></div>
-  </div>
-
-  <!-- Change Password -->
-  <div class="panel">
-    <h2>Change Password</h2>
-    <p class="panel-desc">Set a new password for your client portal login.</p>
-    <div class="field">
-      <label>New Password</label>
-      <div class="field-row">
-        <input type="password" id="newPassword" class="input" placeholder="Enter new password (min 6 chars)"/>
-        <span class="eye" id="eye1">👁</span>
-      </div>
+    <div class="sidebar-foot">
+      <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Log out</span>
+      </button>
     </div>
-    <div class="field">
-      <label>Confirm New Password</label>
-      <div class="field-row">
-        <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password"/>
-        <span class="eye" id="eye2">👁</span>
-      </div>
+  </aside>
+
+  <main class="main" style="max-width:calc(760px + var(--sidebar-w));">
+
+    <div class="page-head">
+      <h1 class="page-title">Account</h1>
+      <p class="page-sub">Your plan details and login settings.</p>
     </div>
-    <button class="btn" id="changePasswordBtn">Update Password</button>
-    <div class="status" id="passwordStatus"></div>
-  </div>
 
-  <!-- Upgrade -->
-  <div class="panel" id="upgradePanel" style="display:none;">
-    <h2>Upgrade Your Plan</h2>
-    <p class="panel-desc">Unlock more features by upgrading your NexaDesk plan.</p>
-    <a href="/contact.html?plan=growth" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;padding:14px 24px;border-radius:14px;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;">Upgrade to Growth — £99/mo</a>
-  </div>
+    <div class="loading-state" id="loading"><div class="spinner"></div>Loading…</div>
 
+    <div id="accountApp" style="display:none;">
+
+      <div class="section">
+        <div class="section-head"><div class="section-title">Plan &amp; account</div></div>
+        <div class="section-body" id="planInfo"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><div class="section-title">Change password</div></div>
+        <div class="section-body">
+          <div class="field">
+            <label for="newPassword">New password</label>
+            <div class="field-row">
+              <input type="password" id="newPassword" class="input" placeholder="At least 6 characters" autocomplete="new-password" style="padding-right:44px;"/>
+              <span class="eye" id="eye1" role="button" aria-label="Show password">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              </span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="confirmPassword">Confirm new password</label>
+            <div class="field-row">
+              <input type="password" id="confirmPassword" class="input" placeholder="Repeat new password" autocomplete="new-password" style="padding-right:44px;"/>
+              <span class="eye" id="eye2" role="button" aria-label="Show password">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              </span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="changePasswordBtn">Update password</button>
+          <div class="status-msg" id="passwordStatus"></div>
+        </div>
+      </div>
+
+      <div class="section" id="upgradePanel" style="display:none;">
+        <div class="section-head"><div class="section-title">Upgrade your plan</div></div>
+        <div class="section-body">
+          <p class="page-sub" style="margin-bottom:16px;">Unlock lead capture, analytics and the AI knowledge base.</p>
+          <a class="btn btn-primary btn-lg" href="/contact.html?plan=growth">Upgrade to Growth — £99/mo</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
 </div>
-</main>
 
 <script>
 const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
@@ -121,45 +105,48 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 function setStatus(id, text, type=''){
   const el = document.getElementById(id);
   el.textContent = text;
-  el.className = 'status ' + type;
+  el.className = 'status-msg ' + type;
 }
 
-// Eye toggles
+function escapeHtml(value){
+  return String(value)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+}
+
 document.getElementById('eye1').onclick = () => { const i = document.getElementById('newPassword'); i.type = i.type === 'password' ? 'text' : 'password'; };
 document.getElementById('eye2').onclick = () => { const i = document.getElementById('confirmPassword'); i.type = i.type === 'password' ? 'text' : 'password'; };
 
-async function load() {
+async function load(){
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = '/client-login.html'; return; }
+  if(!session){ window.location.href = '/client-login.html'; return; }
 
   const user = session.user;
 
-  // Get client
   let client = null;
   const { data: cu } = await sb.from('ClientUsers').select('client_id').eq('auth_user_id', user.id).maybeSingle();
-  if (cu?.client_id) {
+  if(cu?.client_id){
     const { data: cl } = await sb.from('Clients').select('*').eq('id', cu.client_id).maybeSingle();
     client = cl;
   }
-  if (!client) {
+  if(!client){
     const { data: cl } = await sb.from('Clients').select('*').eq('contact_email', user.email).maybeSingle();
     client = cl;
   }
 
-  if (!client) { document.getElementById('loading').textContent = 'Client not found.'; return; }
+  if(!client){ document.getElementById('loading').textContent = 'Client not found.'; return; }
 
   const plan = client.plan || 'starter';
-
-  // Render plan info
   const planLabels = { starter: 'Starter — £49/mo', growth: 'Growth — £99/mo', pro: 'Pro — £199/mo' };
+
   document.getElementById('planInfo').innerHTML = `
     <div class="info-row">
       <span class="info-label">Business</span>
-      <span class="info-value">${client.business_name || '—'}</span>
+      <span class="info-value">${escapeHtml(client.business_name || '—')}</span>
     </div>
     <div class="info-row">
       <span class="info-label">Email</span>
-      <span class="info-value">${user.email}</span>
+      <span class="info-value">${escapeHtml(user.email)}</span>
     </div>
     <div class="info-row">
       <span class="info-label">Plan</span>
@@ -167,38 +154,42 @@ async function load() {
     </div>
     <div class="info-row">
       <span class="info-label">Status</span>
-      <span class="badge active">Active</span>
+      <span class="badge active"><span class="badge-dot"></span>Active</span>
     </div>
   `;
 
-  if (plan === 'starter') document.getElementById('upgradePanel').style.display = 'block';
+  if(plan === 'starter') document.getElementById('upgradePanel').style.display = 'block';
 
   document.getElementById('loading').style.display = 'none';
-  document.getElementById('accountApp').style.display = 'flex';
+  document.getElementById('accountApp').style.display = 'block';
 }
 
 document.getElementById('changePasswordBtn').onclick = async () => {
   const newPw = document.getElementById('newPassword').value.trim();
   const confirm = document.getElementById('confirmPassword').value.trim();
 
-  if (!newPw || !confirm) { setStatus('passwordStatus', 'Please fill in both fields.', 'error'); return; }
-  if (newPw.length < 6) { setStatus('passwordStatus', 'Password must be at least 6 characters.', 'error'); return; }
-  if (newPw !== confirm) { setStatus('passwordStatus', 'Passwords do not match.', 'error'); return; }
+  if(!newPw || !confirm){ setStatus('passwordStatus', 'Fill in both fields.', 'error'); return; }
+  if(newPw.length < 6){ setStatus('passwordStatus', 'Password must be at least 6 characters.', 'error'); return; }
+  if(newPw !== confirm){ setStatus('passwordStatus', 'Passwords don\u2019t match.', 'error'); return; }
 
-  document.getElementById('changePasswordBtn').disabled = true;
-  setStatus('passwordStatus', 'Updating...');
+  const btn = document.getElementById('changePasswordBtn');
+  btn.disabled = true;
+  setStatus('passwordStatus', 'Updating…');
 
   const { error } = await sb.auth.updateUser({ password: newPw });
-  document.getElementById('changePasswordBtn').disabled = false;
+  btn.disabled = false;
 
-  if (error) { setStatus('passwordStatus', error.message, 'error'); return; }
+  if(error){ setStatus('passwordStatus', error.message, 'error'); return; }
 
-  setStatus('passwordStatus', 'Password updated successfully!', 'success');
+  setStatus('passwordStatus', 'Password updated.', 'success');
   document.getElementById('newPassword').value = '';
   document.getElementById('confirmPassword').value = '';
 };
 
-document.getElementById('logoutBtn').onclick = async () => { await sb.auth.signOut(); window.location.href = '/client-login.html'; };
+document.getElementById('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  window.location.href = '/client-login.html';
+};
 load();
 </script>
 </body>
