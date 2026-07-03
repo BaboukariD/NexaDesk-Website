@@ -95,10 +95,18 @@ submitBtn.onclick = async () => {
   if(mode === 'activate'){
     submitBtn.disabled = true;
 
-    const { data: clients, error: clientError } = await sb
-      .from('Clients').select('id').eq('contact_email', email);
+    let registered = false;
+    try{
+      const r = await fetch('/api/check-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const d = await r.json();
+      registered = !!d.registered;
+    }catch{}
 
-    if(clientError || !clients || clients.length === 0){
+    if(!registered){
       setMsg('This email isn\u2019t registered with NexaDesk.', 'error');
       submitBtn.disabled = false;
       return;
