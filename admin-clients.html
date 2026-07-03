@@ -3,190 +3,221 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NexaDesk — Manage Clients</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:#0b1020;color:white;display:flex;min-height:100vh;}
-.sidebar{width:240px;background:#121933;padding:30px 20px;border-right:1px solid rgba(255,255,255,.08);flex-shrink:0;}
-.logo{font-size:1.4rem;font-weight:700;margin-bottom:40px;background:linear-gradient(90deg,#7c5cff,#5ce1e6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.nav-item{padding:14px 16px;border-radius:12px;margin-bottom:10px;cursor:pointer;transition:.2s;color:#cfd6ff;text-decoration:none;display:block;}
-.nav-item:hover{background:#1a2345;}
-.nav-item.active{background:#1a2345;color:white;}
-.main{flex:1;padding:40px;overflow-y:auto;}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;}
-.topbar h1{font-size:2rem;}
-.btn-primary{background:linear-gradient(135deg,#7c5cff,#9b7bff);border:none;color:white;padding:12px 20px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;font-family:'DM Sans',sans-serif;transition:.2s;}
-.btn-primary:hover{opacity:.85;}
-.table-wrap{background:#151d3b;border-radius:18px;border:1px solid rgba(255,255,255,.06);overflow:hidden;}
-table{width:100%;border-collapse:collapse;}
-th,td{padding:16px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px;}
-th{color:#9da8d6;font-weight:500;}
-.badge{padding:5px 10px;border-radius:999px;font-size:12px;font-weight:600;}
-.badge.active{background:#1a3a2a;color:#34d399;}
-.badge.inactive{background:#3a1a1a;color:#f87171;}
-.badge.starter{background:#1e2a56;color:#a78bfa;}
-.badge.growth{background:#1a3040;color:#60a5fa;}
-.badge.pro{background:#2a1a40;color:#c084fc;}
-.copy-btn{background:#1e2a56;border:none;color:#a78bfa;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:.2s;}
-.copy-btn:hover{background:#2a3a6a;}
-.toggle-btn{border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:.2s;}
-.toggle-btn.deactivate{background:#3a1a1a;color:#f87171;}
-.toggle-btn.activate{background:#1a3a2a;color:#34d399;}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal{background:#151d3b;border-radius:20px;border:1px solid rgba(255,255,255,.08);width:520px;max-width:90vw;padding:32px;}
-.modal h2{font-size:1.4rem;margin-bottom:24px;}
-.field{margin-bottom:18px;}
-.field label{display:block;font-size:13px;color:#9da8d6;margin-bottom:8px;}
-.field input,.field select,.field textarea{width:100%;background:#0b1020;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;color:white;font-size:14px;outline:none;font-family:'DM Sans',sans-serif;}
-.field textarea{min-height:120px;resize:vertical;line-height:1.6;}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:#7c5cff;}
-.field select option{background:#0b1020;}
-.modal-btns{display:flex;gap:12px;margin-top:24px;}
-.btn-cancel{background:#1e2a56;border:none;color:#9da8d6;padding:12px 20px;border-radius:12px;cursor:pointer;font-weight:600;font-family:'DM Sans',sans-serif;}
-.modal-msg{margin-top:14px;font-size:13px;color:#9da8d6;min-height:20px;}
-.modal-msg.success{color:#34d399;}
-.modal-msg.error{color:#f87171;}
-.empty{padding:40px;text-align:center;color:#6b7280;}
-</style>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Clients — NexaDesk Admin</title>
+<link rel="stylesheet" href="/portal.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body style="visibility:hidden">
+<body>
 
-<script>
-const password = prompt("Enter password to access dashboard:");
-sessionStorage.setItem('nd_auth', password);
-</script>
-
-<div class="sidebar">
-  <div class="logo">NexaDesk</div>
-  <a class="nav-item" href="/dashboard.html">Dashboard</a>
-  <a class="nav-item active" href="/admin-clients.html">Clients</a>
-  <a class="nav-item" href="/leads.html">Leads</a>
+<!-- ADMIN LOGIN GATE -->
+<div class="auth-body" id="loginGate" style="display:none;">
+  <div class="auth-card">
+    <a class="auth-logo" href="/"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
+    <div class="auth-title">Admin access</div>
+    <div class="auth-desc">Log in with your admin account.</div>
+    <div class="field">
+      <label for="adminEmail">Email</label>
+      <input type="email" id="adminEmail" class="input" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label for="adminPassword">Password</label>
+      <input type="password" id="adminPassword" class="input" autocomplete="current-password"/>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="adminLoginBtn">Log in</button>
+    <div class="status-msg" id="loginMsg" style="text-align:center;"></div>
+  </div>
 </div>
 
-<div class="main">
-  <div class="topbar">
-    <h1>Manage Clients</h1>
-    <button class="btn-primary" id="addClientBtn">+ Add Client</button>
-  </div>
+<div class="loading-state" id="loading"><div class="spinner"></div>Loading…</div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Business</th>
-          <th>Contact</th>
-          <th>Email</th>
-          <th>Plan</th>
-          <th>Status</th>
-          <th>Embed Code</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="clientsTable"></tbody>
-    </table>
-    <div class="empty" id="emptyState" style="display:none">No clients yet.</div>
-  </div>
+<!-- ADMIN APP -->
+<div class="shell" id="app" style="display:none;">
+
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="/dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
+
+    <div class="side-label">Admin</div>
+    <a class="side-link" href="/dashboard.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Overview
+    </a>
+    <a class="side-link active" href="/admin-clients.html">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clients
+    </a>
+
+    <div class="sidebar-foot">
+      <div class="side-user" id="adminUser">—</div>
+      <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Log out</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-head-row">
+      <div class="page-head">
+        <h1 class="page-title">Clients</h1>
+        <p class="page-sub">Manage client accounts, plans and embed codes.</p>
+      </div>
+      <button class="btn btn-primary" id="addClientBtn">+ Add client</button>
+    </div>
+
+    <div class="section">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Business</th>
+              <th>Contact</th>
+              <th>Email</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Embed</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientsTable"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none;">No clients yet. Add your first one.</div>
+    </div>
+
+  </main>
 </div>
 
 <!-- ADD CLIENT MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <h2 id="modalTitle">Add New Client</h2>
-    <div class="field"><label>Business Name</label><input id="f_business_name" placeholder="Joe's Pizza"/></div>
-    <div class="field"><label>Contact Name</label><input id="f_contact_name" placeholder="Joe Smith"/></div>
-    <div class="field"><label>Contact Email</label><input id="f_contact_email" type="email" placeholder="joe@joespizza.com"/></div>
-    <div class="field"><label>Website</label><input id="f_website" placeholder="https://joespizza.com"/></div>
-    <div class="field"><label>Plan</label>
-      <select id="f_plan">
-        <option value="starter">Starter — £49/mo</option>
-        <option value="growth">Growth — £99/mo</option>
-        <option value="pro">Pro — £199/mo</option>
-      </select>
+    <div class="modal-head">
+      <div class="modal-title">Add new client</div>
+      <button class="modal-close" id="cancelBtn" aria-label="Close">✕</button>
     </div>
-    <div class="field"><label>System Prompt (AI instructions)</label><textarea id="f_system_prompt" placeholder="You are a friendly assistant for Joe's Pizza..."></textarea></div>
-    <div class="modal-btns">
-      <button class="btn-primary" id="saveClientBtn">Save Client</button>
-      <button class="btn-cancel" id="cancelBtn">Cancel</button>
+    <div class="modal-body">
+      <div class="field"><label>Business name</label><input id="f_business_name" class="input" placeholder="Smith Plumbing"/></div>
+      <div class="field"><label>Contact name</label><input id="f_contact_name" class="input" placeholder="John Smith"/></div>
+      <div class="field"><label>Contact email</label><input id="f_contact_email" class="input" type="email" placeholder="john@smithplumbing.co.uk"/></div>
+      <div class="field"><label>Website</label><input id="f_website" class="input" placeholder="https://smithplumbing.co.uk"/></div>
+      <div class="field">
+        <label>Plan</label>
+        <select id="f_plan" class="input">
+          <option value="starter">Starter — £49/mo</option>
+          <option value="growth">Growth — £99/mo</option>
+          <option value="pro">Pro — £199/mo</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>System prompt (AI instructions)</label>
+        <textarea id="f_system_prompt" class="input" placeholder="You are a friendly assistant for Smith Plumbing…"></textarea>
+      </div>
     </div>
-    <div class="modal-msg" id="modalMsg"></div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" id="saveClientBtn">Save client</button>
+      <div class="status-msg" id="modalMsg" style="margin-top:0;"></div>
+    </div>
   </div>
 </div>
 
 <script>
-const SUPABASE_URL = "https://exqdmvloldvshzpxevht.supabase.co";
-const SUPABASE_KEY = "sb_publishable__bJTNHHD95Uop41LMarPsQ_zjZzk4af";
+const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const PASSWORD = "PasswordBabusabi123!";
+let accessToken = null;
 
-async function api(method, path, body) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method,
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: method === 'POST' ? 'return=representation' : 'return=minimal'
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  return res.json();
+function escapeHtml(value){
+  return String(value)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 }
 
-function embedCode(id) {
+async function adminApi(method, pathOrBody){
+  const opts = { method, headers: { Authorization: `Bearer ${accessToken}` } };
+  let url = '/api/admin';
+  if(method === 'GET'){ url += `?${pathOrBody}`; }
+  else {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(pathOrBody);
+  }
+  const res = await fetch(url, opts);
+  if(res.status === 401) throw { unauthorized: true };
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function embedCode(id){
   return `<script src="https://nexadesk.co.uk/embed.js" data-client-id="${id}"><\/script>`;
 }
 
-async function loadClients() {
-  const clients = await api('GET', 'Clients?select=*&order=created_at.desc');
+async function loadClients(){
+  const clients = await adminApi('GET', 'action=clients');
   const table = document.getElementById('clientsTable');
   const empty = document.getElementById('emptyState');
-  table.innerHTML = '';
 
-  if (!clients || !clients.length) { empty.style.display = 'block'; return; }
+  if(!clients || !clients.length){
+    table.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
   empty.style.display = 'none';
 
-  clients.forEach(c => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${c.business_name || '—'}</strong></td>
-      <td>${c.contact_name || '—'}</td>
-      <td>${c.contact_email || '—'}</td>
-      <td><span class="badge ${c.plan || 'starter'}">${c.plan || 'starter'}</span></td>
-      <td><span class="badge ${c.is_active ? 'active' : 'inactive'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
-      <td><button class="copy-btn" onclick="copyEmbed(${c.id})">Copy Embed</button></td>
-      <td>
-        <button class="toggle-btn ${c.is_active ? 'deactivate' : 'activate'}" onclick="toggleActive(${c.id}, ${c.is_active})">
-          ${c.is_active ? 'Deactivate' : 'Activate'}
-        </button>
-      </td>
-    `;
-    table.appendChild(tr);
+  table.innerHTML = clients.map(c => `
+    <tr>
+      <td><strong>${escapeHtml(c.business_name || '—')}</strong></td>
+      <td class="td-muted">${escapeHtml(c.contact_name || '—')}</td>
+      <td class="td-muted">${escapeHtml(c.contact_email || '—')}</td>
+      <td><span class="badge ${c.plan || 'starter'}">${escapeHtml(c.plan || 'starter')}</span></td>
+      <td><span class="badge ${c.is_active ? 'active' : 'inactive'}"><span class="badge-dot"></span>${c.is_active ? 'Active' : 'Inactive'}</span></td>
+      <td><button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" data-copy-id="${c.id}">Copy embed</button></td>
+      <td><button class="btn ${c.is_active ? 'btn-danger' : 'btn-secondary'}" style="padding:6px 12px;font-size:12px;" data-toggle-id="${c.id}" data-active="${c.is_active}">${c.is_active ? 'Deactivate' : 'Activate'}</button></td>
+    </tr>`).join('');
+
+  table.querySelectorAll('[data-copy-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(embedCode(btn.dataset.copyId));
+      const orig = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    });
+  });
+
+  table.querySelectorAll('[data-toggle-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try{
+        await adminApi('POST', {
+          action: 'toggle-client',
+          id: btn.dataset.toggleId,
+          is_active: btn.dataset.active !== 'true'
+        });
+        await loadClients();
+      }catch(err){
+        btn.disabled = false;
+        alert(err.message || 'Failed to update client.');
+      }
+    });
   });
 }
 
-function copyEmbed(id) {
-  navigator.clipboard.writeText(embedCode(id));
-  alert(`Copied! Send this to client ${id}:\n\n${embedCode(id)}`);
-}
-
-async function toggleActive(id, current) {
-  await api('PATCH', `Clients?id=eq.${id}`, { is_active: !current });
-  loadClients();
-}
-
-// Modal
+// ===== MODAL =====
 const overlay = document.getElementById('modalOverlay');
 const modalMsg = document.getElementById('modalMsg');
 
+function setModalMsg(text, type=''){
+  modalMsg.textContent = text;
+  modalMsg.className = 'status-msg ' + type;
+  modalMsg.style.marginTop = '0';
+}
+
 document.getElementById('addClientBtn').onclick = () => {
-  ['f_business_name','f_contact_name','f_contact_email','f_website','f_system_prompt'].forEach(id => document.getElementById(id).value = '');
+  ['f_business_name','f_contact_name','f_contact_email','f_website','f_system_prompt']
+    .forEach(id => document.getElementById(id).value = '');
   document.getElementById('f_plan').value = 'starter';
-  modalMsg.textContent = '';
+  setModalMsg('');
   overlay.classList.add('open');
 };
 
@@ -194,49 +225,108 @@ document.getElementById('cancelBtn').onclick = () => overlay.classList.remove('o
 overlay.addEventListener('click', e => { if(e.target === overlay) overlay.classList.remove('open'); });
 
 document.getElementById('saveClientBtn').onclick = async () => {
-  const business_name  = document.getElementById('f_business_name').value.trim();
-  const contact_name   = document.getElementById('f_contact_name').value.trim();
-  const contact_email  = document.getElementById('f_contact_email').value.trim();
-  const website        = document.getElementById('f_website').value.trim();
-  const plan           = document.getElementById('f_plan').value;
-  const system_prompt  = document.getElementById('f_system_prompt').value.trim();
+  const payload = {
+    action: 'add-client',
+    business_name: document.getElementById('f_business_name').value.trim(),
+    contact_name: document.getElementById('f_contact_name').value.trim(),
+    contact_email: document.getElementById('f_contact_email').value.trim(),
+    website: document.getElementById('f_website').value.trim(),
+    plan: document.getElementById('f_plan').value,
+    system_prompt: document.getElementById('f_system_prompt').value.trim()
+  };
 
-  if (!business_name || !contact_email) {
-    modalMsg.textContent = 'Business name and email are required.';
-    modalMsg.className = 'modal-msg error';
+  if(!payload.business_name || !payload.contact_email){
+    setModalMsg('Business name and email are required.', 'error');
     return;
   }
 
-  modalMsg.textContent = 'Saving...';
-  modalMsg.className = 'modal-msg';
+  setModalMsg('Saving…');
+  const btn = document.getElementById('saveClientBtn');
+  btn.disabled = true;
 
-  const result = await api('POST', 'Clients', {
-    business_name, contact_name, contact_email,
-    website, plan, system_prompt, is_active: true
-  });
-
-  if (result?.error || (Array.isArray(result) && result[0]?.code)) {
-    modalMsg.textContent = result.message || result[0]?.message || 'Error saving client.';
-    modalMsg.className = 'modal-msg error';
-    return;
+  try{
+    const result = await adminApi('POST', payload);
+    setModalMsg(`Client saved — ID ${result.id}. Embed code is in the table.`, 'success');
+    await loadClients();
+    setTimeout(() => overlay.classList.remove('open'), 1600);
+  }catch(err){
+    setModalMsg(err.message || 'Error saving client.', 'error');
   }
-
-  const newId = Array.isArray(result) ? result[0]?.id : result?.id;
-  modalMsg.textContent = `Client saved! ID: ${newId}`;
-  modalMsg.className = 'modal-msg success';
-  loadClients();
-  setTimeout(() => overlay.classList.remove('open'), 1500);
+  btn.disabled = false;
 };
 
-// Auth + init
-const entered = sessionStorage.getItem('nd_auth');
-if (entered === PASSWORD) {
-  loadClients();
-  document.body.style.visibility = 'visible';
-} else {
-  document.body.style.visibility = 'visible';
-  document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:40vh;font-family:sans-serif'>Access Denied</h1>";
+// ===== AUTH FLOW =====
+function showLogin(msg=''){
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginGate').style.display = 'flex';
+  if(msg){
+    const el = document.getElementById('loginMsg');
+    el.textContent = msg; el.className = 'status-msg error'; el.style.textAlign='center';
+  }
 }
+
+async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){ showLogin(); return; }
+
+  accessToken = session.access_token;
+  document.getElementById('adminUser').textContent = session.user.email;
+
+  try{
+    await loadClients();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+  }catch(err){
+    if(err.unauthorized){
+      await sb.auth.signOut();
+      showLogin('This account doesn\u2019t have admin access.');
+    } else {
+      document.getElementById('loading').textContent = err.message || 'Error loading data.';
+      document.getElementById('loading').style.color = 'var(--red)';
+    }
+  }
+}
+
+document.getElementById('adminLoginBtn').onclick = async () => {
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value.trim();
+  const msgEl = document.getElementById('loginMsg');
+  msgEl.textContent = '';
+
+  if(!email || !password){
+    msgEl.textContent = 'Enter email and password.';
+    msgEl.className = 'status-msg error'; msgEl.style.textAlign='center';
+    return;
+  }
+
+  const btn = document.getElementById('adminLoginBtn');
+  btn.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false;
+
+  if(error){
+    msgEl.textContent = error.message;
+    msgEl.className = 'status-msg error'; msgEl.style.textAlign='center';
+    return;
+  }
+
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  init();
+};
+
+document.getElementById('adminPassword').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('adminLoginBtn').click();
+});
+
+document.getElementById('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  window.location.reload();
+};
+
+init();
 </script>
 </body>
 </html>
