@@ -135,6 +135,44 @@ function getPreview(messages){
   return firstMessage?.content || 'No conversation';
 }
 
+function wireUpgradeButtons(email, businessName){
+  const payBtn = document.getElementById('payNowBtn');
+  const talkBtn = document.getElementById('talkBtn');
+  if(payBtn) payBtn.onclick = async (e) => {
+    e.preventDefault();
+    payBtn.textContent = 'Opening checkout…';
+    try{
+      const r = await fetch('/api/create-checkout', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ plan:'growth', email })
+      });
+      const d = await r.json();
+      if(d.url){ window.location.href = d.url; return; }
+      throw new Error();
+    }catch{
+      payBtn.textContent = 'Upgrade now — £99/mo';
+      alert('Checkout is unavailable right now — use "Talk to the team" instead.');
+    }
+  };
+  if(talkBtn) talkBtn.onclick = async (e) => {
+    e.preventDefault();
+    talkBtn.textContent = 'Sending…';
+    try{
+      await fetch('/api/send-lead-email', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          name: businessName, email, phone:'', preferred_contact:'email',
+          message: 'UPGRADE REQUEST: Existing client wants to upgrade to Growth (clicked "Talk to the team" in the client portal).'
+        })
+      });
+      talkBtn.textContent = 'Request sent \u2713';
+      talkBtn.style.pointerEvents = 'none';
+    }catch{
+      talkBtn.textContent = 'Talk to the team';
+    }
+  };
+}
+
 async function getClient(user){
   const linked = await sb.from('ClientUsers').select('client_id').eq('auth_user_id', user.id).maybeSingle();
   if(linked.data?.client_id){
@@ -166,8 +204,12 @@ async function loadDashboard(){
       document.getElementById('upgradeSlot').innerHTML = `
         <div class="upgrade-banner">
           <span>You're on the <strong>Starter</strong> plan. Upgrade to Growth to unlock lead capture, analytics and the AI knowledge base.</span>
-          <a href="/contact.html?plan=growth">Upgrade to Growth</a>
+          <span style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="#" id="payNowBtn">Upgrade now — £99/mo</a>
+            <a href="#" id="talkBtn" style="background:transparent;border:1px solid var(--accent-border);color:#C4B5FD;">Talk to the team</a>
+          </span>
         </div>`;
+      wireUpgradeButtons(user.email, client.business_name || user.email);
     }
 
     // Conversations

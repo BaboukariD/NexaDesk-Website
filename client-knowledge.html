@@ -142,6 +142,41 @@ function escapeHtml(value){
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 }
 
+function wireUpgradeButtons(email, businessName){
+  const payBtn = document.getElementById('payNowBtn');
+  const talkBtn = document.getElementById('talkBtn');
+  if(payBtn) payBtn.onclick = async () => {
+    payBtn.disabled = true; payBtn.textContent = 'Opening checkout…';
+    try{
+      const r = await fetch('/api/create-checkout', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ plan:'growth', email })
+      });
+      const d = await r.json();
+      if(d.url){ window.location.href = d.url; return; }
+      throw new Error();
+    }catch{
+      payBtn.disabled = false; payBtn.textContent = 'Upgrade now — £99/mo';
+      alert('Checkout is unavailable right now — use "Talk to the team" instead.');
+    }
+  };
+  if(talkBtn) talkBtn.onclick = async () => {
+    talkBtn.disabled = true; talkBtn.textContent = 'Sending…';
+    try{
+      await fetch('/api/send-lead-email', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          name: businessName, email, phone:'', preferred_contact:'email',
+          message: 'UPGRADE REQUEST: Existing client wants to upgrade to Growth (clicked "Talk to the team" in the client portal).'
+        })
+      });
+      talkBtn.textContent = 'Request sent — we\u2019ll be in touch';
+    }catch{
+      talkBtn.disabled = false; talkBtn.textContent = 'Talk to the team';
+    }
+  };
+}
+
 function renderFaqs(){
   faqList.innerHTML = '';
   if(!faqs.length){ faqs.push({ question:'', answer:'' }); }
@@ -212,8 +247,12 @@ async function loadSettings(){
           </div>
           <h2>AI Knowledge is a Growth feature</h2>
           <p>Upgrade to Growth to customise your AI with your own knowledge base and FAQs.</p>
-          <a class="btn btn-primary btn-lg" href="/contact.html?plan=growth">Upgrade to Growth — £99/mo</a>
+          <div class="upgrade-actions">
+            <button class="btn btn-primary btn-lg" id="payNowBtn">Upgrade now — £99/mo</button>
+            <button class="btn btn-secondary btn-lg" id="talkBtn">Talk to the team</button>
+          </div>
         </div>`;
+      wireUpgradeButtons(session.user.email, session.user.email);
       return;
     }
   }
