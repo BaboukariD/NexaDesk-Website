@@ -52,8 +52,12 @@
 
     <div class="convo-shell">
       <div class="convo-list-pane">
-        <div class="convo-search-wrap">
-          <input type="text" class="input" id="searchInput" placeholder="Search conversations…"/>
+        <div class="convo-search-wrap" style="display:flex;gap:8px;">
+          <input type="text" class="input" id="searchInput" placeholder="Search conversations…" style="flex:1;min-width:0;"/>
+          <select class="input" id="sortSelect" style="width:auto;flex-shrink:0;padding-right:34px;" aria-label="Sort conversations">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
         </div>
         <div class="convo-list" id="conversationList">
           <div class="empty-state">Loading conversations…</div>
@@ -108,13 +112,13 @@ function renderConversationList(items){
     return;
   }
 
-  items.forEach((convo, index) => {
+  items.forEach((convo) => {
     const item = document.createElement('div');
     item.className = 'convo-item';
     if(convo.id === activeConversationId) item.classList.add('active');
 
     item.innerHTML = `
-      <div class="convo-name">Conversation #${index + 1}</div>
+      <div class="convo-name">Conversation #${convo._num}</div>
       <div class="convo-preview">${escapeHtml(getPreview(convo.messages))}</div>
       <div class="convo-time">${formatTime(convo.created_at)}</div>
     `;
@@ -152,7 +156,7 @@ function renderMessages(convo){
     container.appendChild(bubble);
   });
 
-  container.scrollTop = container.scrollHeight;
+  container.scrollTop = 0;
 }
 
 async function getClientId(user){
@@ -184,16 +188,41 @@ async function loadConversations(){
   }
 
   allConversations = data || [];
-  renderConversationList(allConversations);
+
+  // Stable numbering: oldest conversation is #1, regardless of sort or search
+  [...allConversations]
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    .forEach((c, i) => { c._num = i + 1; });
+
+  renderConversationList(getVisibleConversations());
 }
 
-document.getElementById('searchInput').addEventListener('input', (event) => {
-  const query = event.target.value.toLowerCase().trim();
-  const filtered = allConversations.filter(conversation => {
-    const text = JSON.stringify(conversation.messages || []).toLowerCase();
-    return text.includes(query);
+let sortOrder = 'newest';
+
+function getVisibleConversations(){
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  let items = allConversations;
+  if(query){
+    items = items.filter(conversation => {
+      const text = JSON.stringify(conversation.messages || []).toLowerCase();
+      return text.includes(query);
+    });
+  }
+  items = [...items].sort((a, b) => {
+    const ta = new Date(a.created_at).getTime() || 0;
+    const tb = new Date(b.created_at).getTime() || 0;
+    return sortOrder === 'newest' ? tb - ta : ta - tb;
   });
-  renderConversationList(filtered);
+  return items;
+}
+
+document.getElementById('searchInput').addEventListener('input', () => {
+  renderConversationList(getVisibleConversations());
+});
+
+document.getElementById('sortSelect').addEventListener('change', (event) => {
+  sortOrder = event.target.value;
+  renderConversationList(getVisibleConversations());
 });
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
