@@ -1,338 +1,381 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NexaDesk Dashboard</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-font-family:'DM Sans',sans-serif;
-background:#0b1020;
-color:white;
-display:flex;
-min-height:100vh;
-}
-
-.sidebar{
-width:240px;
-background:#121933;
-padding:30px 20px;
-border-right:1px solid rgba(255,255,255,0.08);
-flex-shrink:0;
-}
-
-.logo{
-font-size:1.4rem;
-font-weight:700;
-margin-bottom:40px;
-background:linear-gradient(90deg,#7c5cff,#5ce1e6);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-.nav-item{
-padding:14px 16px;
-border-radius:12px;
-margin-bottom:10px;
-cursor:pointer;
-transition:0.2s;
-color:#cfd6ff;
-}
-
-.nav-item:hover{
-background:#1a2345;
-}
-
-.nav-item.active{
-background:#1a2345;
-color:white;
-}
-
-.main{
-flex:1;
-padding:40px;
-overflow-y:auto;
-}
-
-.topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:30px;
-}
-
-.topbar h1{
-font-size:2rem;
-}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
-margin-bottom:35px;
-}
-
-.card{
-background:#151d3b;
-padding:24px;
-border-radius:18px;
-border:1px solid rgba(255,255,255,0.06);
-}
-
-.card h2{
-font-size:2rem;
-margin-top:10px;
-}
-
-.card p{
-color:#9da8d6;
-}
-
-.table-wrap{
-background:#151d3b;
-padding:24px;
-border-radius:18px;
-border:1px solid rgba(255,255,255,0.06);
-overflow-x:auto;
-margin-bottom:30px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-}
-
-th,td{
-padding:16px;
-text-align:left;
-border-bottom:1px solid rgba(255,255,255,0.06);
-}
-
-th{
-color:#9da8d6;
-font-weight:500;
-}
-
-td{
-color:white;
-}
-
-.status{
-background:#1e2a56;
-padding:6px 12px;
-border-radius:999px;
-display:inline-block;
-font-size:0.85rem;
-}
-
-.view-btn{
-background:linear-gradient(135deg,#7c5cff,#9b7bff);
-border:none;
-color:white;
-padding:6px 14px;
-border-radius:8px;
-cursor:pointer;
-font-size:0.82rem;
-font-family:'DM Sans',sans-serif;
-transition:0.2s;
-}
-
-.view-btn:hover{
-opacity:0.85;
-}
-
-/* CONVERSATION MODAL */
-
-.modal-overlay{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.7);
-z-index:9999;
-align-items:center;
-justify-content:center;
-}
-
-.modal-overlay.open{
-display:flex;
-}
-
-.modal{
-background:#151d3b;
-border-radius:20px;
-border:1px solid rgba(255,255,255,0.08);
-width:560px;
-max-width:90vw;
-max-height:80vh;
-display:flex;
-flex-direction:column;
-overflow:hidden;
-}
-
-.modal-header{
-padding:20px 24px;
-border-bottom:1px solid rgba(255,255,255,0.06);
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.modal-header h3{
-font-size:1.1rem;
-}
-
-.modal-close{
-background:none;
-border:none;
-color:#9da8d6;
-font-size:1.4rem;
-cursor:pointer;
-transition:0.2s;
-}
-
-.modal-close:hover{
-color:white;
-}
-
-.modal-body{
-padding:20px 24px;
-overflow-y:auto;
-flex:1;
-display:flex;
-flex-direction:column;
-gap:10px;
-}
-
-.conv-msg{
-max-width:80%;
-padding:10px 14px;
-border-radius:14px;
-font-size:0.88rem;
-line-height:1.55;
-}
-
-.conv-msg.user{
-background:linear-gradient(135deg,#7c5cff,#9b7bff);
-color:white;
-align-self:flex-end;
-}
-
-.conv-msg.assistant{
-background:#1e2a56;
-color:#cfd6ff;
-align-self:flex-start;
-}
-
-.conv-empty{
-color:#9da8d6;
-font-size:0.9rem;
-text-align:center;
-padding:40px 0;
-}
-
-</style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Admin — NexaDesk</title>
+<link rel="stylesheet" href="/portal.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body style="visibility:hidden">
+<body>
 
-<script>
-  const password = prompt("Enter password to access dashboard:");
-  sessionStorage.setItem('nd_auth', password);
-</script>
-
-<div class="sidebar">
-  <div class="logo">NexaDesk</div>
-  <div class="nav-item active">Dashboard</div>
-  <div class="nav-item" onclick="window.location.href='/admin-clients.html'">Clients</div>
-  <div class="nav-item" onclick="window.location.href='/leads.html'">Leads</div>
-  <div class="nav-item">Conversations</div>
-  <div class="nav-item">Analytics</div>
-  <div class="nav-item">Settings</div>
+<!-- ADMIN LOGIN GATE -->
+<div class="auth-body" id="loginGate" style="display:none;">
+  <div class="auth-card">
+    <a class="auth-logo" href="/"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
+    <div class="auth-title">Admin access</div>
+    <div class="auth-desc">Log in with your admin account.</div>
+    <div class="field">
+      <label for="adminEmail">Email</label>
+      <input type="email" id="adminEmail" class="input" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label for="adminPassword">Password</label>
+      <input type="password" id="adminPassword" class="input" autocomplete="current-password"/>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="adminLoginBtn">Log in</button>
+    <div class="status-msg" id="loginMsg" style="text-align:center;"></div>
+  </div>
 </div>
 
-<div class="main">
+<div class="loading-state" id="loading"><div class="spinner"></div>Loading…</div>
 
-  <div class="topbar">
-    <h1>Dashboard</h1>
-  </div>
+<!-- ADMIN APP -->
+<div class="shell" id="app" style="display:none;">
 
-  <div class="cards">
-    <div class="card">
-      <p>Total Leads</p>
-      <h2 id="statLeads">—</h2>
-    </div>
-    <div class="card">
-      <p>New Today</p>
-      <h2 id="statToday">—</h2>
-    </div>
-    <div class="card">
-      <p>This Week</p>
-      <h2 id="statWeek">—</h2>
-    </div>
-    <div class="card">
-      <p>Active Clients</p>
-      <h2 id="statClients">—</h2>
-    </div>
-  </div>
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="/dashboard.html"><img src="./nexadesk-logo.png" alt="NexaDesk"/></a>
 
-  <!-- ANALYTICS CHARTS -->
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:30px">
+    <div class="side-label">Admin</div>
+    <a class="side-link active" href="/dashboard.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Overview
+    </a>
+    <a class="side-link" href="/admin-clients.html">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clients
+    </a>
 
-    <div class="table-wrap" style="margin-bottom:0">
-      <h2 style="margin-bottom:16px">Leads — Last 7 Days</h2>
-      <canvas id="leadsChart" width="520" height="180" style="width:100%;height:180px"></canvas>
+    <div class="sidebar-foot">
+      <div class="side-user" id="adminUser">—</div>
+      <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Log out</span>
+      </button>
     </div>
+  </aside>
 
-    <div class="table-wrap" style="margin-bottom:0;text-align:center">
-      <h2 style="margin-bottom:8px">Contact Preference</h2>
-      <canvas id="contactChart" width="200" height="160" style="width:200px;height:160px"></canvas>
-      <div id="contactLegend"></div>
+  <main class="main">
+
+    <div class="page-head">
+      <h1 class="page-title">Overview</h1>
+      <p class="page-sub">All leads and activity across every NexaDesk client.</p>
     </div>
 
-  </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Total leads</div><div class="stat-value accent" id="statLeads">—</div></div>
+      <div class="stat"><div class="stat-label">New today</div><div class="stat-value green" id="statToday">—</div></div>
+      <div class="stat"><div class="stat-label">This week</div><div class="stat-value blue" id="statWeek">—</div></div>
+      <div class="stat"><div class="stat-label">Active clients</div><div class="stat-value pink" id="statClients">—</div></div>
+    </div>
 
-  <div class="table-wrap">
-    <h2>Recent Leads</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Preferred</th>
-          <th>Date</th>
-          <th>Status</th>
-          <th>Conversation</th>
-        </tr>
-      </thead>
-      <tbody id="leadsTable"></tbody>
-    </table>
-  </div>
+    <div class="chart-grid">
+      <div class="section" style="margin-bottom:0;">
+        <div class="section-head"><div class="section-title">Leads — last 7 days</div></div>
+        <div class="chart-pad"><canvas id="leadsChart" height="160"></canvas></div>
+        <div class="axis-labels" id="leadsLabels"></div>
+      </div>
 
+      <div class="section" style="margin-bottom:0;">
+        <div class="section-head"><div class="section-title">Contact preference</div></div>
+        <div class="chart-pad" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+          <canvas id="contactChart" width="150" height="150" style="width:150px;height:150px;"></canvas>
+          <div class="legend" id="contactLegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><div class="section-title">Recent leads</div></div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Contact via</th>
+              <th>Date</th>
+              <th>Chat</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTable"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="emptyLeads" style="display:none;">No leads yet.</div>
+    </div>
+
+  </main>
 </div>
 
 <!-- CONVERSATION MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <div class="modal-header">
-      <h3 id="modalTitle">Conversation</h3>
-      <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Conversation</div>
+      <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
     </div>
-    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-body" id="modalBody" style="display:flex;flex-direction:column;gap:10px;"></div>
   </div>
 </div>
 
-<script src="dashboard.js"></script>
+<script>
+const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let accessToken = null;
+
+function escapeHtml(value){
+  return String(value)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+}
+
+async function adminApi(path){
+  const res = await fetch(`/api/admin?${path}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if(res.status === 401) throw { unauthorized: true };
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ===== CHARTS =====
+function drawBar(canvasId, labels, values, color='#7C5CFF'){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 500;
+  canvas.width = W;
+  const H = canvas.height;
+  const max = Math.max(...values, 1);
+  const padL=10, padR=10, padT=20, padB=10;
+  const cW = W-padL-padR, cH = H-padT-padB;
+  const bW = (cW/labels.length)*0.55;
+  const gap = cW/labels.length;
+  ctx.clearRect(0,0,W,H);
+  values.forEach((val,i)=>{
+    const x = padL + gap*i + (gap-bW)/2;
+    const bH = (val/max)*cH;
+    const y = padT + cH - bH;
+    const grad = ctx.createLinearGradient(0,y,0,y+bH);
+    grad.addColorStop(0,color);
+    grad.addColorStop(1,color+'33');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(x,y,bW,bH,3); else ctx.rect(x,y,bW,bH);
+    ctx.fill();
+    if(val>0){
+      ctx.fillStyle = '#EEF0FA';
+      ctx.font = '600 10px Inter,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(val, x+bW/2, y-5);
+    }
+  });
+}
+
+function drawDonut(canvasId, values, colors){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, r = Math.min(W,H)/2 - 8;
+  const total = values.reduce((a,b)=>a+b,0);
+  ctx.clearRect(0,0,W,H);
+  if(total===0){
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#1B1F2E'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2); ctx.fillStyle='#0E1018'; ctx.fill();
+    return;
+  }
+  let start = -Math.PI/2;
+  values.forEach((val,i)=>{
+    const slice = (val/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+slice);
+    ctx.closePath(); ctx.fillStyle = colors[i]; ctx.fill();
+    start += slice;
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2); ctx.fillStyle='#0E1018'; ctx.fill();
+  ctx.fillStyle='#EEF0FA'; ctx.font='bold 17px Inter,sans-serif';
+  ctx.textAlign='center'; ctx.fillText(total, cx, cy+3);
+  ctx.fillStyle='#5A6180'; ctx.font='10px Inter,sans-serif';
+  ctx.fillText('total', cx, cy+16);
+}
+
+// ===== MODAL =====
+const modalOverlay = document.getElementById('modalOverlay');
+document.getElementById('modalClose').onclick = () => modalOverlay.classList.remove('open');
+modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) modalOverlay.classList.remove('open'); });
+
+async function openConversation(leadId, leadName){
+  const body = document.getElementById('modalBody');
+  document.getElementById('modalTitle').textContent = `${leadName}'s conversation`;
+  body.innerHTML = '<div class="empty-state" style="padding:30px;">Loading…</div>';
+  modalOverlay.classList.add('open');
+
+  try{
+    const convos = await adminApi(`action=conversations&lead_id=${encodeURIComponent(leadId)}`);
+    if(!convos || !convos.length){
+      body.innerHTML = '<div class="empty-state" style="padding:30px;">No conversation stored for this lead.</div>';
+      return;
+    }
+    const messages = convos[convos.length - 1].messages;
+    if(!messages || !messages.length){
+      body.innerHTML = '<div class="empty-state" style="padding:30px;">Conversation is empty.</div>';
+      return;
+    }
+    body.innerHTML = '';
+    messages.forEach(msg => {
+      const div = document.createElement('div');
+      div.className = `bubble ${msg.role === 'user' ? 'user' : 'bot'}`;
+      div.style.maxWidth = '85%';
+      div.textContent = msg.content;
+      body.appendChild(div);
+    });
+    body.scrollTop = 0;
+  }catch(err){
+    body.innerHTML = '<div class="empty-state" style="padding:30px;">Error loading conversation.</div>';
+  }
+}
+
+// ===== LOAD DATA =====
+async function loadDashboard(){
+  const [leads, clients] = await Promise.all([
+    adminApi('action=leads'),
+    adminApi('action=clients')
+  ]);
+
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+  const weekAgo = new Date(now - 7*24*60*60*1000).toISOString();
+
+  document.getElementById('statLeads').textContent = leads.length;
+  document.getElementById('statToday').textContent = leads.filter(l => l.created_at?.startsWith(todayStr)).length;
+  document.getElementById('statWeek').textContent = leads.filter(l => l.created_at && l.created_at >= weekAgo).length;
+  document.getElementById('statClients').textContent = clients.filter(c => c.is_active).length;
+
+  // 7-day chart
+  const days = [], dayCounts = [];
+  for(let i=6; i>=0; i--){
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    const str = d.toISOString().slice(0,10);
+    days.push(d.toLocaleDateString('en-GB',{weekday:'short'}));
+    dayCounts.push(leads.filter(l => l.created_at?.startsWith(str)).length);
+  }
+  setTimeout(()=>{
+    drawBar('leadsChart', days, dayCounts, '#7C5CFF');
+    document.getElementById('leadsLabels').innerHTML = days.map(d=>`<span>${d}</span>`).join('');
+  },50);
+
+  // Donut
+  const emailCount = leads.filter(l => l.preferred_contact === 'email').length;
+  const phoneCount = leads.filter(l => l.preferred_contact === 'phone').length;
+  const otherCount = leads.length - emailCount - phoneCount;
+  drawDonut('contactChart', [emailCount, phoneCount, otherCount], ['#7C5CFF','#34D399','#F472B6']);
+  document.getElementById('contactLegend').innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:#7C5CFF"></div>Email (${emailCount})</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34D399"></div>Phone (${phoneCount})</div>
+    ${otherCount>0 ? `<div class="legend-item"><div class="legend-dot" style="background:#F472B6"></div>Other (${otherCount})</div>` : ''}
+  `;
+
+  // Leads table
+  const table = document.getElementById('leadsTable');
+  document.getElementById('emptyLeads').style.display = leads.length ? 'none' : 'block';
+  table.innerHTML = leads.map(lead => {
+    const date = lead.created_at ? new Date(lead.created_at).toLocaleDateString('en-GB') : '—';
+    const safeName = escapeHtml(lead.name || 'Lead').replaceAll('`','');
+    return `
+      <tr>
+        <td><strong>${escapeHtml(lead.name || 'Unknown')}</strong></td>
+        <td class="td-muted">${escapeHtml(lead.email || '—')}</td>
+        <td class="td-muted">${escapeHtml(lead.phone || '—')}</td>
+        <td class="td-muted">${escapeHtml(lead.preferred_contact || '—')}</td>
+        <td class="td-muted">${date}</td>
+        <td>${lead.id ? `<button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" data-lead-id="${lead.id}" data-lead-name="${safeName}">View chat</button>` : '—'}</td>
+      </tr>`;
+  }).join('');
+
+  table.querySelectorAll('[data-lead-id]').forEach(btn => {
+    btn.addEventListener('click', () => openConversation(btn.dataset.leadId, btn.dataset.leadName));
+  });
+}
+
+// ===== AUTH FLOW =====
+function showLogin(msg=''){
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginGate').style.display = 'flex';
+  if(msg){
+    const el = document.getElementById('loginMsg');
+    el.textContent = msg; el.className = 'status-msg error'; el.style.textAlign='center';
+  }
+}
+
+async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){ showLogin(); return; }
+
+  accessToken = session.access_token;
+  document.getElementById('adminUser').textContent = session.user.email;
+
+  try{
+    await loadDashboard();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+  }catch(err){
+    if(err.unauthorized){
+      await sb.auth.signOut();
+      showLogin('This account doesn\u2019t have admin access.');
+    } else {
+      document.getElementById('loading').textContent = err.message || 'Error loading data.';
+      document.getElementById('loading').style.color = 'var(--red)';
+    }
+  }
+}
+
+document.getElementById('adminLoginBtn').onclick = async () => {
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value.trim();
+  const msgEl = document.getElementById('loginMsg');
+  msgEl.textContent = '';
+
+  if(!email || !password){
+    msgEl.textContent = 'Enter email and password.';
+    msgEl.className = 'status-msg error'; msgEl.style.textAlign='center';
+    return;
+  }
+
+  const btn = document.getElementById('adminLoginBtn');
+  btn.disabled = true;
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false;
+
+  if(error){
+    msgEl.textContent = error.message;
+    msgEl.className = 'status-msg error'; msgEl.style.textAlign='center';
+    return;
+  }
+
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  init();
+};
+
+document.getElementById('adminPassword').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('adminLoginBtn').click();
+});
+
+document.getElementById('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  window.location.reload();
+};
+
+init();
+</script>
 </body>
 </html>
