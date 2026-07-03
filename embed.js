@@ -2,283 +2,270 @@
   const script = document.currentScript;
   const clientId = script?.getAttribute('data-client-id') || '';
   const apiBase = script?.src ? new URL(script.src).origin : window.location.origin;
-  const logoUrl = `${apiBase}/nexadesk-logo.png`;
 
   if (!clientId) {
     console.error('NexaDesk: missing data-client-id on embed script.');
     return;
   }
 
+  // ============================================================
+  // Shadow DOM host — completely isolates widget styles from the
+  // client's website CSS. The widget looks identical everywhere.
+  // ============================================================
+  const host = document.createElement('div');
+  host.id = 'nexadesk-widget';
+  host.style.cssText = 'all:initial;position:fixed;z-index:2147483647;';
+  document.body.appendChild(host);
+  const root = host.attachShadow({ mode: 'open' });
+
   const style = document.createElement('style');
   style.textContent = `
-  .nd-widget *{
-    box-sizing:border-box;
-    font-family:Inter,Arial,sans-serif;
+  :host{all:initial;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  .nd-btn{
+    position:fixed;
+    bottom:24px;right:24px;
+    width:60px;height:60px;
+    border:none;border-radius:50%;
+    cursor:pointer;
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+    display:flex;align-items:center;justify-content:center;
+    z-index:2147483647;
+    box-shadow:0 10px 32px rgba(139,92,246,.42);
+    transition:transform .15s ease;
   }
+  .nd-btn:hover{transform:scale(1.06);}
+  .nd-btn svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;}
 
   .nd-chat{
     position:fixed;
-    bottom:96px;
-    right:24px;
+    bottom:96px;right:24px;
     width:380px;
-    height:640px;
+    height:min(620px, calc(100vh - 130px));
+    max-width:calc(100vw - 32px);
     background:#f8fafc;
-    border-radius:26px;
+    border-radius:20px;
     overflow:hidden;
     display:none;
     flex-direction:column;
-    z-index:999999;
-    box-shadow:0 28px 80px rgba(0,0,0,.28);
+    z-index:2147483647;
+    box-shadow:0 24px 70px rgba(0,0,0,.3);
     opacity:0;
-    transform:translateY(15px);
-    transition:all .22s ease;
+    transform:translateY(12px);
+    transition:opacity .2s ease,transform .2s ease;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    color:#111827;
   }
-
-  .nd-chat.open{
-    opacity:1;
-    transform:translateY(0);
-  }
+  .nd-chat.open{opacity:1;transform:translateY(0);}
 
   .nd-header{
-    background:linear-gradient(135deg,#0b1020,#111827);
-    color:white;
-    padding:18px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    border-bottom:1px solid rgba(255,255,255,.06);
+    background:linear-gradient(135deg,#0b1020,#161a2e);
+    color:#fff;
+    padding:16px 18px;
+    display:flex;align-items:center;justify-content:space-between;
+    flex-shrink:0;
   }
-
-  .nd-header-left{
-    display:flex;
-    align-items:center;
-    gap:14px;
+  .nd-header-left{display:flex;align-items:center;gap:12px;min-width:0;}
+  .nd-avatar{
+    width:38px;height:38px;
+    border-radius:12px;
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:700;color:#fff;
+    flex-shrink:0;
   }
-
-  .nd-logo{
-    width:46px;
-    height:46px;
-    border-radius:14px;
-    object-fit:contain;
-    background:#050816;
-    padding:4px;
-  }
-
   .nd-title{
-    font-size:15px;
-    font-weight:800;
+    font-size:14.5px;font-weight:700;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
-
   .nd-status{
-    font-size:12px;
-    color:#9ca3af;
-    margin-top:3px;
+    font-size:11.5px;color:#9ca3af;margin-top:2px;
+    display:flex;align-items:center;gap:5px;
   }
-
+  .nd-status::before{
+    content:'';width:6px;height:6px;border-radius:50%;
+    background:#34d399;flex-shrink:0;
+  }
   .nd-close{
     cursor:pointer;
-    font-size:22px;
-    opacity:.7;
-    transition:.2s;
+    border:none;background:none;color:#fff;
+    font-size:20px;line-height:1;
+    opacity:.65;transition:opacity .15s;
+    padding:4px;flex-shrink:0;
   }
-
-  .nd-close:hover{
-    opacity:1;
-  }
+  .nd-close:hover{opacity:1;}
 
   .nd-messages{
-    flex:1;
+    flex:1;min-height:0;
     overflow-y:auto;
-    padding:18px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
+    padding:16px;
+    display:flex;flex-direction:column;gap:12px;
     background:#f8fafc;
   }
+  .nd-messages::-webkit-scrollbar{width:6px;}
+  .nd-messages::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:99px;}
 
   .nd-msg{
-    max-width:84%;    
-    padding:14px 16px;
-    border-radius:20px;
-    line-height:1.6;
-    font-size:13px;
+    max-width:84%;
+    padding:11px 14px;
+    border-radius:16px;
+    font-size:13.5px;
+    line-height:1.55;
     white-space:pre-wrap;
     overflow-wrap:anywhere;
     animation:ndFadeIn .18s ease;
   }
-
   @keyframes ndFadeIn{
-    from{ opacity:0; transform:translateY(6px); }
-    to{ opacity:1; transform:translateY(0); }
+    from{opacity:0;transform:translateY(5px);}
+    to{opacity:1;transform:translateY(0);}
   }
-
   .nd-msg.user{
     align-self:flex-end;
     background:linear-gradient(135deg,#8b5cf6,#7c3aed);
-    color:white;
-    border-bottom-right-radius:6px;
+    color:#fff;
+    border-bottom-right-radius:5px;
   }
-
   .nd-msg.bot{
     align-self:flex-start;
-    background:white;
+    background:#fff;
     color:#111827;
     border:1px solid #e5e7eb;
-    border-bottom-left-radius:6px;
+    border-bottom-left-radius:5px;
+  }
+
+  .nd-typing{display:flex;gap:4px;align-items:center;height:16px;}
+  .nd-typing span{
+    width:6px;height:6px;background:#8b5cf6;border-radius:50%;
+    animation:ndDot 1.2s infinite both;
+  }
+  .nd-typing span:nth-child(2){animation-delay:.2s;}
+  .nd-typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes ndDot{
+    0%,80%,100%{transform:scale(.6);opacity:.4;}
+    40%{transform:scale(1);opacity:1;}
   }
 
   .nd-input-wrap{
-    display:flex;
-    gap:10px;
-    padding:14px;
-    background:white;
+    display:flex;gap:8px;
+    padding:12px;
+    background:#fff;
     border-top:1px solid #e5e7eb;
+    flex-shrink:0;
   }
-
   .nd-input{
-    flex:1;
-    border:none;
-    outline:none;
+    flex:1;min-width:0;
+    border:none;outline:none;
     background:#f1f5f9;
-    border-radius:16px;
-    padding:14px;
-    font-size:13px;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13.5px;
+    font-family:inherit;
     color:#111827;
   }
-
+  .nd-input::placeholder{color:#94a3b8;}
   .nd-send{
-    width:50px;
-    height:50px;
-    border:none;
-    border-radius:16px;
+    width:44px;height:44px;
+    border:none;border-radius:12px;
     background:linear-gradient(135deg,#8b5cf6,#7c3aed);
-    color:white;
-    cursor:pointer;
-    font-size:16px;
+    color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
     flex-shrink:0;
-    transition:.2s;
+    transition:transform .15s;
   }
-
-  .nd-send:hover{
-    transform:translateY(-1px);
-  }
-
-  .nd-send:disabled{
-    opacity:.6;
-    cursor:not-allowed;
-    transform:none;
-  }
+  .nd-send:hover{transform:translateY(-1px);}
+  .nd-send:disabled{opacity:.55;cursor:not-allowed;transform:none;}
+  .nd-send svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2;}
 
   .nd-footer{
     text-align:center;
-    padding:8px;
+    padding:7px;
     font-size:10px;
-    color:#64748b;
-    background:white;
-    border-top:1px solid #e5e7eb;
+    color:#94a3b8;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+    flex-shrink:0;
   }
-
-  .nd-btn{
-    position:fixed;
-    bottom:24px;
-    right:24px;
-    width:68px;
-    height:68px;
-    border:none;
-    border-radius:50%;
-    cursor:pointer;
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:999999;
-    box-shadow:0 16px 45px rgba(139,92,246,.45);
-  }
-
-  .nd-btn img{
-    width:38px;
-    height:38px;    
-    object-fit:contain;
-  }
+  .nd-footer a{color:#8b5cf6;text-decoration:none;font-weight:600;}
 
   @media(max-width:480px){
     .nd-chat{
-      width:calc(100vw - 24px);
-      right:12px;
-      left:12px;
-      bottom:84px;
-      height:74vh;
+      width:calc(100vw - 20px);
+      right:10px;
+      bottom:86px;
+      height:min(76vh, calc(100vh - 110px));
+      border-radius:18px;
     }
+    .nd-btn{bottom:18px;right:18px;width:56px;height:56px;}
   }
   `;
-
-  document.head.appendChild(style);
+  root.appendChild(style);
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'nd-widget';
   wrapper.innerHTML = `
   <div class="nd-chat" id="nd-chat">
     <div class="nd-header">
       <div class="nd-header-left">
-        <img src="${logoUrl}" class="nd-logo" alt="NexaDesk" />
-        <div>
+        <div class="nd-avatar" id="nd-avatar">A</div>
+        <div style="min-width:0;">
           <div class="nd-title" id="nd-title">AI Assistant</div>
           <div class="nd-status">Online now</div>
         </div>
       </div>
-      <div class="nd-close" id="nd-close" aria-label="Close">✕</div>
+      <button class="nd-close" id="nd-close" aria-label="Close chat">✕</button>
     </div>
 
     <div class="nd-messages" id="nd-messages"></div>
 
     <div class="nd-input-wrap">
-      <input id="nd-input" class="nd-input" placeholder="Type your message..." />
-      <button class="nd-send" id="nd-send" aria-label="Send">➤</button>
+      <input id="nd-input" class="nd-input" placeholder="Type your message…" />
+      <button class="nd-send" id="nd-send" aria-label="Send">
+        <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
     </div>
 
-    <div class="nd-footer">Powered by NexaDesk</div>
+    <div class="nd-footer">Powered by <a href="https://nexadesk.co.uk" target="_blank" rel="noopener">NexaDesk</a></div>
   </div>
 
   <button class="nd-btn" id="nd-btn" aria-label="Open chat">
-    <img src="${logoUrl}" alt="" />
+    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
   </button>
   `;
+  root.appendChild(wrapper);
 
-  document.body.appendChild(wrapper);
-
-  const chat = document.getElementById('nd-chat');
-  const btn = document.getElementById('nd-btn');
-    const closeBtn = document.getElementById('nd-close');
-  const input = document.getElementById('nd-input');
-  const sendBtn = document.getElementById('nd-send');
-  const messagesEl = document.getElementById('nd-messages');
+  const $ = (id) => root.getElementById(id);
+  const chat = $('nd-chat');
+  const btn = $('nd-btn');
+  const closeBtn = $('nd-close');
+  const input = $('nd-input');
+  const sendBtn = $('nd-send');
+  const messagesEl = $('nd-messages');
 
   let history = [];
   let conversationId = null;
   let leadStep = null;
   let leadSaved = false;
   let clientPlan = 'starter'; // updated from API response
-  let lead = {
-    name: '',
-    email: '',
-    preferred_contact: '',
-    phone: ''
-  };
+  let lead = { name: '', email: '', preferred_contact: '', phone: '' };
 
   function scrollBottom() {
-    messagesEl.scrollTo({
-      top: messagesEl.scrollHeight,
-      behavior: 'smooth'
-    });
+    messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+  }
+
+  function setBusinessName(name) {
+    const titleEl = $('nd-title');
+    const avatarEl = $('nd-avatar');
+    if (titleEl) titleEl.textContent = name;
+    if (avatarEl) avatarEl.textContent = (name || 'A').trim().charAt(0).toUpperCase();
   }
 
   function addMessage(role, text) {
     history.push({ role, content: text });
-
     const div = document.createElement('div');
     div.className = `nd-msg ${role === 'assistant' ? 'bot' : 'user'}`;
     div.textContent = text;
-
     messagesEl.appendChild(div);
     scrollBottom();
   }
@@ -293,7 +280,7 @@
 
   function conversationSummary() {
     return history
-      .map((message) => `${message.role === 'user' ? 'Visitor' : 'Assistant'}: ${message.content}`)
+      .map((m) => `${m.role === 'user' ? 'Visitor' : 'Assistant'}: ${m.content}`)
       .join('\n\n')
       .slice(0, 8000);
   }
@@ -309,12 +296,8 @@
           messages: history
         })
       });
-
       const data = await response.json();
-
-      if (data?.conversation?.id) {
-        conversationId = data.conversation.id;
-      }
+      if (data?.conversation?.id) conversationId = data.conversation.id;
     } catch (error) {
       console.error('NexaDesk conversation save failed:', error);
     }
@@ -322,9 +305,7 @@
 
   async function saveLead() {
     if (leadSaved) return;
-
     leadSaved = true;
-
     try {
       await fetch(`${apiBase}/api/save-lead`, {
         method: 'POST',
@@ -344,8 +325,7 @@
   async function getAiReply() {
     const typing = document.createElement('div');
     typing.className = 'nd-msg bot';
-    typing.innerHTML = '<span style="display:flex;gap:4px;align-items:center;height:18px"><span style="width:7px;height:7px;background:#8b5cf6;border-radius:50%;animation:ndDot 1.2s infinite both"></span><span style="width:7px;height:7px;background:#8b5cf6;border-radius:50%;animation:ndDot 1.2s .2s infinite both"></span><span style="width:7px;height:7px;background:#8b5cf6;border-radius:50%;animation:ndDot 1.2s .4s infinite both"></span></span>';
-    if(!document.getElementById('ndDotStyle')){const s=document.createElement('style');s.id='ndDotStyle';s.textContent='@keyframes ndDot{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}';document.head.appendChild(s);}
+    typing.innerHTML = '<span class="nd-typing"><span></span><span></span><span></span></span>';
     messagesEl.appendChild(typing);
     scrollBottom();
 
@@ -353,28 +333,15 @@
       const response = await fetch(`${apiBase}/api/widget`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId,
-          messages: history
-        })
+        body: JSON.stringify({ clientId, messages: history })
       });
-
       const data = await response.json();
       typing.remove();
 
-      // Update header with business name
-      if (data.businessName) {
-        const titleEl = document.getElementById('nd-title');
-        if (titleEl) titleEl.textContent = data.businessName;
-      }
-
-      // Store plan for feature gating
+      if (data.businessName) setBusinessName(data.businessName);
       if (data.plan) clientPlan = data.plan;
 
-      addMessage(
-        'assistant',
-        data.reply || 'Sorry, I had trouble replying just now.'
-      );
+      addMessage('assistant', data.reply || 'Sorry, I had trouble replying just now.');
     } catch (error) {
       typing.remove();
       console.error('NexaDesk AI failed:', error);
@@ -395,7 +362,6 @@
         addMessage('assistant', 'That email does not look quite right. Could you send it again?');
         return true;
       }
-
       lead.email = text;
       leadStep = 'preferred_contact';
       addMessage('assistant', 'Great. Would you prefer email, phone, or WhatsApp?');
@@ -410,7 +376,7 @@
     }
 
     if (leadStep === 'phone') {
-            lead.phone = text;
+      lead.phone = text;
       leadStep = null;
       await saveLead();
       addMessage('assistant', 'Perfect. I have passed your details to the team and they will follow up soon.');
@@ -455,28 +421,19 @@
 
   function closeChat() {
     chat.classList.remove('open');
-    setTimeout(() => {
-      chat.style.display = 'none';
-    }, 200);
+    setTimeout(() => { chat.style.display = 'none'; }, 200);
   }
 
   btn.addEventListener('click', () => {
-    if (chat.style.display === 'flex') {
-      closeChat();
-    } else {
-      openChat();
-    }
+    if (chat.style.display === 'flex') closeChat();
+    else openChat();
   });
 
   closeBtn.addEventListener('click', closeChat);
   sendBtn.addEventListener('click', sendMessage);
-
   input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      sendMessage();
-    }
+    if (event.key === 'Enter') sendMessage();
   });
 
   addMessage('assistant', 'Hi, how can I help you today?');
-  await saveConversation();
 })();
