@@ -503,7 +503,14 @@
     input.focus();
   }
 
+  // ===== TEASER POPUP =====
+  let teaserEl = null;
+  function removeTeaser() {
+    if (teaserEl) { teaserEl.remove(); teaserEl = null; }
+  }
+
   function openChat() {
+    removeTeaser();
     chat.style.display = 'flex';
     setTimeout(() => chat.classList.add('open'), 10);
     input.focus();
@@ -525,12 +532,7 @@
     if (event.key === 'Enter') sendMessage();
   });
 
-  // ===== TEASER POPUP =====
-  let teaserEl = null;
-  function removeTeaser() {
-    if (teaserEl) { teaserEl.remove(); teaserEl = null; }
-  }
-
+  // ===== TEASER TIMER =====
   setTimeout(() => {
     if (chat.style.display === 'flex') return; // already chatting
     teaserEl = document.createElement('div');
@@ -538,13 +540,10 @@
     teaserEl.innerHTML = `Hi 👋 Got a question? I can help right now.<button class="nd-teaser-close" aria-label="Dismiss">✕</button>`;
     teaserEl.addEventListener('click', (e) => {
       if (e.target.classList.contains('nd-teaser-close')) { e.stopPropagation(); removeTeaser(); return; }
-      removeTeaser();
       openChat();
     });
     root.appendChild(teaserEl);
   }, 4000);
-
-  btn.addEventListener('click', removeTeaser);
 
   addMessage('assistant', 'Hi, how can I help you today?');
 })();
