@@ -154,7 +154,7 @@ h1 span{background:linear-gradient(135deg,var(--accent),#9b7bff);-webkit-backgro
         <select id="f_plan">
           <option value="starter">Starter — £49/month</option>
           <option value="growth" selected>Growth — £99/month</option>
-          <option value="pro">Pro — £199/month</option>
+          
           <option value="unsure">Not sure yet</option>
         </select>
       </div>
@@ -192,9 +192,6 @@ if(urlPlan) {
   if(sel) [...sel.options].forEach(o => { if(o.value===urlPlan) o.selected=true; });
 }
 
-const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
-
 const msg = document.getElementById('msg');
 const btn = document.getElementById('submitBtn');
 
@@ -222,26 +219,7 @@ document.getElementById('submitBtn').onclick = async () => {
   setMsg('');
 
   try {
-    // Save as a lead in Supabase
-    await fetch(`${SUPABASE_URL}/rest/v1/Leads`, {
-      method:'POST',
-      headers:{
-        apikey:SUPABASE_KEY,
-        Authorization:`Bearer ${SUPABASE_KEY}`,
-        'Content-Type':'application/json',
-        Prefer:'return=minimal'
-      },
-      body:JSON.stringify({
-        name,
-        email,
-        phone,
-        preferred_contact:'phone',
-        message:`Business: ${business} | Website: ${website} | Type: ${type} | Plan: ${plan} | Notes: ${message}`,
-        client_id: null
-      })
-    });
-
-    // Also notify you by email
+    // Send to the team — this endpoint also saves the enquiry server-side
     await fetch('/api/send-lead-email', {
       method:'POST',
       headers:{'Content-Type':'application/json'},

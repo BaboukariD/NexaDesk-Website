@@ -57,15 +57,9 @@ Growth — £99/month
 - Everything in Starter
 - Lead capture & collection
 - Custom personality & tone
+- Analytics dashboard
 - Monthly performance updates
 - Priority support
-
-Pro — £199/month
-- Everything in Growth
-- Large product catalogue support
-- Appointment booking integration
-- Analytics dashboard
-- Dedicated account manager
 
 COMMUNICATION STYLE:
 - Friendly and conversational
@@ -163,8 +157,8 @@ Make visitors feel understood, helped, and confident in NexaDesk, and interested
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': process.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
+            'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
           },
           body: JSON.stringify({
             name: leadData.name,

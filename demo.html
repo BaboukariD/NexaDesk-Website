@@ -190,12 +190,30 @@ footer{
   <a class="hero-cta" href="#">Request a callback</a>
 </section>
 
+<section class="section" id="dashboard-proof" style="display:none;">
+  <h2>And this is what the business owner sees</h2>
+  <p class="section-sub">Every enquiry the assistant captures lands in a simple dashboard — name, number, and the full conversation.</p>
+  <img id="dashImg" src="./demo-dashboard.png" alt="NexaDesk client dashboard showing captured leads"
+       style="display:block;width:100%;max-width:960px;margin:0 auto;border-radius:14px;box-shadow:0 16px 50px rgba(18,54,92,.18);border:1px solid #e5e7eb;"/>
+</section>
+
 <footer>
   Whitmore Plumbing &amp; Heating is a fictional business. This page demonstrates the NexaDesk AI assistant — <a href="https://nexadesk.co.uk" style="color:#7c9cbf;">nexadesk.co.uk</a>
 </footer>
 
 <!-- NexaDesk widget — set data-client-id to your demo client's ID -->
 <script src="https://nexadesk.co.uk/embed.js" data-client-id="5"></script>
+
+<script>
+// Reveal the dashboard section only if the screenshot has been uploaded
+(function(){
+  const img = document.getElementById('dashImg');
+  const section = document.getElementById('dashboard-proof');
+  if(!img || !section) return;
+  img.onload = () => { section.style.display = 'block'; };
+  if(img.complete && img.naturalWidth > 0) section.style.display = 'block';
+})();
+</script>
 
 </body>
 </html>
