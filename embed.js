@@ -8,6 +8,9 @@
     return;
   }
 
+  // Never initialise twice, even if the embed snippet is pasted twice
+  if (document.getElementById('nexadesk-widget')) return;
+
   // ============================================================
   // Shadow DOM host — completely isolates widget styles from the
   // client's website CSS. The widget looks identical everywhere.
@@ -314,8 +317,7 @@
     return out;
   }
 
-  function addMessage(role, text) {
-    history.push({ role, content: text });
+  function renderBubble(role, text) {
     const div = document.createElement('div');
     div.className = `nd-msg ${role === 'assistant' ? 'bot' : 'user'}`;
     if (role === 'assistant') {
@@ -325,6 +327,39 @@
     }
     messagesEl.appendChild(div);
     scrollBottom();
+  }
+
+  function makeTyping() {
+    const typing = document.createElement('div');
+    typing.className = 'nd-msg bot';
+    typing.innerHTML = '<span class="nd-typing"><span></span><span></span><span></span></span>';
+    return typing;
+  }
+
+  function addMessage(role, text) {
+    history.push({ role, content: text });
+    renderBubble(role, text);
+  }
+
+  // Show a reply the way a human would: paragraph by paragraph,
+  // with a typing pause scaled to the length of what comes next.
+  async function showReplyInChunks(fullText) {
+    history.push({ role: 'assistant', content: fullText });
+
+    const parts = fullText.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+    if (!parts.length) parts.push(fullText);
+
+    for (let i = 0; i < parts.length; i++) {
+      if (i > 0) {
+        const typing = makeTyping();
+        messagesEl.appendChild(typing);
+        scrollBottom();
+        const pause = Math.min(500 + parts[i].length * 18, 2400);
+        await new Promise(r => setTimeout(r, pause));
+        typing.remove();
+      }
+      renderBubble('assistant', parts[i]);
+    }
   }
 
   function looksLikeBuyingIntent(text) {
@@ -380,9 +415,7 @@
   }
 
   async function getAiReply() {
-    const typing = document.createElement('div');
-    typing.className = 'nd-msg bot';
-    typing.innerHTML = '<span class="nd-typing"><span></span><span></span><span></span></span>';
+    const typing = makeTyping();
     messagesEl.appendChild(typing);
     scrollBottom();
 
@@ -398,7 +431,7 @@
       if (data.businessName) setBusinessName(data.businessName);
       if (data.plan) clientPlan = data.plan;
 
-      addMessage('assistant', data.reply || 'Sorry, I had trouble replying just now.');
+      await showReplyInChunks(data.reply || 'Sorry, I had trouble replying just now.');
     } catch (error) {
       typing.remove();
       console.error('NexaDesk AI failed:', error);
