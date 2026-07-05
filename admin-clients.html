@@ -66,6 +66,10 @@
       <button class="btn btn-primary" id="addClientBtn">+ Add client</button>
     </div>
 
+    <div style="margin-bottom:14px;max-width:340px;">
+      <input type="text" class="input" id="clientSearch" placeholder="Search by business, name or email…"/>
+    </div>
+
     <div class="section">
       <div class="table-scroll">
         <table>
@@ -93,7 +97,7 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">Add new client</div>
+      <div class="modal-title" id="modalTitle">Add new client</div>
       <button class="modal-close" id="cancelBtn" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
@@ -153,13 +157,28 @@ function embedCode(id){
   return `<script src="https://nexadesk.co.uk/embed.js" data-client-id="${id}"><\/script>`;
 }
 
+let clientsCache = [];
+
 async function loadClients(){
-  const clients = await adminApi('GET', 'action=clients');
+  clientsCache = (await adminApi('GET', 'action=clients')) || [];
+  renderClients();
+}
+
+function renderClients(){
+  const query = (document.getElementById('clientSearch').value || '').toLowerCase().trim();
+  const clients = query
+    ? clientsCache.filter(c =>
+        (c.business_name || '').toLowerCase().includes(query) ||
+        (c.contact_name || '').toLowerCase().includes(query) ||
+        (c.contact_email || '').toLowerCase().includes(query))
+    : clientsCache;
+
   const table = document.getElementById('clientsTable');
   const empty = document.getElementById('emptyState');
 
-  if(!clients || !clients.length){
+  if(!clients.length){
     table.innerHTML = '';
+    empty.textContent = query ? 'No clients match your search.' : 'No clients yet. Add your first one.';
     empty.style.display = 'block';
     return;
   }
@@ -173,7 +192,10 @@ async function loadClients(){
       <td><span class="badge ${c.plan || 'starter'}">${escapeHtml(c.plan || 'starter')}</span></td>
       <td><span class="badge ${c.is_active ? 'active' : 'inactive'}"><span class="badge-dot"></span>${c.is_active ? 'Active' : 'Inactive'}</span></td>
       <td><button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" data-copy-id="${c.id}">Copy embed</button></td>
-      <td><button class="btn ${c.is_active ? 'btn-danger' : 'btn-secondary'}" style="padding:6px 12px;font-size:12px;" data-toggle-id="${c.id}" data-active="${c.is_active}">${c.is_active ? 'Deactivate' : 'Activate'}</button></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" data-edit-id="${c.id}">Edit</button>
+        <button class="btn ${c.is_active ? 'btn-danger' : 'btn-secondary'}" style="padding:6px 12px;font-size:12px;" data-toggle-id="${c.id}" data-active="${c.is_active}">${c.is_active ? 'Deactivate' : 'Activate'}</button>
+      </td>
     </tr>`).join('');
 
   table.querySelectorAll('[data-copy-id]').forEach(btn => {
@@ -183,6 +205,10 @@ async function loadClients(){
       btn.textContent = 'Copied ✓';
       setTimeout(() => { btn.textContent = orig; }, 1500);
     });
+  });
+
+  table.querySelectorAll('[data-edit-id]').forEach(btn => {
+    btn.addEventListener('click', () => openEditModal(btn.dataset.editId));
   });
 
   table.querySelectorAll('[data-toggle-id]').forEach(btn => {
@@ -206,6 +232,7 @@ async function loadClients(){
 // ===== MODAL =====
 const overlay = document.getElementById('modalOverlay');
 const modalMsg = document.getElementById('modalMsg');
+let editingId = null;
 
 function setModalMsg(text, type=''){
   modalMsg.textContent = text;
@@ -213,10 +240,31 @@ function setModalMsg(text, type=''){
   modalMsg.style.marginTop = '0';
 }
 
+function fillModal(c){
+  document.getElementById('f_business_name').value = c?.business_name || '';
+  document.getElementById('f_contact_name').value = c?.contact_name || '';
+  document.getElementById('f_contact_email').value = c?.contact_email || '';
+  document.getElementById('f_website').value = c?.website || '';
+  document.getElementById('f_plan').value = c?.plan || 'starter';
+  document.getElementById('f_system_prompt').value = c?.system_prompt || '';
+}
+
+function openEditModal(id){
+  const c = clientsCache.find(x => String(x.id) === String(id));
+  if(!c) return;
+  editingId = c.id;
+  fillModal(c);
+  document.getElementById('modalTitle').textContent = `Edit — ${c.business_name || 'client'}`;
+  document.getElementById('saveClientBtn').textContent = 'Save changes';
+  setModalMsg('');
+  overlay.classList.add('open');
+}
+
 document.getElementById('addClientBtn').onclick = () => {
-  ['f_business_name','f_contact_name','f_contact_email','f_website','f_system_prompt']
-    .forEach(id => document.getElementById(id).value = '');
-  document.getElementById('f_plan').value = 'starter';
+  editingId = null;
+  fillModal(null);
+  document.getElementById('modalTitle').textContent = 'Add new client';
+  document.getElementById('saveClientBtn').textContent = 'Save client';
   setModalMsg('');
   overlay.classList.add('open');
 };
@@ -224,9 +272,11 @@ document.getElementById('addClientBtn').onclick = () => {
 document.getElementById('cancelBtn').onclick = () => overlay.classList.remove('open');
 overlay.addEventListener('click', e => { if(e.target === overlay) overlay.classList.remove('open'); });
 
+document.getElementById('clientSearch').addEventListener('input', renderClients);
+
 document.getElementById('saveClientBtn').onclick = async () => {
   const payload = {
-    action: 'add-client',
+    action: editingId ? 'update-client' : 'add-client',
     business_name: document.getElementById('f_business_name').value.trim(),
     contact_name: document.getElementById('f_contact_name').value.trim(),
     contact_email: document.getElementById('f_contact_email').value.trim(),
@@ -234,6 +284,7 @@ document.getElementById('saveClientBtn').onclick = async () => {
     plan: document.getElementById('f_plan').value,
     system_prompt: document.getElementById('f_system_prompt').value.trim()
   };
+  if(editingId) payload.id = editingId;
 
   if(!payload.business_name || !payload.contact_email){
     setModalMsg('Business name and email are required.', 'error');
@@ -246,9 +297,9 @@ document.getElementById('saveClientBtn').onclick = async () => {
 
   try{
     const result = await adminApi('POST', payload);
-    setModalMsg(`Client saved — ID ${result.id}. Embed code is in the table.`, 'success');
+    setModalMsg(editingId ? 'Changes saved.' : `Client saved — ID ${result.id}. Embed code is in the table.`, 'success');
     await loadClients();
-    setTimeout(() => overlay.classList.remove('open'), 1600);
+    setTimeout(() => overlay.classList.remove('open'), 1200);
   }catch(err){
     setModalMsg(err.message || 'Error saving client.', 'error');
   }

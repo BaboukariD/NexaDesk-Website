@@ -100,6 +100,29 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true });
       }
 
+      if (action === 'update-client') {
+        const { id, business_name, contact_name, contact_email, website, plan, system_prompt } = req.body;
+        if (!id) return res.status(400).json({ error: 'Missing id' });
+        if (!business_name || !contact_email) {
+          return res.status(400).json({ error: 'Business name and email are required' });
+        }
+        const { data, error } = await supabase
+          .from('Clients')
+          .update({
+            business_name,
+            contact_name: contact_name || '',
+            contact_email,
+            website: website || '',
+            plan: plan || 'starter',
+            system_prompt: system_prompt || ''
+          })
+          .eq('id', id)
+          .select()
+          .single();
+        if (error) throw error;
+        return res.status(200).json(data);
+      }
+
       return res.status(400).json({ error: 'Unknown action' });
     }
 
