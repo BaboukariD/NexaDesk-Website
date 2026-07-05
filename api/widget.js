@@ -4,8 +4,8 @@ export default async function handler(req, res) {
   const { clientId, messages } = req.body;
   if (!clientId) return res.status(400).json({ error: 'Client ID required' });
 
-  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://exqdmvloldvshzpxevht.supabase.co';
-  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   try {
     const clientRes = await fetch(
@@ -18,6 +18,11 @@ export default async function handler(req, res) {
 
     const client = clients[0];
     const plan = client.plan || 'starter';
+
+    // Don't serve deactivated clients
+    if (client.is_active === false) {
+      return res.status(403).json({ reply: 'This assistant is currently unavailable.' });
+    }
 
     // Build system prompt
     let systemPrompt = client.system_prompt || `You are a helpful AI assistant for ${client.business_name || 'this business'}. Be friendly, concise and professional.`;
