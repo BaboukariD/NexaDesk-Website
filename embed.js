@@ -199,7 +199,42 @@
       border-radius:18px;
     }
     .nd-btn{bottom:18px;right:18px;width:56px;height:56px;}
+    .nd-teaser{right:14px;bottom:84px;max-width:calc(100vw - 90px);}
   }
+
+  .nd-teaser{
+    position:fixed;
+    bottom:96px;right:24px;
+    background:#fff;
+    color:#111827;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    border-bottom-right-radius:5px;
+    padding:12px 34px 12px 16px;
+    font-size:13.5px;
+    line-height:1.5;
+    max-width:260px;
+    box-shadow:0 12px 36px rgba(0,0,0,.16);
+    cursor:pointer;
+    z-index:2147483647;
+    animation:ndTeaserIn .3s ease;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  @keyframes ndTeaserIn{
+    from{opacity:0;transform:translateY(8px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .nd-teaser-close{
+    position:absolute;
+    top:6px;right:8px;
+    border:none;background:none;
+    color:#9ca3af;font-size:14px;line-height:1;
+    cursor:pointer;padding:3px;
+  }
+  .nd-teaser-close:hover{color:#111827;}
+
+  .nd-msg.bot a{color:#7c3aed;font-weight:600;text-decoration:underline;}
+  .nd-msg.bot a:hover{opacity:.8;}
   `;
   root.appendChild(style);
 
@@ -261,11 +296,33 @@
     if (avatarEl) avatarEl.textContent = (name || 'A').trim().charAt(0).toUpperCase();
   }
 
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+      .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+  }
+
+  // Escape first, then turn URLs, emails and phone numbers into tappable links
+  function linkify(text) {
+    let out = escapeHtml(text);
+    out = out.replace(/\bhttps?:\/\/[^\s<]+/g,
+      (m) => `<a href="${m}" target="_blank" rel="noopener">${m}</a>`);
+    out = out.replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+[\w]\b/g,
+      (m) => `<a href="mailto:${m}">${m}</a>`);
+    out = out.replace(/(?:\+44\s?\d{2,4}|\(?0\d{2,4}\)?)[\s.-]?\d{3,4}[\s.-]?\d{3,4}\b/g,
+      (m) => `<a href="tel:${m.replace(/[^\d+]/g, '')}">${m}</a>`);
+    return out;
+  }
+
   function addMessage(role, text) {
     history.push({ role, content: text });
     const div = document.createElement('div');
     div.className = `nd-msg ${role === 'assistant' ? 'bot' : 'user'}`;
-    div.textContent = text;
+    if (role === 'assistant') {
+      div.innerHTML = linkify(text);
+    } else {
+      div.textContent = text;
+    }
     messagesEl.appendChild(div);
     scrollBottom();
   }
@@ -434,6 +491,27 @@
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') sendMessage();
   });
+
+  // ===== TEASER POPUP =====
+  let teaserEl = null;
+  function removeTeaser() {
+    if (teaserEl) { teaserEl.remove(); teaserEl = null; }
+  }
+
+  setTimeout(() => {
+    if (chat.style.display === 'flex') return; // already chatting
+    teaserEl = document.createElement('div');
+    teaserEl.className = 'nd-teaser';
+    teaserEl.innerHTML = `Hi 👋 Got a question? I can help right now.<button class="nd-teaser-close" aria-label="Dismiss">✕</button>`;
+    teaserEl.addEventListener('click', (e) => {
+      if (e.target.classList.contains('nd-teaser-close')) { e.stopPropagation(); removeTeaser(); return; }
+      removeTeaser();
+      openChat();
+    });
+    root.appendChild(teaserEl);
+  }, 4000);
+
+  btn.addEventListener('click', removeTeaser);
 
   addMessage('assistant', 'Hi, how can I help you today?');
 })();
