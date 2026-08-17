@@ -286,7 +286,13 @@
   let leadStep = null;
   let leadSaved = false;
   let clientPlan = 'starter'; // updated from API response
-  let lead = { name: '', email: '', preferred_contact: '', phone: '' };
+  let lastIntentScore = 0;
+  let lastIntentReason = '';
+  let lead = { name: '', email: '', preferred_contact: '', phone: '', score: null, score_reason: '' };
+
+  // Below this, the AI is just answering a question. At/above it, we treat
+  // the visitor as ready to be asked for their details.
+  const INTENT_THRESHOLD = 65;
 
   function scrollBottom() {
     messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
@@ -362,10 +368,6 @@
     }
   }
 
-  function looksLikeBuyingIntent(text) {
-    return /\b(price|pricing|cost|quote|book|call|demo|hire|start|interested|contact|consultation|available|availability|buy|sign up)\b/i.test(text);
-  }
-
   function isValidEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
@@ -430,6 +432,10 @@
 
       if (data.businessName) setBusinessName(data.businessName);
       if (data.plan) clientPlan = data.plan;
+      if (data.intent) {
+        lastIntentScore = data.intent.score ?? 0;
+        lastIntentReason = data.intent.reason || '';
+      }
 
       await showReplyInChunks(data.reply || 'Sorry, I had trouble replying just now.');
     } catch (error) {
@@ -488,13 +494,16 @@
     const handledLeadStep = await handleLeadCapture(text);
 
     if (!handledLeadStep) {
+      await getAiReply();
+
+      // Decide AFTER the AI has actually seen this message and scored intent,
+      // rather than guessing from a keyword match before it replies.
       const canCapture = clientPlan === 'growth' || clientPlan === 'pro';
-      if (canCapture && !leadSaved && !leadStep && looksLikeBuyingIntent(text)) {
-        await getAiReply();
+      if (canCapture && !leadSaved && !leadStep && lastIntentScore >= INTENT_THRESHOLD) {
+        lead.score = lastIntentScore;
+        lead.score_reason = lastIntentReason;
         leadStep = 'name';
         addMessage('assistant', 'I can ask the team to follow up with you. What is your name?');
-      } else {
-        await getAiReply();
       }
     }
 

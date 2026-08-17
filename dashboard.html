@@ -93,6 +93,7 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Score</th>
               <th>Email</th>
               <th>Phone</th>
               <th>Contact via</th>
@@ -131,6 +132,13 @@ function escapeHtml(value){
   return String(value)
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+}
+
+function scoreBadge(score, reason){
+  if(score === null || score === undefined) return '<span class="td-muted">—</span>';
+  const cls = score >= 70 ? 'hot' : score >= 40 ? 'warm' : 'cold';
+  const title = reason ? ` title="${escapeHtml(reason)}"` : '';
+  return `<span class="badge ${cls}"${title}>${score}</span>`;
 }
 
 async function adminApi(path){
@@ -290,6 +298,7 @@ async function loadDashboard(){
     return `
       <tr>
         <td><strong>${escapeHtml(lead.name || 'Unknown')}</strong></td>
+        <td>${scoreBadge(lead.score, lead.score_reason)}</td>
         <td class="td-muted">${escapeHtml(lead.email || '—')}</td>
         <td class="td-muted">${escapeHtml(lead.phone || '—')}</td>
         <td class="td-muted">${escapeHtml(lead.preferred_contact || '—')}</td>

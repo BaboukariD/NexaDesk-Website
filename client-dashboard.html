@@ -95,6 +95,7 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Score</th>
               <th>Email</th>
               <th>Phone</th>
               <th>Contact via</th>
@@ -126,6 +127,13 @@ function escapeHtml(value){
 function formatDate(dateString){
   if(!dateString) return '—';
   return new Date(dateString).toLocaleString('en-GB',{ day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+
+function scoreBadge(score, reason){
+  if(score === null || score === undefined) return '<span class="td-muted">—</span>';
+  const cls = score >= 70 ? 'hot' : score >= 40 ? 'warm' : 'cold';
+  const title = reason ? ` title="${escapeHtml(reason)}"` : '';
+  return `<span class="badge ${cls}"${title}>${score}</span>`;
 }
 
 function getPreview(messages){
@@ -251,6 +259,7 @@ async function loadDashboard(){
     table.innerHTML = leads.map(lead => `
       <tr>
         <td><strong>${escapeHtml(lead.name || '—')}</strong></td>
+        <td>${scoreBadge(lead.score, lead.score_reason)}</td>
         <td class="td-muted">${escapeHtml(lead.email || '—')}</td>
         <td class="td-muted">${escapeHtml(lead.phone || '—')}</td>
         <td class="td-muted">${escapeHtml(lead.preferred_contact || '—')}</td>

@@ -230,6 +230,9 @@ td .td-muted{color:var(--muted);}
 .badge.pro{background:rgba(244,114,182,.12);color:var(--pink);}
 .badge.active{background:var(--green-soft);color:var(--green);}
 .badge.inactive{background:var(--red-soft);color:var(--red);}
+.badge.hot{background:var(--green-soft);color:var(--green);}
+.badge.warm{background:rgba(245,158,11,.12);color:#F59E0B;}
+.badge.cold{background:rgba(139,147,176,.12);color:var(--faint);}
 
 /* ============ BUTTONS ============ */
 .btn{

@@ -37,7 +37,9 @@ export default async function handler(req, res) {
       phone,
       preferred_contact,
       message,
-      client_id
+      client_id,
+      score,
+      score_reason
     } = req.body;
 
     console.log('REQUEST BODY:', req.body);
@@ -94,6 +96,8 @@ export default async function handler(req, res) {
     // SAVE LEAD
     // =========================
 
+    const parsedScore = Number(score);
+
     const leadPayload = {
       name: name || '',
       email: email || '',
@@ -101,7 +105,9 @@ export default async function handler(req, res) {
       preferred_contact:
         preferred_contact || '',
       message: message || '',
-      client_id: Number(client_id)
+      client_id: Number(client_id),
+      score: Number.isFinite(parsedScore) ? Math.max(0, Math.min(100, Math.round(parsedScore))) : null,
+      score_reason: (score_reason || '').slice(0, 200)
     };
 
     console.log(
@@ -217,6 +223,13 @@ export default async function handler(req, res) {
                   </strong>
                   ${preferred_contact || 'N/A'}
                 </p>
+
+                ${Number.isFinite(parsedScore) ? `
+                <p>
+                  <strong>Lead Score:</strong>
+                  ${leadPayload.score}/100${score_reason ? ` — ${score_reason}` : ''}
+                </p>
+                ` : ''}
 
                 <div style="
                   margin-top:28px;

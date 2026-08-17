@@ -56,6 +56,21 @@ export default async function handler(req, res) {
 
 IMPORTANT: Keep responses short and conversational. Never make up information not provided above. If unsure, say the team will follow up.`;
 
+    // Lead scoring is a Growth+ feature — only ask for it (and pay the extra
+    // output tokens) when the plan actually uses it.
+    const canScore = plan === 'growth' || plan === 'pro';
+    if (canScore) {
+      systemPrompt += `
+
+--- INTERNAL SIGNAL (never shown to the visitor, never reference it in your reply) ---
+After your reply, on its own new line, output exactly:
+INTENT:{"score":<0-100>,"reason":"<one short phrase, under 10 words>"}
+Score = how close this visitor is to becoming a paying customer right now.
+0 = just browsing or a casual factual question. 100 = ready to buy/book immediately.
+Base it on this message plus the whole conversation so far. Always include this
+line, every single reply, even when the score is low.`;
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -64,7 +79,7 @@ IMPORTANT: Keep responses short and conversational. Never make up information no
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 500,
         system: systemPrompt,
         messages: messages.map(m => ({ role: m.role, content: m.content }))
@@ -72,13 +87,26 @@ IMPORTANT: Keep responses short and conversational. Never make up information no
     });
 
     const data = await response.json();
-    const reply = data.content?.[0]?.text || 'Sorry, I had trouble responding.';
+    let reply = data.content?.[0]?.text || 'Sorry, I had trouble responding.';
+
+    // Strip the internal intent signal out of what the visitor sees
+    let intent = null;
+    const intentMatch = reply.match(/\n?INTENT:(\{.*\})\s*$/);
+    if (intentMatch) {
+      try {
+        const parsed = JSON.parse(intentMatch[1]);
+        const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score))));
+        if (!Number.isNaN(score)) intent = { score, reason: String(parsed.reason || '').slice(0, 120) };
+      } catch (e) { /* malformed sidecar — ignore, just strip it below */ }
+      reply = reply.slice(0, intentMatch.index).trim();
+    }
 
     // Return plan so embed.js knows what features to enable
     return res.status(200).json({
       reply,
       businessName: client.business_name || 'AI Assistant',
-      plan
+      plan,
+      intent
     });
 
   } catch (err) {
