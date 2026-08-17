@@ -23,16 +23,20 @@ export default async function handler(req, res) {
       return res.status(200).json({ conversation: null });
     }
 
-    // Update existing conversation
+    // Update existing conversation — scoped to client_id too, otherwise
+    // anyone who learns/guesses a conversation_id (e.g. from their own
+    // browser state) could overwrite a DIFFERENT client's conversation.
     if (conversation_id) {
       const { data, error } = await supabase
         .from('Conversations')
         .update({ messages })
         .eq('id', conversation_id)
+        .eq('client_id', String(client_id))
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return res.status(404).json({ error: 'Conversation not found' });
       return res.status(200).json({ conversation: data });
     }
 

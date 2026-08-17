@@ -2,14 +2,19 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { clientId, messages } = req.body;
-  if (!clientId) return res.status(400).json({ error: 'Client ID required' });
+  if (!clientId || !/^\d+$/.test(String(clientId))) {
+    return res.status(400).json({ error: 'Valid client ID required' });
+  }
+  if (!Array.isArray(messages)) {
+    return res.status(400).json({ error: 'messages must be an array' });
+  }
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   try {
     const clientRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/Clients?id=eq.${clientId}&select=*`,
+      `${SUPABASE_URL}/rest/v1/Clients?id=eq.${encodeURIComponent(clientId)}&select=*`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
 

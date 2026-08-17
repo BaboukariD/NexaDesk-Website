@@ -1,9 +1,10 @@
 import { Resend } from 'resend';
 
-console.log(
-  'RESEND KEY EXISTS:',
-  !!process.env.RESEND_API_KEY
-);
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+}
 
 const resend = new Resend(
   process.env.RESEND_API_KEY
@@ -42,30 +43,22 @@ export default async function handler(req, res) {
       score_reason
     } = req.body;
 
-    console.log('REQUEST BODY:', req.body);
-
     // =========================
     // VALIDATION
     // =========================
 
-    if (!client_id) {
-
-      console.log('MISSING CLIENT ID');
-
+    if (!client_id || !/^\d+$/.test(String(client_id))) {
       return res.status(400).json({
-        error: 'Missing client_id'
+        error: 'Missing or invalid client_id'
       });
-
     }
 
     // =========================
     // FETCH CLIENT
     // =========================
 
-    console.log('FETCHING CLIENT...');
-
     const clientRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/Clients?id=eq.${client_id}&select=*`,
+      `${SUPABASE_URL}/rest/v1/Clients?id=eq.${encodeURIComponent(client_id)}&select=*`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -76,21 +69,18 @@ export default async function handler(req, res) {
 
     const clients = await clientRes.json();
 
-    console.log('CLIENTS:', clients);
-
     if (!clients || clients.length === 0) {
-
-      console.log('CLIENT NOT FOUND');
-
       return res.status(404).json({
         error: 'Client not found'
       });
-
     }
 
     const client = clients[0];
 
-    console.log('CLIENT FOUND:', client);
+    // Don't let leads land against a client that's been switched off
+    if (client.is_active === false) {
+      return res.status(403).json({ error: 'Client is not active' });
+    }
 
     // =========================
     // SAVE LEAD
@@ -109,11 +99,6 @@ export default async function handler(req, res) {
       score: Number.isFinite(parsedScore) ? Math.max(0, Math.min(100, Math.round(parsedScore))) : null,
       score_reason: (score_reason || '').slice(0, 200)
     };
-
-    console.log(
-      'SAVING LEAD:',
-      leadPayload
-    );
 
     const saveRes = await fetch(
       `${SUPABASE_URL}/rest/v1/Leads`,
@@ -136,28 +121,13 @@ export default async function handler(req, res) {
     const savedLead =
       await saveRes.json();
 
-    console.log(
-      'SAVED LEAD:',
-      savedLead
-    );
-
     // =========================
     // SEND EMAIL
     // =========================
 
-    console.log(
-      'CLIENT EMAIL:',
-      client.contact_email
-    );
-
     if (client.contact_email) {
 
-      console.log(
-        'ATTEMPTING EMAIL SEND'
-      );
-
-      const emailResult =
-        await resend.emails.send({
+      await resend.emails.send({
 
           from:
             'NexaDesk <leads@nexadesk.co.uk>',
@@ -165,7 +135,7 @@ export default async function handler(req, res) {
           to: client.contact_email,
 
           subject:
-            `🔥 New Lead for ${client.business_name}`,
+            `🔥 New Lead for ${client.business_name || 'your business'}`,
 
           html: `
             <div style="
@@ -204,30 +174,30 @@ export default async function handler(req, res) {
 
                 <p>
                   <strong>Name:</strong>
-                  ${name || 'N/A'}
+                  ${escapeHtml(name) || 'N/A'}
                 </p>
 
                 <p>
                   <strong>Email:</strong>
-                  ${email || 'N/A'}
+                  ${escapeHtml(email) || 'N/A'}
                 </p>
 
                 <p>
                   <strong>Phone:</strong>
-                  ${phone || 'N/A'}
+                  ${escapeHtml(phone) || 'N/A'}
                 </p>
 
                 <p>
                   <strong>
                     Preferred Contact:
                   </strong>
-                  ${preferred_contact || 'N/A'}
+                  ${escapeHtml(preferred_contact) || 'N/A'}
                 </p>
 
                 ${Number.isFinite(parsedScore) ? `
                 <p>
                   <strong>Lead Score:</strong>
-                  ${leadPayload.score}/100${score_reason ? ` — ${score_reason}` : ''}
+                  ${leadPayload.score}/100${score_reason ? ` — ${escapeHtml(score_reason)}` : ''}
                 </p>
                 ` : ''}
 
@@ -247,7 +217,7 @@ export default async function handler(req, res) {
                     line-height:1.6;
                     color:#111827;
                   ">
-                    ${message || 'No conversation'}
+                    ${escapeHtml(message) || 'No conversation'}
                   </div>
 
                 </div>
@@ -257,17 +227,6 @@ export default async function handler(req, res) {
             </div>
           `
         });
-
-      console.log(
-        'EMAIL RESULT:',
-        emailResult
-      );
-
-    } else {
-
-      console.log(
-        'NO CLIENT EMAIL FOUND'
-      );
 
     }
 
