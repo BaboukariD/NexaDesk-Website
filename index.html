@@ -20,19 +20,19 @@
   <meta name="twitter:description" content="Put an AI assistant on your website that answers questions, captures leads and emails you instantly."/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NexaDesk — AI Customer Service Assistant for Small Businesses</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #080809;
-      --surface: #101013;
-      --border: rgba(255,255,255,0.07);
-      --accent: #7c5cfc;
-      --accent2: #a78bfa;
-      --text: #f0eeff;
-      --muted: #6b6880;
-      --card: #0e0e12;
+      --bg: #0A1815;
+      --surface: #0F231E;
+      --border: rgba(243,239,231,0.09);
+      --accent: #FF6B3D;
+      --accent2: #FFA35C;
+      --text: #F3EFE7;
+      --muted: #8FA69D;
+      --card: #102621;
     }
 
     html { scroll-behavior: smooth; }
@@ -60,7 +60,7 @@
     .glow {
       position: fixed;
       width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(124,92,252,0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255,107,61,0.12) 0%, transparent 70%);
       border-radius: 50%;
       top: -150px; left: 50%;
       transform: translateX(-50%);
@@ -81,7 +81,7 @@
     }
 
     .nav-logo {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 800;
       font-size: 1.2rem;
       letter-spacing: -0.02em;
@@ -96,7 +96,7 @@
       border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
       font-size: 0.75rem; font-weight: 800; color: white;
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
     }
 
     .nav-links {
@@ -137,8 +137,8 @@
 
     .hero-badge {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(124,92,252,0.12);
-      border: 1px solid rgba(124,92,252,0.3);
+      background: rgba(255,107,61,0.12);
+      border: 1px solid rgba(255,107,61,0.3);
       color: var(--accent2);
       font-size: 0.75rem;
       font-weight: 500;
@@ -153,7 +153,7 @@
     .hero-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; }
 
     h1 {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: clamp(2.8rem, 7vw, 5.5rem);
       font-weight: 800;
       line-height: 1.05;
@@ -197,7 +197,7 @@
       display: inline-flex; align-items: center; gap: 8px;
     }
 
-    .btn-primary:hover { background: #6a4ae8; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(124,92,252,0.35); }
+    .btn-primary:hover { background: #E85A2E; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(255,107,61,0.35); }
 
     .btn-secondary {
       background: transparent;
@@ -227,7 +227,7 @@
       border: 1px solid var(--border);
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,92,252,0.08);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,107,61,0.08);
     }
 
     .demo-header {
@@ -298,7 +298,7 @@
     }
 
     .demo-input input::placeholder { color: var(--muted); }
-    .demo-input input:focus { border-color: rgba(124,92,252,0.4); }
+    .demo-input input:focus { border-color: rgba(255,107,61,0.4); }
 
     .demo-send {
       width: 38px; height: 38px;
@@ -308,7 +308,7 @@
       transition: all 0.2s; flex-shrink: 0;
     }
 
-    .demo-send:hover { background: #6a4ae8; transform: scale(1.05); }
+    .demo-send:hover { background: #E85A2E; transform: scale(1.05); }
     .demo-send svg { width: 16px; height: 16px; fill: white; }
 
     /* HOW IT WORKS */
@@ -324,7 +324,7 @@
     }
 
     .section-title {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: clamp(1.8rem, 4vw, 2.8rem);
       font-weight: 800;
       letter-spacing: -0.02em;
@@ -361,15 +361,15 @@
       transition: border-color 0.3s, transform 0.3s;
     }
 
-    .step:hover { border-color: rgba(124,92,252,0.3); transform: translateY(-4px); }
+    .step:hover { border-color: rgba(255,107,61,0.3); transform: translateY(-4px); }
 
     .step-num {
       width: 40px; height: 40px;
-      background: rgba(124,92,252,0.12);
-      border: 1px solid rgba(124,92,252,0.2);
+      background: rgba(255,107,61,0.12);
+      border: 1px solid rgba(255,107,61,0.2);
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 800;
       font-size: 0.9rem;
       color: var(--accent);
@@ -377,7 +377,7 @@
     }
 
     .step h3 {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 700;
       font-size: 1.1rem;
       margin-bottom: 10px;
@@ -409,12 +409,12 @@
       transition: border-color 0.3s, transform 0.3s;
     }
 
-    .feature-card:hover { border-color: rgba(124,92,252,0.3); transform: translateY(-4px); }
+    .feature-card:hover { border-color: rgba(255,107,61,0.3); transform: translateY(-4px); }
     .feature-card.large { grid-column: span 2; display: flex; gap: 48px; align-items: center; }
 
     .feature-icon {
       width: 44px; height: 44px;
-      background: rgba(124,92,252,0.12);
+      background: rgba(255,107,61,0.12);
       border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.25rem;
@@ -424,7 +424,7 @@
     .feature-card.large .feature-icon { flex-shrink: 0; width: 56px; height: 56px; font-size: 1.5rem; margin-bottom: 0; }
 
     .feature-card h3 {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 700;
       font-size: 1.05rem;
       margin-bottom: 8px;
@@ -463,8 +463,8 @@
     .price-card:hover { transform: translateY(-4px); }
 
     .price-card.featured {
-      border-color: rgba(124,92,252,0.5);
-      background: linear-gradient(135deg, rgba(124,92,252,0.08) 0%, var(--card) 60%);
+      border-color: rgba(255,107,61,0.5);
+      background: linear-gradient(135deg, rgba(255,107,61,0.08) 0%, var(--card) 60%);
     }
 
     .price-card.featured::before {
@@ -481,7 +481,7 @@
     }
 
     .price-name {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 700;
       font-size: 0.9rem;
       letter-spacing: 0.04em;
@@ -491,7 +491,7 @@
     }
 
     .price-amount {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: 3rem;
       font-weight: 800;
       letter-spacing: -0.03em;
@@ -529,7 +529,7 @@
 
     .btn-plan:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
     .price-card.featured .btn-plan { background: var(--accent); border-color: transparent; color: white; }
-    .price-card.featured .btn-plan:hover { background: #6a4ae8; }
+    .price-card.featured .btn-plan:hover { background: #E85A2E; }
 
     /* CTA */
     .cta-section {
@@ -540,8 +540,8 @@
     }
 
     .cta-box {
-      background: linear-gradient(135deg, rgba(124,92,252,0.12) 0%, rgba(124,92,252,0.04) 100%);
-      border: 1px solid rgba(124,92,252,0.25);
+      background: linear-gradient(135deg, rgba(255,107,61,0.12) 0%, rgba(255,107,61,0.04) 100%);
+      border: 1px solid rgba(255,107,61,0.25);
       border-radius: 24px;
       padding: 80px 48px;
       position: relative;
@@ -552,13 +552,13 @@
       content: '';
       position: absolute;
       width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(124,92,252,0.15) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255,107,61,0.15) 0%, transparent 70%);
       top: -100px; left: 50%; transform: translateX(-50%);
       pointer-events: none;
     }
 
     .cta-box h2 {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: clamp(1.8rem, 4vw, 2.8rem);
       font-weight: 800;
       letter-spacing: -0.02em;
@@ -577,7 +577,7 @@
     }
 
     .footer-logo {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 800;
       font-size: 1rem;
       color: var(--text);
@@ -816,7 +816,7 @@
       </div>
       <p style="color:var(--text);font-size:0.9rem;line-height:1.7;margin-bottom:20px">"Setup was incredibly quick. Within 24 hours we had a bot that knew our entire menu, opening hours and could even take reservations. Our staff love it — they can focus on the floor."</p>
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:38px;height:38px;background:#5ce1e6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#0b1020">SC</div>
+        <div style="width:38px;height:38px;background:#5CC9B8;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#0b1020">SC</div>
         <div>
           <div style="font-weight:600;font-size:0.85rem;color:var(--text)">Sofia C.</div>
           <div style="font-size:0.75rem;color:var(--muted)">Manager, Bella Vista Restaurant</div>
@@ -830,7 +830,7 @@
       </div>
       <p style="color:var(--text);font-size:0.9rem;line-height:1.7;margin-bottom:20px">"I was sceptical at first — I didn't think AI would fit a dental practice. But patients actually prefer it. They get answers instantly and we get their details automatically. Brilliant."</p>
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:38px;height:38px;background:#a78bfa;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:white">DR</div>
+        <div style="width:38px;height:38px;background:var(--accent2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:white">DR</div>
         <div>
           <div style="font-weight:600;font-size:0.85rem;color:var(--text)">Dr. R. Patel</div>
           <div style="font-size:0.75rem;color:var(--muted)">Principal Dentist, Smile Studio</div>
@@ -897,10 +897,10 @@
 <!-- FINAL CTA -->
 <div class="divider"></div>
 <div style="text-align:center;padding:100px 24px;position:relative;z-index:1">
-  <div style="display:inline-block;background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.25);color:var(--accent2);font-size:0.75rem;font-weight:500;padding:6px 14px;border-radius:100px;margin-bottom:24px;letter-spacing:0.04em;text-transform:uppercase">
+  <div style="display:inline-block;background:rgba(255,107,61,0.1);border:1px solid rgba(255,107,61,0.25);color:var(--accent2);font-size:0.75rem;font-weight:500;padding:6px 14px;border-radius:100px;margin-bottom:24px;letter-spacing:0.04em;text-transform:uppercase">
     Get started today
   </div>
-  <h2 style="font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-0.03em;margin-bottom:16px;line-height:1.1">
+  <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-0.03em;margin-bottom:16px;line-height:1.1">
     Your website should be<br><em style="font-style:normal;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">working for you 24/7</em>
   </h2>
   <p style="color:var(--muted);font-size:1rem;max-width:460px;margin:0 auto 40px;line-height:1.7">Book a free 30-minute demo. We'll show you exactly how NexaDesk works and set it up live on your site.</p>
