@@ -152,7 +152,7 @@ async function adminApi(path){
 }
 
 // ===== CHARTS =====
-function drawBar(canvasId, labels, values, color='#FF6B3D'){
+function drawBar(canvasId, labels, values, color='#3B82F6'){
   const canvas = document.getElementById(canvasId);
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -177,7 +177,7 @@ function drawBar(canvasId, labels, values, color='#FF6B3D'){
     if(ctx.roundRect) ctx.roundRect(x,y,bW,bH,3); else ctx.rect(x,y,bW,bH);
     ctx.fill();
     if(val>0){
-      ctx.fillStyle = '#F3EFE7';
+      ctx.fillStyle = '#F1F5F9';
       ctx.font = '600 10px Inter,sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(val, x+bW/2, y-5);
@@ -195,7 +195,7 @@ function drawDonut(canvasId, values, colors){
   ctx.clearRect(0,0,W,H);
   if(total===0){
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#122A24'; ctx.fill();
-    ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2); ctx.fillStyle='#0F2420'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2); ctx.fillStyle='#131E33'; ctx.fill();
     return;
   }
   let start = -Math.PI/2;
@@ -206,10 +206,10 @@ function drawDonut(canvasId, values, colors){
     ctx.closePath(); ctx.fillStyle = colors[i]; ctx.fill();
     start += slice;
   });
-  ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2); ctx.fillStyle='#0F2420'; ctx.fill();
-  ctx.fillStyle='#F3EFE7'; ctx.font='bold 17px Inter,sans-serif';
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2); ctx.fillStyle='#131E33'; ctx.fill();
+  ctx.fillStyle='#F1F5F9'; ctx.font='bold 17px Inter,sans-serif';
   ctx.textAlign='center'; ctx.fillText(total, cx, cy+3);
-  ctx.fillStyle='#6B8079'; ctx.font='10px Inter,sans-serif';
+  ctx.fillStyle='#64748B'; ctx.font='10px Inter,sans-serif';
   ctx.fillText('total', cx, cy+16);
 }
 
@@ -274,7 +274,7 @@ async function loadDashboard(){
     dayCounts.push(leads.filter(l => l.created_at?.startsWith(str)).length);
   }
   setTimeout(()=>{
-    drawBar('leadsChart', days, dayCounts, '#FF6B3D');
+    drawBar('leadsChart', days, dayCounts, '#3B82F6');
     document.getElementById('leadsLabels').innerHTML = days.map(d=>`<span>${d}</span>`).join('');
   },50);
 
@@ -282,9 +282,9 @@ async function loadDashboard(){
   const emailCount = leads.filter(l => l.preferred_contact === 'email').length;
   const phoneCount = leads.filter(l => l.preferred_contact === 'phone').length;
   const otherCount = leads.length - emailCount - phoneCount;
-  drawDonut('contactChart', [emailCount, phoneCount, otherCount], ['#FF6B3D','#34D399','#F472B6']);
+  drawDonut('contactChart', [emailCount, phoneCount, otherCount], ['#3B82F6','#34D399','#F472B6']);
   document.getElementById('contactLegend').innerHTML = `
-    <div class="legend-item"><div class="legend-dot" style="background:#FF6B3D"></div>Email (${emailCount})</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3B82F6"></div>Email (${emailCount})</div>
     <div class="legend-item"><div class="legend-dot" style="background:#34D399"></div>Phone (${phoneCount})</div>
     ${otherCount>0 ? `<div class="legend-item"><div class="legend-dot" style="background:#F472B6"></div>Other (${otherCount})</div>` : ''}
   `;

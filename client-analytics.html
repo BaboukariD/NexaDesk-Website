@@ -113,7 +113,7 @@ const SUPABASE_URL = 'https://exqdmvloldvshzpxevht.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4cWRtdmxvbGR2c2h6cHhldmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzc5NDQsImV4cCI6MjA5NjYxMzk0NH0.nI_pnnKo236Bd6whjvfvZMGnStJz8q4y6ttENmiNgxg';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function drawBar(canvasId, labels, values, color='#FF6B3D'){
+function drawBar(canvasId, labels, values, color='#3B82F6'){
   const canvas = document.getElementById(canvasId);
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -139,7 +139,7 @@ function drawBar(canvasId, labels, values, color='#FF6B3D'){
     else ctx.rect(x,y,bW,bH);
     ctx.fill();
     if(val>0){
-      ctx.fillStyle = '#F3EFE7';
+      ctx.fillStyle = '#F1F5F9';
       ctx.font = '600 10px Inter,sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(val, x+bW/2, y-5);
@@ -159,7 +159,7 @@ function drawDonut(canvasId, values, colors){
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
     ctx.fillStyle = '#122A24'; ctx.fill();
     ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2);
-    ctx.fillStyle = '#0F2420'; ctx.fill();
+    ctx.fillStyle = '#131E33'; ctx.fill();
     return;
   }
   let start = -Math.PI/2;
@@ -171,10 +171,10 @@ function drawDonut(canvasId, values, colors){
     start += slice;
   });
   ctx.beginPath(); ctx.arc(cx,cy,r*0.62,0,Math.PI*2);
-  ctx.fillStyle = '#0F2420'; ctx.fill();
-  ctx.fillStyle = '#F3EFE7'; ctx.font = 'bold 17px Inter,sans-serif';
+  ctx.fillStyle = '#131E33'; ctx.fill();
+  ctx.fillStyle = '#F1F5F9'; ctx.font = 'bold 17px Inter,sans-serif';
   ctx.textAlign = 'center'; ctx.fillText(total, cx, cy+3);
-  ctx.fillStyle = '#6B8079'; ctx.font = '10px Inter,sans-serif';
+  ctx.fillStyle = '#64748B'; ctx.font = '10px Inter,sans-serif';
   ctx.fillText('total', cx, cy+16);
 }
 
@@ -291,7 +291,7 @@ async function load(){
     labelsBar.push(d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
   }
   setTimeout(()=>{
-    drawBar('barChart', labelsBar, counts14, '#FF6B3D');
+    drawBar('barChart', labelsBar, counts14, '#3B82F6');
     document.getElementById('barLabels').innerHTML = labelsBar.map(l=>`<span>${l}</span>`).join('');
   },50);
 
@@ -299,9 +299,9 @@ async function load(){
   const emailC = (leads||[]).filter(l=>l.preferred_contact==='email').length;
   const phoneC = (leads||[]).filter(l=>l.preferred_contact==='phone').length;
   const otherC = (leads?.length||0) - emailC - phoneC;
-  drawDonut('donutChart', [emailC, phoneC, otherC], ['#FF6B3D','#34D399','#F472B6']);
+  drawDonut('donutChart', [emailC, phoneC, otherC], ['#3B82F6','#34D399','#F472B6']);
   document.getElementById('donutLegend').innerHTML = `
-    <div class="legend-item"><div class="legend-dot" style="background:#FF6B3D"></div>Email (${emailC})</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3B82F6"></div>Email (${emailC})</div>
     <div class="legend-item"><div class="legend-dot" style="background:#34D399"></div>Phone (${phoneC})</div>
     ${otherC>0 ? `<div class="legend-item"><div class="legend-dot" style="background:#F472B6"></div>Other (${otherC})</div>` : ''}
   `;
@@ -326,7 +326,7 @@ async function load(){
   const dayCounts = Array(7).fill(0);
   (leads||[]).forEach(l=>{ if(l.created_at) dayCounts[new Date(l.created_at).getDay()]++; });
   setTimeout(()=>{
-    drawBar('dayChart', dayNames, dayCounts, '#56C2D6');
+    drawBar('dayChart', dayNames, dayCounts, '#38BDF8');
     document.getElementById('dayLabels').innerHTML = dayNames.map(d=>`<span>${d}</span>`).join('');
   },50);
 
