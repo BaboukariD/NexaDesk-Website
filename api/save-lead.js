@@ -161,7 +161,7 @@ export default async function handler(req, res) {
 
                 <h1 style="
                   margin-top:0;
-                  color:#7c3aed;
+                  color:#E85A2E;
                 ">
                   New Lead Captured 🚀
                 </h1>

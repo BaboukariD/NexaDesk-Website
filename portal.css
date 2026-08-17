@@ -1,28 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root{
-  --bg:#08090F;
-  --surface:#0E1018;
-  --surface-2:#131622;
-  --border:rgba(255,255,255,.07);
-  --border-strong:rgba(255,255,255,.12);
-  --accent:#7C5CFF;
-  --accent-hover:#8D71FF;
-  --accent-soft:rgba(124,92,255,.13);
-  --accent-border:rgba(124,92,255,.35);
-  --text:#EEF0FA;
-  --muted:#8B93B0;
-  --faint:#5A6180;
+  --bg:#0A1815;
+  --surface:#0F2420;
+  --surface-2:#142E28;
+  --border:rgba(243,239,231,.08);
+  --border-strong:rgba(243,239,231,.14);
+  --accent:#FF6B3D;
+  --accent-hover:#FF8259;
+  --accent-soft:rgba(255,107,61,.14);
+  --accent-border:rgba(255,107,61,.35);
+  --text:#F3EFE7;
+  --muted:#9FB3AB;
+  --faint:#6B8079;
   --green:#34D399;
   --green-soft:rgba(52,211,153,.12);
-  --blue:#60A5FA;
+  --blue:#56C2D6;
   --pink:#F472B6;
   --red:#F87171;
   --red-soft:rgba(248,113,113,.12);
   --radius:12px;
   --radius-lg:16px;
   --sidebar-w:232px;
-  --font-display:'Syne',sans-serif;
+  --font-display:'Bricolage Grotesque',sans-serif;
   --font-ui:'Inter',sans-serif;
 }
 
@@ -225,7 +225,7 @@ td .td-muted{color:var(--muted);}
   font-size:11.5px;font-weight:600;
 }
 .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
-.badge.starter{background:var(--accent-soft);color:#A78BFA;}
+.badge.starter{background:var(--accent-soft);color:#FFA35C;}
 .badge.growth{background:rgba(96,165,250,.12);color:var(--blue);}
 .badge.pro{background:rgba(244,114,182,.12);color:var(--pink);}
 .badge.active{background:var(--green-soft);color:var(--green);}
@@ -351,7 +351,7 @@ select.input option{background:var(--surface-2);}
   border-radius:var(--radius);
   padding:13px 18px;
   margin-bottom:22px;
-  font-size:13px;color:#C4B5FD;
+  font-size:13px;color:#FFB899;
   flex-wrap:wrap;
 }
 .upgrade-banner a{
@@ -383,7 +383,7 @@ canvas{display:block;max-width:100%;}
   display:flex;align-items:center;justify-content:center;
   padding:40px 20px;
   background:
-    radial-gradient(ellipse 700px 420px at 50% -10%, rgba(124,92,255,.09), transparent),
+    radial-gradient(ellipse 700px 420px at 50% -10%, rgba(255,107,61,.09), transparent),
     var(--bg);
 }
 .auth-card{

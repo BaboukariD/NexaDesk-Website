@@ -32,10 +32,10 @@
     width:60px;height:60px;
     border:none;border-radius:50%;
     cursor:pointer;
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+    background:linear-gradient(135deg,#FF6B3D,#E85A2E);
     display:flex;align-items:center;justify-content:center;
     z-index:2147483647;
-    box-shadow:0 10px 32px rgba(139,92,246,.42);
+    box-shadow:0 10px 32px rgba(255,107,61,.42);
     transition:transform .15s ease;
   }
   .nd-btn:hover{transform:scale(1.06);}
@@ -75,7 +75,7 @@
   .nd-avatar{
     width:38px;height:38px;
     border-radius:12px;
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+    background:linear-gradient(135deg,#FF6B3D,#E85A2E);
     display:flex;align-items:center;justify-content:center;
     font-size:16px;font-weight:700;color:#fff;
     flex-shrink:0;
@@ -127,7 +127,7 @@
   }
   .nd-msg.user{
     align-self:flex-end;
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+    background:linear-gradient(135deg,#FF6B3D,#E85A2E);
     color:#fff;
     border-bottom-right-radius:5px;
   }
@@ -141,7 +141,7 @@
 
   .nd-typing{display:flex;gap:4px;align-items:center;height:16px;}
   .nd-typing span{
-    width:6px;height:6px;background:#8b5cf6;border-radius:50%;
+    width:6px;height:6px;background:#FF6B3D;border-radius:50%;
     animation:ndDot 1.2s infinite both;
   }
   .nd-typing span:nth-child(2){animation-delay:.2s;}
@@ -172,7 +172,7 @@
   .nd-send{
     width:44px;height:44px;
     border:none;border-radius:12px;
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+    background:linear-gradient(135deg,#FF6B3D,#E85A2E);
     color:#fff;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
     flex-shrink:0;
@@ -191,7 +191,7 @@
     border-top:1px solid #f1f5f9;
     flex-shrink:0;
   }
-  .nd-footer a{color:#8b5cf6;text-decoration:none;font-weight:600;}
+  .nd-footer a{color:#FF6B3D;text-decoration:none;font-weight:600;}
 
   @media(max-width:480px){
     .nd-chat{
@@ -236,7 +236,7 @@
   }
   .nd-teaser-close:hover{color:#111827;}
 
-  .nd-msg.bot a{color:#7c3aed;font-weight:600;text-decoration:underline;}
+  .nd-msg.bot a{color:#E85A2E;font-weight:600;text-decoration:underline;}
   .nd-msg.bot a:hover{opacity:.8;}
   `;
   root.appendChild(style);
