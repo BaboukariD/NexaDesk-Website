@@ -1,4 +1,12 @@
 export default async function handler(req, res) {
+  // This is called cross-origin from embed.js running on a CLIENT's own
+  // website, so it needs to allow any origin — it's a public endpoint by
+  // design, gated by clientId + is_active, not by auth.
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { clientId, messages } = req.body;

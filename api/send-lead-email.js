@@ -2,16 +2,26 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const { name, email, phone, preferred_contact, message } = req.body;
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safePhone = escapeHtml(phone);
+    const safeMessage = escapeHtml(message);
 
     await resend.emails.send({
       from: 'NexaDesk <leads@nexadesk.co.uk>',
       to: 'contact@nexadesk.co.uk',
-      subject: `🔔 New Enquiry: ${name}`,
+      subject: `🔔 New Enquiry: ${safeName || 'Unknown'}`,
       html: `
 <!DOCTYPE html>
 <html>
@@ -42,22 +52,22 @@ export default async function handler(req, res) {
 
                   <tr><td style="padding-bottom:16px;border-bottom:1px solid #ede9ff">
                     <p style="margin:0;font-size:11px;font-weight:600;color:#9da8d6;text-transform:uppercase;letter-spacing:1px">Name</p>
-                    <p style="margin:4px 0 0;font-size:18px;font-weight:700;color:#1a1a2e">${name || '—'}</p>
+                    <p style="margin:4px 0 0;font-size:18px;font-weight:700;color:#1a1a2e">${safeName || '—'}</p>
                   </td></tr>
 
                   <tr><td style="padding:16px 0;border-bottom:1px solid #ede9ff">
                     <p style="margin:0;font-size:11px;font-weight:600;color:#9da8d6;text-transform:uppercase;letter-spacing:1px">Email</p>
-                    <p style="margin:4px 0 0;font-size:15px"><a href="mailto:${email}" style="color:#7c5cff;text-decoration:none">${email || '—'}</a></p>
+                    <p style="margin:4px 0 0;font-size:15px"><a href="mailto:${safeEmail}" style="color:#7c5cff;text-decoration:none">${safeEmail || '—'}</a></p>
                   </td></tr>
 
                   <tr><td style="padding:16px 0;border-bottom:1px solid #ede9ff">
                     <p style="margin:0;font-size:11px;font-weight:600;color:#9da8d6;text-transform:uppercase;letter-spacing:1px">Phone</p>
-                    <p style="margin:4px 0 0;font-size:15px"><a href="tel:${phone}" style="color:#7c5cff;text-decoration:none">${phone || '—'}</a></p>
+                    <p style="margin:4px 0 0;font-size:15px"><a href="tel:${safePhone}" style="color:#7c5cff;text-decoration:none">${safePhone || '—'}</a></p>
                   </td></tr>
 
                   <tr><td style="padding-top:16px">
                     <p style="margin:0;font-size:11px;font-weight:600;color:#9da8d6;text-transform:uppercase;letter-spacing:1px">Details</p>
-                    <p style="margin:8px 0 0;font-size:14px;color:#374151;white-space:pre-wrap;line-height:1.6">${message || '—'}</p>
+                    <p style="margin:8px 0 0;font-size:14px;color:#374151;white-space:pre-wrap;line-height:1.6">${safeMessage || '—'}</p>
                   </td></tr>
 
                 </table>
