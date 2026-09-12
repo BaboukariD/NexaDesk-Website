@@ -120,9 +120,11 @@ export default function UploadPage() {
         </Link>
       </div>
       <p className="mt-1 text-sm text-ink-muted">
-        Plain text, CSV, and PDF. Page photos come next. A PDF whose text layer
-        looks shaped or reordered will be rejected with a note to use the
-        photo upload instead, rather than risk a bad parse.
+        Plain text, CSV, PDF, and page photographs. A PDF whose text layer
+        looks shaped or reordered will be rejected with a note to use a photo
+        instead, rather than risk a bad parse. Photos are read by Claude's
+        vision, not standard OCR, since standard OCR fails badly on vowelled
+        Arabic.
       </p>
 
       {!result && !committed && (
@@ -137,14 +139,14 @@ export default function UploadPage() {
         >
           <input
             type="file"
-            accept=".txt,.csv,.pdf"
+            accept=".txt,.csv,.pdf,.png,.jpg,.jpeg,.gif,.webp"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);
             }}
           />
-          {parsing ? "Parsing…" : "Drop a .txt, .csv, or .pdf file here, or click to choose one"}
+          {parsing ? "Parsing…" : "Drop a file here, or click to choose one (.txt, .csv, .pdf, or a page photo)"}
         </label>
       )}
 

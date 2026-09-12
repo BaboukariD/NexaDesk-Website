@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { parseVocabCsv } from "@/lib/ingest/csv";
 import { parseLessonText } from "@/lib/ingest/text";
 import { extractPdfText } from "@/lib/ingest/pdf";
+import { parseLessonPhoto, isSupportedImageType } from "@/lib/ingest/photo";
 
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
@@ -53,8 +54,24 @@ export async function POST(req: Request) {
     }
   }
 
+  if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".gif") || name.endsWith(".webp")) {
+    const mediaType = file.type;
+    if (!isSupportedImageType(mediaType)) {
+      return NextResponse.json({ error: `Unsupported image type: ${mediaType || "unknown"}` }, { status: 400 });
+    }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const topics = await prisma.topic.findMany({ select: { slug: true } });
+    try {
+      const result = await parseLessonPhoto(buffer, mediaType, topics.map((t) => t.slug));
+      return NextResponse.json(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
+  }
+
   return NextResponse.json(
-    { error: "Only .csv, .txt, and .pdf files are supported right now. Page-photo upload is coming." },
+    { error: "Supported: .csv, .txt, .pdf, .png, .jpg, .jpeg, .gif, .webp" },
     { status: 400 }
   );
 }
