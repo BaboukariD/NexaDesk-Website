@@ -11,7 +11,8 @@ export default function HomePage() {
           أَهْلًا وَسَهْلًا
         </p>
 
-        <nav className="mt-10 flex flex-col gap-4">
+        <p className="mt-10 text-xs uppercase text-ink-muted">Daily practice</p>
+        <nav className="mt-2 flex flex-col gap-4">
           <Link href="/drills" className="text-ink underline underline-offset-2">
             Drill
           </Link>
@@ -21,8 +22,18 @@ export default function HomePage() {
           <Link href="/vocab" className="text-ink underline underline-offset-2">
             Vocabulary
           </Link>
+          <Link href="/sentence-builder" className="text-ink underline underline-offset-2">
+            Sentence builder
+          </Link>
           <Link href="/upload" className="text-ink underline underline-offset-2">
             Upload
+          </Link>
+        </nav>
+
+        <p className="mt-8 text-xs uppercase text-ink-muted">Progress</p>
+        <nav className="mt-2 flex flex-col gap-4">
+          <Link href="/skills" className="text-ink underline underline-offset-2">
+            Skills
           </Link>
           <Link href="/weaknesses" className="text-ink underline underline-offset-2">
             Weaknesses
@@ -32,6 +43,22 @@ export default function HomePage() {
           </Link>
           <Link href="/progress" className="text-ink underline underline-offset-2">
             Progress
+          </Link>
+        </nav>
+
+        <p className="mt-8 text-xs uppercase text-ink-muted">Assessment</p>
+        <nav className="mt-2 flex flex-col gap-4">
+          <Link href="/organiser" className="text-ink underline underline-offset-2">
+            Knowledge organisers
+          </Link>
+          <Link href="/assessment" className="text-ink underline underline-offset-2">
+            Writing / speaking
+          </Link>
+          <Link href="/translation" className="text-ink underline underline-offset-2">
+            Translation
+          </Link>
+          <Link href="/practice-paper" className="text-ink underline underline-offset-2">
+            Practice paper
           </Link>
         </nav>
       </div>
