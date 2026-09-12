@@ -1,0 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: theme("colors.paper");
+  color: theme("colors.ink");
+}
+
+/* Arabic text needs a dedicated line height so tashkeel doesn't collide,
+   and an explicit direction/lang boundary so it stays legible inside
+   English-chrome UI (bidi isolation, not a mirrored layout). */
+.arabic-text {
+  font-family: theme("fontFamily.arabic");
+  direction: rtl;
+  unicode-bidi: isolate;
+  line-height: theme("lineHeight.arabic");
+  text-align: start;
+}

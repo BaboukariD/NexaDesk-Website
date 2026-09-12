@@ -1,0 +1,365 @@
+// Local dev uses SQLite per the project brief. Swap the datasource to
+// postgresql (a fresh Supabase project) when this goes on a server —
+// see DATABASE_URL in .env.example.
+//
+// Note on enums / lists: the SQLite connector supports neither native
+// enums nor scalar list fields, so fields that would otherwise be an
+// enum or a `String[]` are plain `String` columns here (documented
+// with the allowed values) and JSON-encoded where a list is needed.
+// This also means the schema works unchanged if the datasource later
+// moves to Postgres.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Core: single user, source material, book structure
+// ---------------------------------------------------------------------------
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  // Auth is single-user and env-var based (see src/lib/auth.ts) — the
+  // password hash is NOT stored here, to avoid two sources of truth.
+
+  vocabItems         VocabItem[]
+  reviewStates       ReviewState[]
+  attempts           Attempt[]
+  errorPatterns      ErrorPattern[]
+  sessions           Session[]
+  assessmentAttempts AssessmentAttempt[]
+  translationAttempts TranslationAttempt[]
+  practicePaperResults PracticePaperResult[]
+}
+
+model Book {
+  id       Int    @id @default(autoincrement())
+  title    String
+  titleAr  String?
+  // "upload" | "fetched"
+  source   String
+  fileRef  String?
+
+  units Unit[]
+}
+
+model Unit {
+  id       Int    @id @default(autoincrement())
+  bookId   Int
+  book     Book   @relation(fields: [bookId], references: [id])
+  number   Int
+  titleAr  String
+  titleEn  String
+
+  lessons Lesson[]
+}
+
+model Lesson {
+  id      Int    @id @default(autoincrement())
+  unitId  Int
+  unit    Unit   @relation(fields: [unitId], references: [id])
+  number  Int
+  // "sounds" | "reading" | "writing" | "speaking"
+  section String
+
+  vocabItems  VocabItem[]
+  dialogues   Dialogue[]
+  exercises   Exercise[]
+  grammarNotes GrammarNote[]
+}
+
+// ---------------------------------------------------------------------------
+// Topic spec (5.8) — the 8 exam topics, orthogonal to the book's own
+// unit/lesson order. Vocab, exercises, grammar notes and assessment
+// content are tagged with a topic so a topic can be drilled in isolation.
+// ---------------------------------------------------------------------------
+
+model Topic {
+  id      Int    @id @default(autoincrement())
+  // slug: introductions | family | housing | food | daily-life | weather | shopping | health
+  slug    String @unique
+  nameAr  String
+  nameEn  String
+  order   Int
+
+  vocabItems         VocabItem[]
+  exercises          Exercise[]
+  grammarNotes       GrammarNote[]
+  assessmentTasks    AssessmentTask[]
+  translationTasks   TranslationTask[]
+  sentenceBuilderSets SentenceBuilderSet[]
+  practicePapers     PracticePaper[]
+}
+
+// ---------------------------------------------------------------------------
+// Vocabulary, dialogues, exercises, grammar notes
+// ---------------------------------------------------------------------------
+
+model VocabItem {
+  id        Int    @id @default(autoincrement())
+  lessonId  Int
+  lesson    Lesson @relation(fields: [lessonId], references: [id])
+  topicId   Int?
+  topic     Topic? @relation(fields: [topicId], references: [id])
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id])
+
+  arabic      String // vowelled
+  english     String
+  partOfSpeech String?
+  root        String? // triliteral root, e.g. "د-ر-س"
+  gender      String? // "m" | "f"
+  plural      String?
+  notes       String?
+
+  reviewStates ReviewState[]
+  flashcards   Flashcard[]
+}
+
+model Dialogue {
+  id       Int    @id @default(autoincrement())
+  lessonId Int
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+  title    String
+
+  lines DialogueLine[]
+}
+
+model DialogueLine {
+  id         Int      @id @default(autoincrement())
+  dialogueId Int
+  dialogue   Dialogue @relation(fields: [dialogueId], references: [id])
+  order      Int
+  speaker    String
+  arabic     String
+  english    String
+}
+
+model GrammarNote {
+  id       Int     @id @default(autoincrement())
+  lessonId Int?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id])
+  topicId  Int?
+  topic    Topic?  @relation(fields: [topicId], references: [id])
+  title    String
+  bodyAr   String
+  bodyEn   String
+}
+
+model Exercise {
+  id       Int    @id @default(autoincrement())
+  lessonId Int
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+  topicId  Int?
+  topic    Topic? @relation(fields: [topicId], references: [id])
+  // translate_to_ar | translate_to_en | fill_gap | maa_or_min |
+  // possessive_suffix | scrambled_sentence | true_false
+  type     String
+  // which of the 4 skills this trains, if applicable
+  skill    String?
+  prompt   String
+  answer   String
+  options  String? // JSON-encoded string[]
+
+  attempts Attempt[]
+}
+
+// ---------------------------------------------------------------------------
+// Attempts, spaced repetition, error patterns, sessions
+// ---------------------------------------------------------------------------
+
+model Attempt {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  // "exercise" | "flashcard"
+  itemType   String
+  itemId     Int
+  exerciseId Int?
+  exercise   Exercise? @relation(fields: [exerciseId], references: [id])
+  // listening | reading | writing | speaking — for the per-skill progress lines
+  skill      String?
+  userAnswer String
+  correct    Boolean
+  responseMs Int
+  createdAt  DateTime @default(now())
+}
+
+model ReviewState {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  vocabId     Int
+  vocabItem   VocabItem @relation(fields: [vocabId], references: [id])
+  // FSRS/SM-2 scheduler state
+  ease        Float    @default(2.5)
+  intervalDays Float   @default(0)
+  dueDate     DateTime
+  lapses      Int      @default(0)
+
+  @@unique([userId, vocabId])
+}
+
+model Flashcard {
+  id          Int       @id @default(autoincrement())
+  vocabId     Int
+  vocabItem   VocabItem @relation(fields: [vocabId], references: [id])
+  // front is always vowelled Arabic; sentence is preferred over the bare word
+  sentenceAr  String?
+  sentenceEn  String?
+  reverseMode Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}
+
+model ErrorPattern {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  description   String
+  exampleItems  String   // JSON-encoded string[]
+  frequency     Int      @default(0)
+  lastSeen      DateTime @default(now())
+  // set once accuracy exceeds ~90% across 10 spaced attempts
+  retired       Boolean  @default(false)
+}
+
+model Session {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  user           User      @relation(fields: [userId], references: [id])
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+  itemsAttempted Int       @default(0)
+  accuracy       Float?
+}
+
+// ---------------------------------------------------------------------------
+// 5.8 Mark-scheme mode — assessment layer on top of daily practice.
+// Not built in step 1; schema is here now so later work doesn't need
+// a disruptive migration.
+// ---------------------------------------------------------------------------
+
+model AssessmentTask {
+  id               Int     @id @default(autoincrement())
+  topicId          Int
+  topic            Topic   @relation(fields: [topicId], references: [id])
+  // writing | speaking_roleplay | speaking_photocard | speaking_conversation
+  type             String
+  prompt           String
+  wordCountTarget  Int?
+  imageRef         String?
+  rolePlayPrompts  String? // JSON-encoded string[], 5 short exchanges
+  createdAt        DateTime @default(now())
+
+  attempts AssessmentAttempt[]
+}
+
+model AssessmentAttempt {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  taskId        Int
+  task          AssessmentTask @relation(fields: [taskId], references: [id])
+  responseText  String
+  contentScore  Int // 0-5
+  accuracyScore Int // 0-5
+  rangeScore    Int // 0-5
+  feedback      String // Claude's reasoning per criterion
+  modelAnswer   String
+  createdAt     DateTime @default(now())
+}
+
+model TranslationTask {
+  id        Int      @id @default(autoincrement())
+  topicId   Int
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  // en_to_ar | ar_to_en
+  direction String
+  createdAt DateTime @default(now())
+
+  items TranslationItem[]
+}
+
+model TranslationItem {
+  id                Int             @id @default(autoincrement())
+  translationTaskId Int
+  translationTask   TranslationTask @relation(fields: [translationTaskId], references: [id])
+  order             Int
+  sourceText        String
+  targetText        String
+
+  attempts TranslationAttempt[]
+}
+
+model TranslationAttempt {
+  id                Int             @id @default(autoincrement())
+  userId            Int
+  user              User            @relation(fields: [userId], references: [id])
+  translationItemId Int
+  translationItem   TranslationItem @relation(fields: [translationItemId], references: [id])
+  userAnswer        String
+  score             Int // partial credit, e.g. 0-2
+  feedback          String?
+  createdAt         DateTime        @default(now())
+}
+
+model SentenceBuilderSet {
+  id      Int    @id @default(autoincrement())
+  topicId Int
+  topic   Topic  @relation(fields: [topicId], references: [id])
+  titleAr String
+
+  columns SentenceBuilderColumn[]
+}
+
+model SentenceBuilderColumn {
+  id     Int    @id @default(autoincrement())
+  setId  Int
+  set    SentenceBuilderSet @relation(fields: [setId], references: [id])
+  order  Int
+  label  String // e.g. subject | verb | object | time
+
+  options SentenceBuilderOption[]
+}
+
+model SentenceBuilderOption {
+  id       Int    @id @default(autoincrement())
+  columnId Int
+  column   SentenceBuilderColumn @relation(fields: [columnId], references: [id])
+  arabic   String // vowelled
+  gloss    String
+}
+
+model PracticePaper {
+  id        Int      @id @default(autoincrement())
+  topicId   Int
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  createdAt DateTime @default(now())
+
+  results PracticePaperResult[]
+}
+
+model PracticePaperResult {
+  id                    Int           @id @default(autoincrement())
+  paperId               Int
+  paper                 PracticePaper @relation(fields: [paperId], references: [id])
+  userId                Int
+  user                  User          @relation(fields: [userId], references: [id])
+  listeningScorePct     Float
+  readingScorePct       Float
+  writingContentScore   Int
+  writingAccuracyScore  Int
+  writingRangeScore     Int
+  translationScorePct   Float
+  overallPct            Float
+  durationSeconds       Int
+  createdAt             DateTime      @default(now())
+}

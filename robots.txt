@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://nexadesk.co.uk/sitemap.xml

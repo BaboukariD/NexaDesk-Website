@@ -6,11 +6,7 @@
     },
     "supabase": {
       "type": "http",
-      "url": "https://mcp.supabase.com/mcp?project_ref=exqdmvloldvshzpxevht"
-    },
-    "stripe": {
-      "type": "http",
-      "url": "https://mcp.stripe.com"
+      "url": "https://mcp.supabase.com/mcp"
     },
     "context7": {
       "type": "http",
