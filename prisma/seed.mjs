@@ -30,7 +30,31 @@ async function main() {
     });
   }
 
-  console.log("Seeded: 1 user, 8 topics.");
+  await prisma.settings.upsert({
+    where: { id: "singleton" },
+    update: {},
+    create: { id: "singleton" },
+  });
+
+  // The standing home for hand-entered vocab (section 5.4's "manually
+  // from anything he highlights"), separate from any uploaded book.
+  const manualBook = await prisma.book.upsert({
+    where: { title: "Manual additions" },
+    update: {},
+    create: { title: "Manual additions", source: "manual" },
+  });
+  const manualUnit = await prisma.unit.upsert({
+    where: { bookId_number: { bookId: manualBook.id, number: 0 } },
+    update: {},
+    create: { bookId: manualBook.id, number: 0, titleAr: "إضافات", titleEn: "Manual additions" },
+  });
+  await prisma.lesson.upsert({
+    where: { unitId_number: { unitId: manualUnit.id, number: 0 } },
+    update: {},
+    create: { unitId: manualUnit.id, number: 0, section: "manual" },
+  });
+
+  console.log("Seeded: 1 user, 8 topics, settings, manual-entry book/unit/lesson.");
 }
 
 main()

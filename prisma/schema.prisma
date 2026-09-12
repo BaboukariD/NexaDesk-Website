@@ -30,36 +30,38 @@ model User {
   // Auth is single-user and env-var based (see src/lib/auth.ts) — the
   // password hash is NOT stored here, to avoid two sources of truth.
 
-  vocabItems         VocabItem[]
-  reviewStates       ReviewState[]
-  attempts           Attempt[]
-  errorPatterns      ErrorPattern[]
-  sessions           Session[]
-  assessmentAttempts AssessmentAttempt[]
-  translationAttempts TranslationAttempt[]
+  vocabItems           VocabItem[]
+  reviewStates         ReviewState[]
+  attempts             Attempt[]
+  errorPatterns        ErrorPattern[]
+  sessions             Session[]
+  assessmentAttempts   AssessmentAttempt[]
+  translationAttempts  TranslationAttempt[]
   practicePaperResults PracticePaperResult[]
 }
 
 model Book {
-  id       Int    @id @default(autoincrement())
-  title    String
-  titleAr  String?
-  // "upload" | "fetched"
-  source   String
-  fileRef  String?
+  id      Int     @id @default(autoincrement())
+  title   String  @unique
+  titleAr String?
+  // "upload" | "fetched" | "manual" (the standing home for hand-entered vocab)
+  source  String
+  fileRef String?
 
   units Unit[]
 }
 
 model Unit {
-  id       Int    @id @default(autoincrement())
-  bookId   Int
-  book     Book   @relation(fields: [bookId], references: [id])
-  number   Int
-  titleAr  String
-  titleEn  String
+  id      Int    @id @default(autoincrement())
+  bookId  Int
+  book    Book   @relation(fields: [bookId], references: [id])
+  number  Int
+  titleAr String
+  titleEn String
 
   lessons Lesson[]
+
+  @@unique([bookId, number])
 }
 
 model Lesson {
@@ -67,13 +69,21 @@ model Lesson {
   unitId  Int
   unit    Unit   @relation(fields: [unitId], references: [id])
   number  Int
-  // "sounds" | "reading" | "writing" | "speaking"
+  // "sounds" | "reading" | "writing" | "speaking" | "manual"
   section String
 
-  vocabItems  VocabItem[]
-  dialogues   Dialogue[]
-  exercises   Exercise[]
+  vocabItems   VocabItem[]
+  dialogues    Dialogue[]
+  exercises    Exercise[]
   grammarNotes GrammarNote[]
+
+  @@unique([unitId, number])
+}
+
+// Single-user app settings. One row, id fixed to "singleton".
+model Settings {
+  id             String @id @default("singleton")
+  newCardsPerDay Int    @default(15)
 }
 
 // ---------------------------------------------------------------------------
@@ -83,20 +93,20 @@ model Lesson {
 // ---------------------------------------------------------------------------
 
 model Topic {
-  id      Int    @id @default(autoincrement())
+  id     Int    @id @default(autoincrement())
   // slug: introductions | family | housing | food | daily-life | weather | shopping | health
-  slug    String @unique
-  nameAr  String
-  nameEn  String
-  order   Int
+  slug   String @unique
+  nameAr String
+  nameEn String
+  order  Int
 
-  vocabItems         VocabItem[]
-  exercises          Exercise[]
-  grammarNotes       GrammarNote[]
-  assessmentTasks    AssessmentTask[]
-  translationTasks   TranslationTask[]
+  vocabItems          VocabItem[]
+  exercises           Exercise[]
+  grammarNotes        GrammarNote[]
+  assessmentTasks     AssessmentTask[]
+  translationTasks    TranslationTask[]
   sentenceBuilderSets SentenceBuilderSet[]
-  practicePapers     PracticePaper[]
+  practicePapers      PracticePaper[]
 }
 
 // ---------------------------------------------------------------------------
@@ -104,24 +114,23 @@ model Topic {
 // ---------------------------------------------------------------------------
 
 model VocabItem {
-  id        Int    @id @default(autoincrement())
-  lessonId  Int
-  lesson    Lesson @relation(fields: [lessonId], references: [id])
-  topicId   Int?
-  topic     Topic? @relation(fields: [topicId], references: [id])
-  userId    Int
-  user      User   @relation(fields: [userId], references: [id])
+  id       Int    @id @default(autoincrement())
+  lessonId Int
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+  topicId  Int?
+  topic    Topic? @relation(fields: [topicId], references: [id])
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id])
 
-  arabic      String // vowelled
-  english     String
+  arabic       String // vowelled
+  english      String
   partOfSpeech String?
-  root        String? // triliteral root, e.g. "د-ر-س"
-  gender      String? // "m" | "f"
-  plural      String?
-  notes       String?
+  root         String? // triliteral root, e.g. "د-ر-س"
+  gender       String? // "m" | "f"
+  plural       String?
+  notes        String?
 
-  reviewStates ReviewState[]
-  flashcards   Flashcard[]
+  flashcards Flashcard[]
 }
 
 model Dialogue {
@@ -155,11 +164,11 @@ model GrammarNote {
 }
 
 model Exercise {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   lessonId Int
-  lesson   Lesson @relation(fields: [lessonId], references: [id])
+  lesson   Lesson  @relation(fields: [lessonId], references: [id])
   topicId  Int?
-  topic    Topic? @relation(fields: [topicId], references: [id])
+  topic    Topic?  @relation(fields: [topicId], references: [id])
   // translate_to_ar | translate_to_en | fill_gap | maa_or_min |
   // possessive_suffix | scrambled_sentence | true_false
   type     String
@@ -177,9 +186,9 @@ model Exercise {
 // ---------------------------------------------------------------------------
 
 model Attempt {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   userId     Int
-  user       User     @relation(fields: [userId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
   // "exercise" | "flashcard"
   itemType   String
   itemId     Int
@@ -190,45 +199,53 @@ model Attempt {
   userAnswer String
   correct    Boolean
   responseMs Int
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 }
 
+// FSRS scheduler state, one row per flashcard. Field names follow the
+// ts-fsrs Card shape directly so state round-trips without translation.
 model ReviewState {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  vocabId     Int
-  vocabItem   VocabItem @relation(fields: [vocabId], references: [id])
-  // FSRS/SM-2 scheduler state
-  ease        Float    @default(2.5)
-  intervalDays Float   @default(0)
-  dueDate     DateTime
-  lapses      Int      @default(0)
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id])
+  flashcardId   Int
+  flashcard     Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  due           DateTime
+  stability     Float     @default(0)
+  difficulty    Float     @default(0)
+  scheduledDays Float     @default(0)
+  learningSteps Int       @default(0)
+  reps          Int       @default(0)
+  lapses        Int       @default(0)
+  // New | Learning | Review | Relearning
+  state         String    @default("New")
+  lastReview    DateTime?
 
-  @@unique([userId, vocabId])
+  @@unique([userId, flashcardId])
 }
 
 model Flashcard {
-  id          Int       @id @default(autoincrement())
-  vocabId     Int
-  vocabItem   VocabItem @relation(fields: [vocabId], references: [id])
-  // front is always vowelled Arabic; sentence is preferred over the bare word
-  sentenceAr  String?
-  sentenceEn  String?
-  reverseMode Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+  id         Int       @id @default(autoincrement())
+  vocabId    Int
+  vocabItem  VocabItem @relation(fields: [vocabId], references: [id], onDelete: Cascade)
+  // front is always vowelled Arabic; a sentence is preferred over the bare word
+  sentenceAr String?
+  sentenceEn String?
+  createdAt  DateTime  @default(now())
+
+  reviewStates ReviewState[]
 }
 
 model ErrorPattern {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  user          User     @relation(fields: [userId], references: [id])
-  description   String
-  exampleItems  String   // JSON-encoded string[]
-  frequency     Int      @default(0)
-  lastSeen      DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  description  String
+  exampleItems String // JSON-encoded string[]
+  frequency    Int      @default(0)
+  lastSeen     DateTime @default(now())
   // set once accuracy exceeds ~90% across 10 spaced attempts
-  retired       Boolean  @default(false)
+  retired      Boolean  @default(false)
 }
 
 model Session {
@@ -248,24 +265,24 @@ model Session {
 // ---------------------------------------------------------------------------
 
 model AssessmentTask {
-  id               Int     @id @default(autoincrement())
-  topicId          Int
-  topic            Topic   @relation(fields: [topicId], references: [id])
+  id              Int      @id @default(autoincrement())
+  topicId         Int
+  topic           Topic    @relation(fields: [topicId], references: [id])
   // writing | speaking_roleplay | speaking_photocard | speaking_conversation
-  type             String
-  prompt           String
-  wordCountTarget  Int?
-  imageRef         String?
-  rolePlayPrompts  String? // JSON-encoded string[], 5 short exchanges
-  createdAt        DateTime @default(now())
+  type            String
+  prompt          String
+  wordCountTarget Int?
+  imageRef        String?
+  rolePlayPrompts String? // JSON-encoded string[], 5 short exchanges
+  createdAt       DateTime @default(now())
 
   attempts AssessmentAttempt[]
 }
 
 model AssessmentAttempt {
-  id            Int      @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   userId        Int
-  user          User     @relation(fields: [userId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
   taskId        Int
   task          AssessmentTask @relation(fields: [taskId], references: [id])
   responseText  String
@@ -274,7 +291,7 @@ model AssessmentAttempt {
   rangeScore    Int // 0-5
   feedback      String // Claude's reasoning per criterion
   modelAnswer   String
-  createdAt     DateTime @default(now())
+  createdAt     DateTime       @default(now())
 }
 
 model TranslationTask {
@@ -321,17 +338,17 @@ model SentenceBuilderSet {
 }
 
 model SentenceBuilderColumn {
-  id     Int    @id @default(autoincrement())
-  setId  Int
-  set    SentenceBuilderSet @relation(fields: [setId], references: [id])
-  order  Int
-  label  String // e.g. subject | verb | object | time
+  id    Int                @id @default(autoincrement())
+  setId Int
+  set   SentenceBuilderSet @relation(fields: [setId], references: [id])
+  order Int
+  label String // e.g. subject | verb | object | time
 
   options SentenceBuilderOption[]
 }
 
 model SentenceBuilderOption {
-  id       Int    @id @default(autoincrement())
+  id       Int                   @id @default(autoincrement())
   columnId Int
   column   SentenceBuilderColumn @relation(fields: [columnId], references: [id])
   arabic   String // vowelled
@@ -348,18 +365,18 @@ model PracticePaper {
 }
 
 model PracticePaperResult {
-  id                    Int           @id @default(autoincrement())
-  paperId               Int
-  paper                 PracticePaper @relation(fields: [paperId], references: [id])
-  userId                Int
-  user                  User          @relation(fields: [userId], references: [id])
-  listeningScorePct     Float
-  readingScorePct       Float
-  writingContentScore   Int
-  writingAccuracyScore  Int
-  writingRangeScore     Int
-  translationScorePct   Float
-  overallPct            Float
-  durationSeconds       Int
-  createdAt             DateTime      @default(now())
+  id                   Int           @id @default(autoincrement())
+  paperId              Int
+  paper                PracticePaper @relation(fields: [paperId], references: [id])
+  userId               Int
+  user                 User          @relation(fields: [userId], references: [id])
+  listeningScorePct    Float
+  readingScorePct      Float
+  writingContentScore  Int
+  writingAccuracyScore Int
+  writingRangeScore    Int
+  translationScorePct  Float
+  overallPct           Float
+  durationSeconds      Int
+  createdAt            DateTime      @default(now())
 }
