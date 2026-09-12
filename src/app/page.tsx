@@ -30,6 +30,9 @@ export default function HomePage() {
           <Link href="/roots" className="text-ink underline underline-offset-2">
             Roots
           </Link>
+          <Link href="/progress" className="text-ink underline underline-offset-2">
+            Progress
+          </Link>
         </nav>
       </div>
 
