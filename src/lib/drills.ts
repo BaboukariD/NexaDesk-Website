@@ -57,17 +57,26 @@ function pickWeighted<T>(items: T[], arabicOf: (item: T) => string, prioritySkel
  * happens, and falls back toward recognition once session accuracy
  * drops under ~60% — see section 5.2.
  */
-export async function pickNextDrill(userId: number, sessionAccuracy: number | null): Promise<DrillItem | null> {
+export async function pickNextDrill(
+  userId: number,
+  sessionAccuracy: number | null,
+  topicId?: number
+): Promise<DrillItem | null> {
   const lowAccuracy = sessionAccuracy !== null && sessionAccuracy < 0.6;
 
+  // Dialogues aren't topic-tagged in this schema (only vocab, exercises,
+  // grammar notes, and the 5.8 assessment tables are), so a topic
+  // filter narrows the vocab-and-exercise-based types but leaves
+  // scrambled_sentence/true_false drawing from all dialogues even when
+  // a topic is selected — a known, disclosed simplification.
   const [vocabItems, sentenceCards, dialogueLines, exercises, activePatterns] = await Promise.all([
-    prisma.vocabItem.findMany({ where: { userId } }),
+    prisma.vocabItem.findMany({ where: { userId, ...(topicId ? { topicId } : {}) } }),
     prisma.flashcard.findMany({
-      where: { vocabItem: { userId }, sentenceAr: { not: null } },
+      where: { vocabItem: { userId, ...(topicId ? { topicId } : {}) }, sentenceAr: { not: null } },
       include: { vocabItem: true },
     }),
     prisma.dialogueLine.findMany({ include: { dialogue: true } }),
-    prisma.exercise.findMany(),
+    prisma.exercise.findMany({ where: topicId ? { topicId } : {} }),
     prisma.errorPattern.findMany({ where: { userId, retired: false, frequency: { gt: 0 } } }),
   ]);
 
@@ -108,6 +117,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
         direction: "production",
         instruction: "Translate to Arabic",
         promptEn: item.english,
+        skill: "writing",
       };
     }
     case "translate_to_en": {
@@ -118,6 +128,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
         direction: "recognition",
         instruction: "Translate to English",
         promptAr: item.arabic,
+        skill: "reading",
       };
     }
     case "fill_gap": {
@@ -130,6 +141,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
         instruction: "Fill in the blank",
         promptAr: blanked,
         promptEn: card.sentenceEn ?? undefined,
+        skill: "writing",
       };
     }
     case "scrambled_sentence": {
@@ -144,6 +156,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
           instruction: "Build a sentence from these words (كوّن جملة مفيدة)",
           promptEn: line.english,
           options: shuffle(words),
+          skill: "writing",
         };
       }
       const card = pickRandom(sentenceCards)!;
@@ -155,9 +168,12 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
         instruction: "Build a sentence from these words (كوّن جملة مفيدة)",
         promptEn: card.sentenceEn ?? undefined,
         options: shuffle(words),
+        skill: "writing",
       };
     }
     case "true_false": {
+      // No audio in this app, so a dialogue line read as text is the
+      // closest available proxy for listening comprehension.
       const line = pickRandom(dialogueLines)!;
       const sameDialogue = dialogueLines.filter((l) => l.dialogueId === line.dialogueId && l.id !== line.id);
       const showTrue = sameDialogue.length === 0 || Math.random() < 0.5;
@@ -170,6 +186,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
         promptAr: line.arabic,
         promptEn: englishShown,
         options: ["True", "False"],
+        skill: "listening",
       };
     }
     case "maa_or_min":
@@ -183,6 +200,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
         instruction: chosen === "maa_or_min" ? "Choose ما or من" : "Choose the right possessive suffix",
         promptAr: exercise.prompt,
         options: exercise.options ? JSON.parse(exercise.options) : undefined,
+        skill: exercise.skill ?? "writing",
       };
     }
   }
@@ -200,6 +218,7 @@ export type GradeResult = {
   expectedInternal: string;
   arabicTarget: boolean;
   englishGloss?: string;
+  skill?: string;
 };
 
 /**
@@ -210,7 +229,7 @@ export async function gradeDrillAnswer(
   token: string,
   userAnswer: string,
   reveal: boolean
-): Promise<GradeResult & { skill?: string }> {
+): Promise<GradeResult> {
   const [kind, idStr, sub] = token.split(":");
   const id = Number(idStr);
 
@@ -224,13 +243,20 @@ export async function gradeDrillAnswer(
       expectedInternal: item.arabic,
       arabicTarget: true,
       englishGloss: item.english,
+      skill: "writing",
     };
   }
 
   if (kind === "vocab" && sub === "translate_to_en") {
     const item = await prisma.vocabItem.findUniqueOrThrow({ where: { id } });
     const correct = englishAnswersMatch(userAnswer, item.english);
-    return { correct, expected: reveal || correct ? item.english : undefined, expectedInternal: item.english, arabicTarget: false };
+    return {
+      correct,
+      expected: reveal || correct ? item.english : undefined,
+      expectedInternal: item.english,
+      arabicTarget: false,
+      skill: "reading",
+    };
   }
 
   if (kind === "fillgap") {
@@ -243,6 +269,7 @@ export async function gradeDrillAnswer(
       expectedInternal: card.vocabItem.arabic,
       arabicTarget: true,
       englishGloss: card.vocabItem.english,
+      skill: "writing",
     };
   }
 
@@ -254,7 +281,13 @@ export async function gradeDrillAnswer(
     const userWords = userAnswer.split(/\s+/).filter(Boolean);
     const correct = userWords.length === expectedWords.length && userWords.every((w, i) => w === expectedWords[i]);
     const joined = expectedWords.join(" ");
-    return { correct, expected: reveal || correct ? joined : undefined, expectedInternal: joined, arabicTarget: false };
+    return {
+      correct,
+      expected: reveal || correct ? joined : undefined,
+      expectedInternal: joined,
+      arabicTarget: false,
+      skill: "writing",
+    };
   }
 
   if (kind === "truefalse") {
@@ -262,7 +295,13 @@ export async function gradeDrillAnswer(
     const correct = userAnswer.trim().toLowerCase() === (wasTrue ? "true" : "false");
     const line = await prisma.dialogueLine.findUniqueOrThrow({ where: { id } });
     const expectedInternal = (wasTrue ? "True" : "False") + ` — ${line.arabic}`;
-    return { correct, expected: reveal || correct ? expectedInternal : undefined, expectedInternal, arabicTarget: false };
+    return {
+      correct,
+      expected: reveal || correct ? expectedInternal : undefined,
+      expectedInternal,
+      arabicTarget: false,
+      skill: "listening",
+    };
   }
 
   if (kind === "exercise") {
@@ -276,7 +315,7 @@ export async function gradeDrillAnswer(
       expected: reveal || correct ? exercise.answer : undefined,
       expectedInternal: exercise.answer,
       arabicTarget: exercise.type === "maa_or_min" || exercise.type === "possessive_suffix",
-      skill: exercise.skill ?? undefined,
+      skill: exercise.skill ?? "writing",
     };
   }
 

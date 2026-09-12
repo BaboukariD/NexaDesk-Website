@@ -13,6 +13,9 @@ export async function GET(req: Request) {
     accuracy = session?.accuracy ?? null;
   }
 
-  const item = await pickNextDrill(userId, accuracy);
+  const topicIdParam = new URL(req.url).searchParams.get("topicId");
+  const topicId = topicIdParam ? Number(topicIdParam) : undefined;
+
+  const item = await pickNextDrill(userId, accuracy, topicId);
   return NextResponse.json({ item });
 }

@@ -13,6 +13,8 @@ type DrillItem = {
   options?: string[];
 };
 
+type Topic = { id: number; nameEn: string; nameAr: string; order: number };
+
 export default function DrillsPage() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [item, setItem] = useState<DrillItem | null | undefined>(undefined);
@@ -20,13 +22,16 @@ export default function DrillsPage() {
   const [built, setBuilt] = useState<string[]>([]);
   const [remaining, setRemaining] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<{ correct: boolean; hintPosition?: number; expected?: string } | null>(null);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topicId, setTopicId] = useState<string>("");
   const shownAt = useRef<number>(Date.now());
 
-  const loadNext = useCallback(async (sid: number) => {
+  const loadNext = useCallback(async (sid: number, topic: string) => {
     setFeedback(null);
     setAnswer("");
     setBuilt([]);
-    const res = await fetch(`/api/drill/next?sessionId=${sid}`);
+    const qs = topic ? `?sessionId=${sid}&topicId=${topic}` : `?sessionId=${sid}`;
+    const res = await fetch(`/api/drill/next${qs}`);
     const data = await res.json();
     setItem(data.item);
     setRemaining(data.item?.options ? [...data.item.options] : []);
@@ -34,11 +39,14 @@ export default function DrillsPage() {
   }, []);
 
   useEffect(() => {
+    fetch("/api/topics")
+      .then((r) => r.json())
+      .then(setTopics);
     fetch("/api/drill/session", { method: "POST" })
       .then((r) => r.json())
       .then((data) => {
         setSessionId(data.sessionId);
-        loadNext(data.sessionId);
+        loadNext(data.sessionId, "");
       });
   }, [loadNext]);
 
@@ -84,9 +92,26 @@ export default function DrillsPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-12">
-      <Link href="/" className="text-sm text-ink-muted underline underline-offset-2">
-        Home
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-sm text-ink-muted underline underline-offset-2">
+          Home
+        </Link>
+        <select
+          value={topicId}
+          onChange={(e) => {
+            setTopicId(e.target.value);
+            if (sessionId) loadNext(sessionId, e.target.value);
+          }}
+          className="rounded-md border border-line bg-paper px-2 py-1 text-sm text-ink-muted"
+        >
+          <option value="">All topics</option>
+          {topics.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.nameEn}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         {item === null ? (
@@ -225,7 +250,7 @@ export default function DrillsPage() {
                   )}
                   {(feedback.correct || feedback.expected) && (
                     <button
-                      onClick={() => sessionId && loadNext(sessionId)}
+                      onClick={() => sessionId && loadNext(sessionId, topicId)}
                       className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper"
                     >
                       Next

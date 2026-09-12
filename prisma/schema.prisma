@@ -249,6 +249,9 @@ model ErrorPattern {
   // free text for display, this is what detectors and seeding key off
   key          String
   description  String
+  // listening | reading | writing | speaking — so 5.8's per-skill
+  // weaknesses lists can filter rather than showing one merged list
+  skill        String?
   exampleItems String // JSON-encoded string[]
   frequency    Int      @default(0)
   lastSeen     DateTime @default(now())
@@ -286,7 +289,8 @@ model AssessmentTask {
   rolePlayPrompts String? // JSON-encoded string[], 5 short exchanges
   createdAt       DateTime @default(now())
 
-  attempts AssessmentAttempt[]
+  attempts       AssessmentAttempt[]
+  practicePapers PracticePaper[]
 }
 
 model AssessmentAttempt {
@@ -312,7 +316,8 @@ model TranslationTask {
   direction String
   createdAt DateTime @default(now())
 
-  items TranslationItem[]
+  items          TranslationItem[]
+  practicePapers PracticePaper[]
 }
 
 model TranslationItem {
@@ -345,6 +350,8 @@ model SentenceBuilderSet {
   titleAr String
 
   columns SentenceBuilderColumn[]
+
+  @@unique([topicId, titleAr])
 }
 
 model SentenceBuilderColumn {
@@ -365,11 +372,27 @@ model SentenceBuilderOption {
   gloss    String
 }
 
+// A practice paper is a snapshot taken at generation time, not a live
+// pointer into mutable content — listening/reading passages are
+// stored directly rather than referencing a Dialogue that might
+// change later. writingTaskId/translationTaskId reuse the existing
+// assessment and translation infrastructure rather than duplicating
+// it.
 model PracticePaper {
-  id        Int      @id @default(autoincrement())
-  topicId   Int
-  topic     Topic    @relation(fields: [topicId], references: [id])
-  createdAt DateTime @default(now())
+  id                    Int             @id @default(autoincrement())
+  topicId               Int
+  topic                 Topic           @relation(fields: [topicId], references: [id])
+  listeningTranscriptAr String
+  listeningTranscriptEn String
+  listeningQuestions    String // JSON: {question, answer}[]
+  readingPassageAr      String
+  readingPassageEn      String
+  readingQuestions      String // JSON: {question, answer}[]
+  writingTaskId         Int?
+  writingTask           AssessmentTask? @relation(fields: [writingTaskId], references: [id])
+  translationTaskId     Int?
+  translationTask       TranslationTask? @relation(fields: [translationTaskId], references: [id])
+  createdAt             DateTime        @default(now())
 
   results PracticePaperResult[]
 }
