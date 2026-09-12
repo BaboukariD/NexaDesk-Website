@@ -120,7 +120,9 @@ export default function UploadPage() {
         </Link>
       </div>
       <p className="mt-1 text-sm text-ink-muted">
-        Plain text and CSV for now. PDF and photo pages come later.
+        Plain text, CSV, and PDF. Page photos come next. A PDF whose text layer
+        looks shaped or reordered will be rejected with a note to use the
+        photo upload instead, rather than risk a bad parse.
       </p>
 
       {!result && !committed && (
@@ -135,14 +137,14 @@ export default function UploadPage() {
         >
           <input
             type="file"
-            accept=".txt,.csv"
+            accept=".txt,.csv,.pdf"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);
             }}
           />
-          {parsing ? "Parsing…" : "Drop a .txt or .csv file here, or click to choose one"}
+          {parsing ? "Parsing…" : "Drop a .txt, .csv, or .pdf file here, or click to choose one"}
         </label>
       )}
 

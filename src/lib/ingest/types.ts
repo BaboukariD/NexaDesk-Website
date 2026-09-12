@@ -44,7 +44,7 @@ export type ParsedExercise = {
 };
 
 export type ParseResult = {
-  source: "csv" | "text";
+  source: "csv" | "text" | "pdf" | "photo";
   warnings: string[];
   vocab: ParsedVocab[];
   dialogues: ParsedDialogue[];
