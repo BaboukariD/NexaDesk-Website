@@ -27,6 +27,9 @@ export default function HomePage() {
           <Link href="/weaknesses" className="text-ink underline underline-offset-2">
             Weaknesses
           </Link>
+          <Link href="/roots" className="text-ink underline underline-offset-2">
+            Roots
+          </Link>
         </nav>
       </div>
 

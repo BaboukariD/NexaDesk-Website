@@ -38,6 +38,7 @@ model User {
   assessmentAttempts   AssessmentAttempt[]
   translationAttempts  TranslationAttempt[]
   practicePaperResults PracticePaperResult[]
+  rootNotes            RootNote[]
 }
 
 model Book {
@@ -388,4 +389,24 @@ model PracticePaperResult {
   overallPct           Float
   durationSeconds      Int
   createdAt            DateTime      @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Root explorer (5.5)
+// ---------------------------------------------------------------------------
+
+// A Quran cross-reference for one root, always suggested-then-confirmed
+// by Djibril (see src/lib/roots.ts) — never auto-populated. Getting a
+// Quranic citation wrong for a hafiz is a real failure, not a cosmetic
+// one, so this is only ever saved after he's seen and accepted it.
+model RootNote {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  root         String
+  quranRef     String? // e.g. "٢:٣٢"
+  quranSnippet String? // a few words only, never a full ayah
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, root])
 }
