@@ -197,6 +197,10 @@ model Attempt {
   // listening | reading | writing | speaking — for the per-skill progress lines
   skill      String?
   userAnswer String
+  // the reference answer this was graded against — lets error-pattern
+  // retirement (and later, progress views) query accuracy on a
+  // specific word rather than only on this attempt in isolation
+  expectedAnswer String?
   correct    Boolean
   responseMs Int
   createdAt  DateTime  @default(now())
@@ -240,12 +244,17 @@ model ErrorPattern {
   id           Int      @id @default(autoincrement())
   userId       Int
   user         User     @relation(fields: [userId], references: [id])
+  // stable programmatic key, e.g. "maadha_vs_ayna" — the description is
+  // free text for display, this is what detectors and seeding key off
+  key          String
   description  String
   exampleItems String // JSON-encoded string[]
   frequency    Int      @default(0)
   lastSeen     DateTime @default(now())
   // set once accuracy exceeds ~90% across 10 spaced attempts
   retired      Boolean  @default(false)
+
+  @@unique([userId, key])
 }
 
 model Session {

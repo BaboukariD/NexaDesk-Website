@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/current-user";
 import { gradeDrillAnswer } from "@/lib/drills";
+import { recordAttemptForErrorModel } from "@/lib/error-patterns";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
           itemId: Number(idStr) || 0,
           skill: result.skill ?? null,
           userAnswer: answer,
+          expectedAnswer: result.expectedInternal,
           correct: result.correct,
           responseMs,
         },
@@ -51,6 +53,17 @@ export async function POST(req: Request) {
             data: { itemsAttempted: newCount, accuracy: newAccuracy },
           });
         }
+      }
+
+      // Only word-level Arabic-production shapes are meaningful input
+      // for these detectors — see GradeResult.arabicTarget.
+      if (result.arabicTarget) {
+        await recordAttemptForErrorModel(
+          tx,
+          userId,
+          { expectedArabic: result.expectedInternal, userAnswer: answer, englishGloss: result.englishGloss },
+          result.correct
+        );
       }
     });
   }

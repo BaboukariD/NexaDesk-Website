@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { answersMatch, englishAnswersMatch, firstDifferingPosition } from "@/lib/normalize";
+import { answersMatch, englishAnswersMatch, firstDifferingPosition, toSkeleton } from "@/lib/normalize";
 
 export type DrillType =
   | "translate_to_ar"
@@ -34,6 +34,23 @@ function pickRandom<T>(arr: T[]): T | null {
   return arr.length === 0 ? null : arr[Math.floor(Math.random() * arr.length)];
 }
 
+const PRIORITY_WEIGHT = 0.65;
+
+/**
+ * Picks from `items`, preferring ones flagged by an active error
+ * pattern (see lib/error-patterns.ts) most of the time — "weight
+ * future drills toward what he keeps getting wrong" (section 5.3) —
+ * while still surfacing everything else often enough to not go stale.
+ */
+function pickWeighted<T>(items: T[], arabicOf: (item: T) => string, prioritySkeletons: Set<string>): T | null {
+  if (items.length === 0) return null;
+  if (prioritySkeletons.size > 0 && Math.random() < PRIORITY_WEIGHT) {
+    const flagged = items.filter((item) => prioritySkeletons.has(toSkeleton(arabicOf(item))));
+    if (flagged.length > 0) return pickRandom(flagged);
+  }
+  return pickRandom(items);
+}
+
 /**
  * Picks the next drill for a user. Direction defaults to production
  * (English -> Arabic), which is where the brief says learning actually
@@ -43,7 +60,7 @@ function pickRandom<T>(arr: T[]): T | null {
 export async function pickNextDrill(userId: number, sessionAccuracy: number | null): Promise<DrillItem | null> {
   const lowAccuracy = sessionAccuracy !== null && sessionAccuracy < 0.6;
 
-  const [vocabItems, sentenceCards, dialogueLines, exercises] = await Promise.all([
+  const [vocabItems, sentenceCards, dialogueLines, exercises, activePatterns] = await Promise.all([
     prisma.vocabItem.findMany({ where: { userId } }),
     prisma.flashcard.findMany({
       where: { vocabItem: { userId }, sentenceAr: { not: null } },
@@ -51,7 +68,12 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
     }),
     prisma.dialogueLine.findMany({ include: { dialogue: true } }),
     prisma.exercise.findMany(),
+    prisma.errorPattern.findMany({ where: { userId, retired: false, frequency: { gt: 0 } } }),
   ]);
+
+  const prioritySkeletons = new Set(
+    activePatterns.flatMap((p) => (JSON.parse(p.exampleItems) as string[]).map(toSkeleton))
+  );
 
   const weights: { type: DrillType; weight: number; available: boolean }[] = [
     { type: "translate_to_ar", weight: lowAccuracy ? 1 : 3, available: vocabItems.length > 0 },
@@ -79,7 +101,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
 
   switch (chosen) {
     case "translate_to_ar": {
-      const item = pickRandom(vocabItems)!;
+      const item = pickWeighted(vocabItems, (v) => v.arabic, prioritySkeletons)!;
       return {
         token: `vocab:${item.id}:translate_to_ar`,
         type: "translate_to_ar",
@@ -89,7 +111,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
       };
     }
     case "translate_to_en": {
-      const item = pickRandom(vocabItems)!;
+      const item = pickWeighted(vocabItems, (v) => v.arabic, prioritySkeletons)!;
       return {
         token: `vocab:${item.id}:translate_to_en`,
         type: "translate_to_en",
@@ -99,7 +121,7 @@ export async function pickNextDrill(userId: number, sessionAccuracy: number | nu
       };
     }
     case "fill_gap": {
-      const card = pickRandom(sentenceCards)!;
+      const card = pickWeighted(sentenceCards, (c) => c.vocabItem.arabic, prioritySkeletons)!;
       const blanked = card.sentenceAr!.replace(card.vocabItem.arabic, "___");
       return {
         token: `fillgap:${card.id}:fill_gap`,
@@ -170,6 +192,14 @@ export type GradeResult = {
   correct: boolean;
   hintPosition?: number;
   expected?: string;
+  // Always populated, even when `expected` is withheld from the
+  // client — the error model needs the true reference answer to
+  // detect and later retire patterns. `arabicTarget: false` marks
+  // shapes (English recognition, whole sentences, True/False) where
+  // the six word-level detectors don't apply and shouldn't be run.
+  expectedInternal: string;
+  arabicTarget: boolean;
+  englishGloss?: string;
 };
 
 /**
@@ -181,7 +211,7 @@ export async function gradeDrillAnswer(
   userAnswer: string,
   reveal: boolean
 ): Promise<GradeResult & { skill?: string }> {
-  const [kind, idStr, sub, ...rest] = token.split(":");
+  const [kind, idStr, sub] = token.split(":");
   const id = Number(idStr);
 
   if (kind === "vocab" && sub === "translate_to_ar") {
@@ -191,13 +221,16 @@ export async function gradeDrillAnswer(
       correct,
       hintPosition: correct ? undefined : firstDifferingPosition(userAnswer, item.arabic) ?? undefined,
       expected: reveal || correct ? item.arabic : undefined,
+      expectedInternal: item.arabic,
+      arabicTarget: true,
+      englishGloss: item.english,
     };
   }
 
   if (kind === "vocab" && sub === "translate_to_en") {
     const item = await prisma.vocabItem.findUniqueOrThrow({ where: { id } });
     const correct = englishAnswersMatch(userAnswer, item.english);
-    return { correct, expected: reveal || correct ? item.english : undefined };
+    return { correct, expected: reveal || correct ? item.english : undefined, expectedInternal: item.english, arabicTarget: false };
   }
 
   if (kind === "fillgap") {
@@ -207,6 +240,9 @@ export async function gradeDrillAnswer(
       correct,
       hintPosition: correct ? undefined : firstDifferingPosition(userAnswer, card.vocabItem.arabic) ?? undefined,
       expected: reveal || correct ? card.vocabItem.arabic : undefined,
+      expectedInternal: card.vocabItem.arabic,
+      arabicTarget: true,
+      englishGloss: card.vocabItem.english,
     };
   }
 
@@ -217,14 +253,16 @@ export async function gradeDrillAnswer(
         : (await prisma.flashcard.findUniqueOrThrow({ where: { id } })).sentenceAr!.split(/\s+/).filter(Boolean);
     const userWords = userAnswer.split(/\s+/).filter(Boolean);
     const correct = userWords.length === expectedWords.length && userWords.every((w, i) => w === expectedWords[i]);
-    return { correct, expected: reveal || correct ? expectedWords.join(" ") : undefined };
+    const joined = expectedWords.join(" ");
+    return { correct, expected: reveal || correct ? joined : undefined, expectedInternal: joined, arabicTarget: false };
   }
 
   if (kind === "truefalse") {
     const wasTrue = sub === "true";
     const correct = userAnswer.trim().toLowerCase() === (wasTrue ? "true" : "false");
     const line = await prisma.dialogueLine.findUniqueOrThrow({ where: { id } });
-    return { correct, expected: reveal || correct ? (wasTrue ? "True" : "False") + ` — ${line.arabic}` : undefined };
+    const expectedInternal = (wasTrue ? "True" : "False") + ` — ${line.arabic}`;
+    return { correct, expected: reveal || correct ? expectedInternal : undefined, expectedInternal, arabicTarget: false };
   }
 
   if (kind === "exercise") {
@@ -236,6 +274,8 @@ export async function gradeDrillAnswer(
     return {
       correct,
       expected: reveal || correct ? exercise.answer : undefined,
+      expectedInternal: exercise.answer,
+      arabicTarget: exercise.type === "maa_or_min" || exercise.type === "possessive_suffix",
       skill: exercise.skill ?? undefined,
     };
   }

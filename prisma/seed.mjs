@@ -4,6 +4,43 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// Djibril's known error patterns (section 5.3) — seeded so the
+// weaknesses view and the drill weighting have something real to work
+// with from day one, rather than waiting for the pattern to be
+// rediscovered from scratch.
+const ERROR_PATTERNS = [
+  {
+    key: "maadha_vs_ayna",
+    description: "Reads ماذا (what) as أين (where)",
+    exampleItems: ["ماذا", "أين"],
+  },
+  {
+    key: "verb_prefix",
+    description: "Uses the ت (you/she) verb prefix where أ (I) is needed",
+    exampleItems: ["أدرس", "تدرس", "أسكن", "تسكن"],
+  },
+  {
+    key: "feminine_default",
+    description: "Defaults to feminine forms when describing himself",
+    exampleItems: ["طالبة", "إيطالية"],
+  },
+  {
+    key: "sharika_sharjah_balad",
+    description: "Mixes up شركة (company), الشارقة (Sharjah), and بلد (country)",
+    exampleItems: ["شركة", "الشارقة", "بلد"],
+  },
+  {
+    key: "possessive_suffix_pressure",
+    description: "Knows the possessive-suffix system but reaches for the wrong one under time pressure",
+    exampleItems: ["أسرته", "أسرتها", "أسرتهم"],
+  },
+  {
+    key: "sticky_vocabulary",
+    description: "Words that have needed three or more exposures to stick",
+    exampleItems: ["فندق", "مركز", "أشخاص", "معلم", "يتحدث", "متى", "بعض", "بعد"],
+  },
+];
+
 const TOPICS = [
   { slug: "introductions", nameAr: "التعارف", nameEn: "Introductions", order: 1 },
   { slug: "family", nameAr: "أسرتي", nameEn: "Family", order: 2 },
@@ -16,11 +53,24 @@ const TOPICS = [
 ];
 
 async function main() {
-  await prisma.user.upsert({
+  const user = await prisma.user.upsert({
     where: { name: "Djibril" },
     update: {},
     create: { name: "Djibril" },
   });
+
+  for (const pattern of ERROR_PATTERNS) {
+    await prisma.errorPattern.upsert({
+      where: { userId_key: { userId: user.id, key: pattern.key } },
+      update: {},
+      create: {
+        userId: user.id,
+        key: pattern.key,
+        description: pattern.description,
+        exampleItems: JSON.stringify(pattern.exampleItems),
+      },
+    });
+  }
 
   for (const topic of TOPICS) {
     await prisma.topic.upsert({
@@ -54,7 +104,7 @@ async function main() {
     create: { unitId: manualUnit.id, number: 0, section: "manual" },
   });
 
-  console.log("Seeded: 1 user, 8 topics, settings, manual-entry book/unit/lesson.");
+  console.log("Seeded: 1 user, 8 topics, settings, manual-entry book/unit/lesson, 6 known error patterns.");
 }
 
 main()

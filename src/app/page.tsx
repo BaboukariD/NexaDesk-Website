@@ -24,6 +24,9 @@ export default function HomePage() {
           <Link href="/upload" className="text-ink underline underline-offset-2">
             Upload
           </Link>
+          <Link href="/weaknesses" className="text-ink underline underline-offset-2">
+            Weaknesses
+          </Link>
         </nav>
       </div>
 
