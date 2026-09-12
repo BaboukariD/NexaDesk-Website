@@ -32,10 +32,22 @@ export type ParsedGrammarNote = {
   bodyEn: string;
 };
 
+// Only maa_or_min and possessive_suffix need curated source examples —
+// the other drill types are generated on the fly from vocab/dialogues
+// (see src/lib/drills.ts) since generating fresh grammar content risks
+// producing something subtly wrong for a hafiz-level learner to catch.
+export type ParsedExercise = {
+  type: "maa_or_min" | "possessive_suffix" | "fill_gap" | "true_false";
+  prompt: string;
+  answer: string;
+  options?: string[];
+};
+
 export type ParseResult = {
   source: "csv" | "text";
   warnings: string[];
   vocab: ParsedVocab[];
   dialogues: ParsedDialogue[];
   grammarNotes: ParsedGrammarNote[];
+  exercises: ParsedExercise[];
 };

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/current-user";
 import { emptyReviewStateFields } from "@/lib/srs";
-import type { ParsedDialogue, ParsedGrammarNote, ParsedVocab } from "@/lib/ingest/types";
+import type { ParsedDialogue, ParsedExercise, ParsedGrammarNote, ParsedVocab } from "@/lib/ingest/types";
 
 type Destination =
   | { mode: "existing"; lessonId: number }
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
   const vocab: ParsedVocab[] = Array.isArray(body.vocab) ? body.vocab : [];
   const dialogues: ParsedDialogue[] = Array.isArray(body.dialogues) ? body.dialogues : [];
   const grammarNotes: ParsedGrammarNote[] = Array.isArray(body.grammarNotes) ? body.grammarNotes : [];
+  const exercises: ParsedExercise[] = Array.isArray(body.exercises) ? body.exercises : [];
 
   let lessonId: number;
   try {
@@ -122,5 +123,20 @@ export async function POST(req: Request) {
     notesCreated++;
   }
 
-  return NextResponse.json({ lessonId, vocabCreated, dialoguesCreated, notesCreated });
+  let exercisesCreated = 0;
+  for (const ex of exercises) {
+    if (!ex.prompt?.trim() || !ex.answer?.trim()) continue;
+    await prisma.exercise.create({
+      data: {
+        lessonId,
+        type: ex.type,
+        prompt: ex.prompt.trim(),
+        answer: ex.answer.trim(),
+        options: ex.options && ex.options.length > 0 ? JSON.stringify(ex.options) : null,
+      },
+    });
+    exercisesCreated++;
+  }
+
+  return NextResponse.json({ lessonId, vocabCreated, dialoguesCreated, notesCreated, exercisesCreated });
 }

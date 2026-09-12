@@ -22,6 +22,7 @@ type ParseResult = {
   vocab: ParsedVocab[];
   dialogues: ParsedDialogue[];
   grammarNotes: ParsedGrammarNote[];
+  exercises: unknown[];
   error?: string;
 };
 
@@ -48,7 +49,7 @@ export default function UploadPage() {
   });
 
   const [committing, setCommitting] = useState(false);
-  const [committed, setCommitted] = useState<{ vocabCreated: number; dialoguesCreated: number; notesCreated: number } | null>(null);
+  const [committed, setCommitted] = useState<{ vocabCreated: number; dialoguesCreated: number; notesCreated: number; exercisesCreated: number } | null>(null);
 
   useEffect(() => {
     fetch("/api/books").then((r) => r.json()).then(setBooks);
@@ -65,7 +66,7 @@ export default function UploadPage() {
       const res = await fetch("/api/upload/parse", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) {
-        setResult({ source: "", warnings: [], vocab: [], dialogues: [], grammarNotes: [], error: data.error });
+        setResult({ source: "", warnings: [], vocab: [], dialogues: [], grammarNotes: [], exercises: [], error: data.error });
       } else {
         setResult(data);
       }
@@ -98,7 +99,7 @@ export default function UploadPage() {
       const res = await fetch("/api/upload/commit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ destination, vocab: result.vocab, dialogues: result.dialogues, grammarNotes: result.grammarNotes }),
+        body: JSON.stringify({ destination, vocab: result.vocab, dialogues: result.dialogues, grammarNotes: result.grammarNotes, exercises: result.exercises }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -154,6 +155,7 @@ export default function UploadPage() {
             <li>{committed.vocabCreated} vocabulary item(s)</li>
             <li>{committed.dialoguesCreated} dialogue(s)</li>
             <li>{committed.notesCreated} grammar note(s)</li>
+            <li>{committed.exercisesCreated} exercise(s)</li>
           </ul>
           <button onClick={() => setCommitted(null)} className="mt-3 text-sm underline underline-offset-2">
             Upload another file

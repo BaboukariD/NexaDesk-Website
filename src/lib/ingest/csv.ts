@@ -56,7 +56,7 @@ export function parseVocabCsv(text: string): ParseResult {
   const warnings: string[] = [];
 
   if (rows.length === 0) {
-    return { source: "csv", warnings: ["The file is empty."], vocab: [], dialogues: [], grammarNotes: [] };
+    return { source: "csv", warnings: ["The file is empty."], vocab: [], dialogues: [], grammarNotes: [], exercises: [] };
   }
 
   const header = rows[0].map((h) => h.trim().toLowerCase());
@@ -72,6 +72,7 @@ export function parseVocabCsv(text: string): ParseResult {
       vocab: [],
       dialogues: [],
       grammarNotes: [],
+      exercises: [],
     };
   }
 
@@ -105,5 +106,5 @@ export function parseVocabCsv(text: string): ParseResult {
     });
   }
 
-  return { source: "csv", warnings, vocab, dialogues: [], grammarNotes: [] };
+  return { source: "csv", warnings, vocab, dialogues: [], grammarNotes: [], exercises: [] };
 }

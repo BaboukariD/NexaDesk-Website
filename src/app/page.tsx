@@ -12,6 +12,9 @@ export default function HomePage() {
         </p>
 
         <nav className="mt-10 flex flex-col gap-4">
+          <Link href="/drills" className="text-ink underline underline-offset-2">
+            Drill
+          </Link>
           <Link href="/flashcards" className="text-ink underline underline-offset-2">
             Review flashcards
           </Link>
