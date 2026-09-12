@@ -18,6 +18,9 @@ export default function HomePage() {
           <Link href="/vocab" className="text-ink underline underline-offset-2">
             Vocabulary
           </Link>
+          <Link href="/upload" className="text-ink underline underline-offset-2">
+            Upload
+          </Link>
         </nav>
       </div>
 
