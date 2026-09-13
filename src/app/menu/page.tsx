@@ -29,6 +29,12 @@ export default function MenuPage() {
           <Link href="/upload" className="text-ink underline underline-offset-2">
             Upload
           </Link>
+          <Link href="/capture" className="text-ink underline underline-offset-2">
+            Quick capture
+          </Link>
+          <Link href="/class-mode" className="text-ink underline underline-offset-2">
+            Class mode
+          </Link>
         </nav>
 
         <p className="mt-8 text-xs uppercase text-ink-muted">Progress</p>
