@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 // nothing to search, and /drills is the one screen section 7
 // explicitly asks to keep "almost empty... no navigation" — adding
 // chrome there would undo the thing that screen is for.
-const EXEMPT_PREFIXES = ["/login", "/drills"];
+const EXEMPT_PREFIXES = ["/login", "/drills", "/cold-recall"];
 
 export function SiteHeader() {
   const pathname = usePathname();
