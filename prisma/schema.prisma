@@ -39,6 +39,11 @@ model User {
   translationAttempts  TranslationAttempt[]
   practicePaperResults PracticePaperResult[]
   rootNotes            RootNote[]
+  captureItems         CaptureItem[]
+  interferencePairs    InterferencePair[]
+  lessonNotes          LessonNote[]
+  audioRecordings      AudioRecording[]
+  stickyWords          StickyWord[]
 }
 
 model Book {
@@ -77,6 +82,7 @@ model Lesson {
   dialogues    Dialogue[]
   exercises    Exercise[]
   grammarNotes GrammarNote[]
+  notes        LessonNote[]
 
   @@unique([unitId, number])
 }
@@ -130,8 +136,12 @@ model VocabItem {
   gender       String? // "m" | "f"
   plural       String?
   notes        String?
+  // e.g. "Al Qasimia Book 1, unit 3, p.12" — traceable back to source (T)
+  sourceRef    String?
 
-  flashcards Flashcard[]
+  flashcards      Flashcard[]
+  interferenceAsA InterferencePair[] @relation("InterferenceA")
+  interferenceAsB InterferencePair[] @relation("InterferenceB")
 }
 
 model Dialogue {
@@ -151,6 +161,8 @@ model DialogueLine {
   speaker    String
   arabic     String
   english    String
+
+  recordings AudioRecording[]
 }
 
 model GrammarNote {
@@ -187,24 +199,24 @@ model Exercise {
 // ---------------------------------------------------------------------------
 
 model Attempt {
-  id         Int       @id @default(autoincrement())
-  userId     Int
-  user       User      @relation(fields: [userId], references: [id])
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  user           User      @relation(fields: [userId], references: [id])
   // "exercise" | "flashcard"
-  itemType   String
-  itemId     Int
-  exerciseId Int?
-  exercise   Exercise? @relation(fields: [exerciseId], references: [id])
+  itemType       String
+  itemId         Int
+  exerciseId     Int?
+  exercise       Exercise? @relation(fields: [exerciseId], references: [id])
   // listening | reading | writing | speaking — for the per-skill progress lines
-  skill      String?
-  userAnswer String
+  skill          String?
+  userAnswer     String
   // the reference answer this was graded against — lets error-pattern
   // retirement (and later, progress views) query accuracy on a
   // specific word rather than only on this attempt in isolation
   expectedAnswer String?
-  correct    Boolean
-  responseMs Int
-  createdAt  DateTime  @default(now())
+  correct        Boolean
+  responseMs     Int
+  createdAt      DateTime  @default(now())
 }
 
 // FSRS scheduler state, one row per flashcard. Field names follow the
@@ -257,6 +269,9 @@ model ErrorPattern {
   lastSeen     DateTime @default(now())
   // set once accuracy exceeds ~90% across 10 spaced attempts
   retired      Boolean  @default(false)
+  // one-line "why was this wrong" cached by error type (M) — an API
+  // call happens once per pattern ever, not once per wrong answer
+  explanation  String?
 
   @@unique([userId, key])
 }
@@ -379,9 +394,9 @@ model SentenceBuilderOption {
 // assessment and translation infrastructure rather than duplicating
 // it.
 model PracticePaper {
-  id                    Int             @id @default(autoincrement())
+  id                    Int              @id @default(autoincrement())
   topicId               Int
-  topic                 Topic           @relation(fields: [topicId], references: [id])
+  topic                 Topic            @relation(fields: [topicId], references: [id])
   listeningTranscriptAr String
   listeningTranscriptEn String
   listeningQuestions    String // JSON: {question, answer}[]
@@ -389,10 +404,10 @@ model PracticePaper {
   readingPassageEn      String
   readingQuestions      String // JSON: {question, answer}[]
   writingTaskId         Int?
-  writingTask           AssessmentTask? @relation(fields: [writingTaskId], references: [id])
+  writingTask           AssessmentTask?  @relation(fields: [writingTaskId], references: [id])
   translationTaskId     Int?
   translationTask       TranslationTask? @relation(fields: [translationTaskId], references: [id])
-  createdAt             DateTime        @default(now())
+  createdAt             DateTime         @default(now())
 
   results PracticePaperResult[]
 }
@@ -432,4 +447,102 @@ model RootNote {
   updatedAt    DateTime @updatedAt
 
   @@unique([userId, root])
+}
+
+// ---------------------------------------------------------------------------
+// Quick capture inbox — one field, Arabic in, processed later (F)
+// ---------------------------------------------------------------------------
+
+model CaptureItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  arabic    String
+  gloss     String? // filled in by auto-glossing when processed
+  // pending | processed | discarded
+  status    String   @default("pending")
+  vocabId   Int? // set once turned into a real VocabItem
+  createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Interference pairs (K) — two words that keep getting swapped for
+// each other. wordAId is always < wordBId so a pair has one row
+// regardless of which direction the confusion runs.
+// ---------------------------------------------------------------------------
+
+model InterferencePair {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  wordAId   Int
+  wordA     VocabItem @relation("InterferenceA", fields: [wordAId], references: [id])
+  wordBId   Int
+  wordB     VocabItem @relation("InterferenceB", fields: [wordBId], references: [id])
+  swapCount Int       @default(1)
+  lastSeen  DateTime  @default(now())
+
+  @@unique([userId, wordAId, wordBId])
+}
+
+// ---------------------------------------------------------------------------
+// Per-lesson notes for Class mode (H)
+// ---------------------------------------------------------------------------
+
+model LessonNote {
+  id        Int      @id @default(autoincrement())
+  lessonId  Int
+  lesson    Lesson   @relation(fields: [lessonId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  body      String
+  updatedAt DateTime @updatedAt
+
+  @@unique([lessonId, userId])
+}
+
+// ---------------------------------------------------------------------------
+// Self-comparison audio (P) — his recording next to the reference,
+// never scored or transcribed.
+// ---------------------------------------------------------------------------
+
+model AudioRecording {
+  id             Int          @id @default(autoincrement())
+  userId         Int
+  user           User         @relation(fields: [userId], references: [id])
+  dialogueLineId Int
+  dialogueLine   DialogueLine @relation(fields: [dialogueLineId], references: [id])
+  audioData      String // base64-encoded
+  mimeType       String
+  createdAt      DateTime     @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Sticky words list (I) — separate from the pattern-based Weaknesses
+// view. Explicit tracked state rather than a purely derived query,
+// because the exit rule ("three correct across three separate days,
+// not three in one sitting") needs day-boundary bookkeeping that's
+// awkward to recompute from Attempt history alone every time.
+// ---------------------------------------------------------------------------
+
+model StickyWord {
+  id               Int       @id @default(autoincrement())
+  userId           Int
+  user             User      @relation(fields: [userId], references: [id])
+  arabic           String
+  gloss            String?
+  timesSeen        Int       @default(0)
+  timesWrong       Int       @default(0)
+  // JSON string[], most recent last, capped at 3
+  lastWrongAnswers String    @default("[]")
+  // JSON { reading: {seen,wrong}, listening: {seen,wrong}, production: {seen,wrong} }
+  skillBreakdown   String    @default("{\"reading\":{\"seen\":0,\"wrong\":0},\"listening\":{\"seen\":0,\"wrong\":0},\"production\":{\"seen\":0,\"wrong\":0}}")
+  // dates (YYYY-MM-DD) on which a correct answer was given, most
+  // recent last — three distinct entries clears the word
+  correctDays      String    @default("[]")
+  active           Boolean   @default(true)
+  enteredAt        DateTime  @default(now())
+  graduatedAt      DateTime?
+
+  @@unique([userId, arabic])
 }

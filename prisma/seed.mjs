@@ -139,7 +139,29 @@ async function main() {
     }
   }
 
-  console.log("Seeded: 1 user, 8 topics, settings, manual-entry book/unit/lesson, 6 known error patterns, 1 sentence-builder set.");
+  // Section I's explicit seed list, with the glosses Djibril has
+  // already given for these words.
+  const STICKY_SEED = [
+    ["فُنْدُقٌ", "hotel"],
+    ["مَرْكَزٌ", "center"],
+    ["أَشْخَاصٌ", "people / persons"],
+    ["مُعَلِّمٌ", "teacher"],
+    ["يَتَحَدَّثُ", "he speaks"],
+    ["مَتَى", "when"],
+    ["بَعْضٌ", "some"],
+    ["بَعْدَ", "after"],
+    ["شَرِكَةٌ", "company"],
+    ["بَلَدٌ", "country"],
+  ];
+  for (const [arabic, gloss] of STICKY_SEED) {
+    await prisma.stickyWord.upsert({
+      where: { userId_arabic: { userId: user.id, arabic } },
+      update: {},
+      create: { userId: user.id, arabic, gloss, active: true },
+    });
+  }
+
+  console.log("Seeded: 1 user, 8 topics, settings, manual-entry book/unit/lesson, 6 known error patterns, 1 sentence-builder set, 10 sticky words.");
 }
 
 main()

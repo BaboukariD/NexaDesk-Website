@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { toSkeleton } from "@/lib/normalize";
+import { toSkeleton, skeletonsMatch } from "@/lib/normalize";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -45,7 +45,10 @@ function detectWhWordConfusion(ctx: AttemptContext): boolean {
   return WH_WORDS.some(([a, b]) => {
     const skelA = toSkeleton(a);
     const skelB = toSkeleton(b);
-    return (expectedSkel === skelA && userSkel === skelB) || (expectedSkel === skelB && userSkel === skelA);
+    return (
+      (skeletonsMatch(expectedSkel, skelA) && skeletonsMatch(userSkel, skelB)) ||
+      (skeletonsMatch(expectedSkel, skelB) && skeletonsMatch(userSkel, skelA))
+    );
   });
 }
 
@@ -73,9 +76,9 @@ function detectWordGroupConfusion(ctx: AttemptContext): boolean {
   const userSkel = toSkeleton(ctx.userAnswer);
   return CONFUSION_GROUPS.some((group) => {
     const skeletons = group.map(toSkeleton);
-    const expectedIdx = skeletons.indexOf(expectedSkel);
+    const expectedIdx = skeletons.findIndex((s) => skeletonsMatch(s, expectedSkel));
     if (expectedIdx === -1) return false;
-    return skeletons.some((s, i) => i !== expectedIdx && s === userSkel);
+    return skeletons.some((s, i) => i !== expectedIdx && skeletonsMatch(s, userSkel));
   });
 }
 

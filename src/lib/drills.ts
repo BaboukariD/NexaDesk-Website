@@ -1,5 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { answersMatch, englishAnswersMatch, firstDifferingPosition, toSkeleton } from "@/lib/normalize";
+import {
+  POSSESSIVE_SUFFIXES,
+  VERB_PREFIXES,
+  REGULAR_ADJECTIVES,
+  canTakePossessiveSuffix,
+  attachPossessiveSuffix,
+  looksLikePresentTenseVerb,
+  swapVerbPrefix,
+} from "@/lib/production-drills";
+import { getActiveInterferencePairs } from "@/lib/interference";
 
 export type DrillType =
   | "translate_to_ar"
@@ -8,7 +18,12 @@ export type DrillType =
   | "maa_or_min"
   | "possessive_suffix"
   | "scrambled_sentence"
-  | "true_false";
+  | "true_false"
+  | "possessive_suffix_gen"
+  | "verb_prefix_gen"
+  | "gender_agreement"
+  | "interference_pair"
+  | "cloze";
 
 export type DrillItem = {
   token: string;
@@ -51,6 +66,34 @@ function pickWeighted<T>(items: T[], arabicOf: (item: T) => string, prioritySkel
   return pickRandom(items);
 }
 
+const MIN_ATTEMPTS_FOR_WEAKEST = 2;
+
+/** Section J: the word he's actually weakest on, not a random one. */
+async function getWeakestVocab(userId: number, topicId?: number) {
+  const vocabItems = await prisma.vocabItem.findMany({ where: { userId, ...(topicId ? { topicId } : {}) } });
+  if (vocabItems.length === 0) return null;
+
+  let weakest: { item: (typeof vocabItems)[number]; accuracy: number } | null = null;
+  for (const item of vocabItems) {
+    const attempts = await prisma.attempt.count({ where: { userId, expectedAnswer: item.arabic } });
+    if (attempts < MIN_ATTEMPTS_FOR_WEAKEST) continue;
+    const correct = await prisma.attempt.count({ where: { userId, expectedAnswer: item.arabic, correct: true } });
+    const accuracy = correct / attempts;
+    if (!weakest || accuracy < weakest.accuracy) weakest = { item, accuracy };
+  }
+  return weakest?.item ?? null;
+}
+
+/** Finds a dialogue line containing this word, matched by consonant skeleton, not exact string. */
+function findLineContaining<T extends { arabic: string }>(lines: T[], targetArabic: string): T | null {
+  const targetSkeleton = toSkeleton(targetArabic);
+  for (const line of lines) {
+    const words = line.arabic.split(/\s+/).filter(Boolean);
+    if (words.some((w) => toSkeleton(w) === targetSkeleton)) return line;
+  }
+  return null;
+}
+
 /**
  * Picks the next drill for a user. Direction defaults to production
  * (English -> Arabic), which is where the brief says learning actually
@@ -69,7 +112,7 @@ export async function pickNextDrill(
   // filter narrows the vocab-and-exercise-based types but leaves
   // scrambled_sentence/true_false drawing from all dialogues even when
   // a topic is selected — a known, disclosed simplification.
-  const [vocabItems, sentenceCards, dialogueLines, exercises, activePatterns] = await Promise.all([
+  const [vocabItems, sentenceCards, dialogueLines, exercises, activePatterns, interferencePairs, weakestVocab] = await Promise.all([
     prisma.vocabItem.findMany({ where: { userId, ...(topicId ? { topicId } : {}) } }),
     prisma.flashcard.findMany({
       where: { vocabItem: { userId, ...(topicId ? { topicId } : {}) }, sentenceAr: { not: null } },
@@ -78,11 +121,18 @@ export async function pickNextDrill(
     prisma.dialogueLine.findMany({ include: { dialogue: true } }),
     prisma.exercise.findMany({ where: topicId ? { topicId } : {} }),
     prisma.errorPattern.findMany({ where: { userId, retired: false, frequency: { gt: 0 } } }),
+    getActiveInterferencePairs(userId),
+    getWeakestVocab(userId, topicId),
   ]);
 
   const prioritySkeletons = new Set(
     activePatterns.flatMap((p) => (JSON.parse(p.exampleItems) as string[]).map(toSkeleton))
   );
+
+  const possessiveEligible = vocabItems.filter((v) => canTakePossessiveSuffix(v.arabic));
+  const verbEligible = vocabItems.filter((v) => looksLikePresentTenseVerb(v.arabic, v.partOfSpeech));
+  const genderEligible = vocabItems.filter((v) => v.gender === "m" || v.gender === "f");
+  const clozeSource = weakestVocab ? findLineContaining(dialogueLines, weakestVocab.arabic) : null;
 
   const weights: { type: DrillType; weight: number; available: boolean }[] = [
     { type: "translate_to_ar", weight: lowAccuracy ? 1 : 3, available: vocabItems.length > 0 },
@@ -92,6 +142,11 @@ export async function pickNextDrill(
     { type: "true_false", weight: lowAccuracy ? 2 : 1, available: dialogueLines.length >= 2 },
     { type: "maa_or_min", weight: 1, available: exercises.some((e) => e.type === "maa_or_min") },
     { type: "possessive_suffix", weight: 1, available: exercises.some((e) => e.type === "possessive_suffix") },
+    { type: "possessive_suffix_gen", weight: 1, available: possessiveEligible.length > 0 },
+    { type: "verb_prefix_gen", weight: 1, available: verbEligible.length > 0 },
+    { type: "gender_agreement", weight: 1, available: genderEligible.length > 0 },
+    { type: "interference_pair", weight: 2, available: interferencePairs.length > 0 },
+    { type: "cloze", weight: 2, available: clozeSource !== null },
   ];
 
   const pool = weights.filter((w) => w.available);
@@ -201,6 +256,72 @@ export async function pickNextDrill(
         promptAr: exercise.prompt,
         options: exercise.options ? JSON.parse(exercise.options) : undefined,
         skill: exercise.skill ?? "writing",
+      };
+    }
+    case "possessive_suffix_gen": {
+      const item = pickRandom(possessiveEligible)!;
+      const person = pickRandom(POSSESSIVE_SUFFIXES)!;
+      return {
+        token: `possgen:${item.id}:${person.person}`,
+        type: "possessive_suffix_gen",
+        direction: "production",
+        instruction: `Say "${item.english}" as "${person.label} ${item.english}"`,
+        promptAr: item.arabic,
+        skill: "writing",
+      };
+    }
+    case "verb_prefix_gen": {
+      const item = pickRandom(verbEligible)!;
+      const person = pickRandom(VERB_PREFIXES)!;
+      return {
+        token: `verbgen:${item.id}:${person.person}`,
+        type: "verb_prefix_gen",
+        direction: "production",
+        instruction: `Conjugate for "${person.label}"`,
+        promptAr: item.arabic,
+        promptEn: item.english,
+        skill: "writing",
+      };
+    }
+    case "gender_agreement": {
+      const item = pickRandom(genderEligible)!;
+      const adjIndex = Math.floor(Math.random() * REGULAR_ADJECTIVES.length);
+      const adj = REGULAR_ADJECTIVES[adjIndex];
+      return {
+        token: `gender:${item.id}:${adjIndex}`,
+        type: "gender_agreement",
+        direction: "grammar",
+        instruction: `Make "${adj.en}" agree with this noun`,
+        promptAr: item.arabic,
+        skill: "writing",
+      };
+    }
+    case "interference_pair": {
+      const pair = pickRandom(interferencePairs)!;
+      const showA = Math.random() < 0.5;
+      const shown = showA ? pair.wordA : pair.wordB;
+      const options = shuffle([pair.wordA.english, pair.wordB.english]);
+      return {
+        token: `interfere:${pair.id}:${showA ? "a" : "b"}`,
+        type: "interference_pair",
+        direction: "recognition",
+        instruction: "Which does this mean?",
+        promptAr: shown.arabic,
+        options,
+        skill: "reading",
+      };
+    }
+    case "cloze": {
+      const line = clozeSource!;
+      const blanked = line.arabic.replace(weakestVocab!.arabic, "___");
+      return {
+        token: `cloze:${line.id}:${weakestVocab!.id}`,
+        type: "cloze",
+        direction: "production",
+        instruction: "Fill in the blank (this is your weakest word right now)",
+        promptAr: blanked,
+        promptEn: line.english,
+        skill: "writing",
       };
     }
   }
@@ -316,6 +437,85 @@ export async function gradeDrillAnswer(
       expectedInternal: exercise.answer,
       arabicTarget: exercise.type === "maa_or_min" || exercise.type === "possessive_suffix",
       skill: exercise.skill ?? "writing",
+    };
+  }
+
+  if (kind === "possgen") {
+    const item = await prisma.vocabItem.findUniqueOrThrow({ where: { id } });
+    const person = POSSESSIVE_SUFFIXES.find((p) => p.person === sub);
+    if (!person) throw new Error(`Unknown person: ${sub}`);
+    const expected = attachPossessiveSuffix(item.arabic, person.suffix);
+    const correct = answersMatch(userAnswer, expected);
+    return {
+      correct,
+      hintPosition: correct ? undefined : firstDifferingPosition(userAnswer, expected) ?? undefined,
+      expected: reveal || correct ? expected : undefined,
+      expectedInternal: expected,
+      arabicTarget: true,
+      skill: "writing",
+    };
+  }
+
+  if (kind === "verbgen") {
+    const item = await prisma.vocabItem.findUniqueOrThrow({ where: { id } });
+    const person = VERB_PREFIXES.find((p) => p.person === sub);
+    if (!person) throw new Error(`Unknown person: ${sub}`);
+    const expected = swapVerbPrefix(item.arabic, person.suffix);
+    const correct = answersMatch(userAnswer, expected);
+    return {
+      correct,
+      hintPosition: correct ? undefined : firstDifferingPosition(userAnswer, expected) ?? undefined,
+      expected: reveal || correct ? expected : undefined,
+      expectedInternal: expected,
+      arabicTarget: true,
+      skill: "writing",
+    };
+  }
+
+  if (kind === "gender") {
+    const item = await prisma.vocabItem.findUniqueOrThrow({ where: { id } });
+    const adj = REGULAR_ADJECTIVES[Number(sub)];
+    if (!adj) throw new Error(`Unknown adjective index: ${sub}`);
+    const expected = item.gender === "f" ? adj.f : adj.m;
+    const correct = answersMatch(userAnswer, expected);
+    return {
+      correct,
+      hintPosition: correct ? undefined : firstDifferingPosition(userAnswer, expected) ?? undefined,
+      expected: reveal || correct ? expected : undefined,
+      expectedInternal: expected,
+      arabicTarget: true,
+      skill: "writing",
+    };
+  }
+
+  if (kind === "interfere") {
+    const pair = await prisma.interferencePair.findUniqueOrThrow({
+      where: { id },
+      include: { wordA: true, wordB: true },
+    });
+    const shown = sub === "a" ? pair.wordA : pair.wordB;
+    const correct = userAnswer.trim() === shown.english.trim();
+    return {
+      correct,
+      expected: reveal || correct ? shown.english : undefined,
+      expectedInternal: shown.arabic,
+      arabicTarget: false,
+      skill: "reading",
+    };
+  }
+
+  if (kind === "cloze") {
+    const vocabId = Number(sub);
+    const item = await prisma.vocabItem.findUniqueOrThrow({ where: { id: vocabId } });
+    const correct = answersMatch(userAnswer, item.arabic);
+    return {
+      correct,
+      hintPosition: correct ? undefined : firstDifferingPosition(userAnswer, item.arabic) ?? undefined,
+      expected: reveal || correct ? item.arabic : undefined,
+      expectedInternal: item.arabic,
+      arabicTarget: true,
+      englishGloss: item.english,
+      skill: "writing",
     };
   }
 

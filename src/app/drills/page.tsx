@@ -22,12 +22,15 @@ export default function DrillsPage() {
   const [built, setBuilt] = useState<string[]>([]);
   const [remaining, setRemaining] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<{ correct: boolean; hintPosition?: number; expected?: string } | null>(null);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [explaining, setExplaining] = useState(false);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicId, setTopicId] = useState<string>("");
   const shownAt = useRef<number>(Date.now());
 
   const loadNext = useCallback(async (sid: number, topic: string) => {
     setFeedback(null);
+    setExplanation(null);
     setAnswer("");
     setBuilt([]);
     const qs = topic ? `?sessionId=${sid}&topicId=${topic}` : `?sessionId=${sid}`;
@@ -75,6 +78,22 @@ export default function DrillsPage() {
     });
     const data = await res.json();
     setFeedback((prev) => ({ ...(prev ?? { correct: false }), expected: data.expected }));
+  }
+
+  async function explainNow() {
+    if (!feedback?.expected) return;
+    setExplaining(true);
+    try {
+      const res = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expectedArabic: feedback.expected, userAnswer: answer, englishGloss: item?.promptEn }),
+      });
+      const data = await res.json();
+      setExplanation(data.explanation ?? "No specific pattern recognised for this one.");
+    } finally {
+      setExplaining(false);
+    }
   }
 
   function addWord(word: string, idx: number) {
@@ -127,7 +146,7 @@ export default function DrillsPage() {
               </p>
             )}
 
-            {(item.type === "translate_to_ar" || item.type === "fill_gap") && !feedback && (
+            {(item.type === "translate_to_ar" || item.type === "fill_gap" || item.type === "possessive_suffix_gen" || item.type === "verb_prefix_gen" || item.type === "gender_agreement" || item.type === "cloze") && !feedback && (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -201,7 +220,7 @@ export default function DrillsPage() {
               </div>
             )}
 
-            {(item.type === "true_false" || item.type === "maa_or_min" || item.type === "possessive_suffix") &&
+            {(item.type === "true_false" || item.type === "maa_or_min" || item.type === "possessive_suffix" || item.type === "interference_pair") &&
               !feedback && (
                 <div className="mt-8 flex justify-center gap-3">
                   {(item.options ?? []).map((opt) => (
@@ -227,9 +246,22 @@ export default function DrillsPage() {
                       {feedback.hintPosition && ` Check word/letter position ${feedback.hintPosition}.`}
                     </p>
                     {feedback.expected && (
-                      <p className="arabic-text mt-2 text-lg text-ink" lang="ar">
-                        {feedback.expected}
-                      </p>
+                      <>
+                        <p className="arabic-text mt-2 text-lg text-ink" lang="ar">
+                          {feedback.expected}
+                        </p>
+                        {!explanation ? (
+                          <button
+                            onClick={explainNow}
+                            disabled={explaining}
+                            className="mt-2 text-sm text-ink-muted underline underline-offset-2"
+                          >
+                            {explaining ? "…" : "Why was this wrong?"}
+                          </button>
+                        ) : (
+                          <p className="mt-2 text-sm text-ink">{explanation}</p>
+                        )}
+                      </>
                     )}
                   </>
                 )}

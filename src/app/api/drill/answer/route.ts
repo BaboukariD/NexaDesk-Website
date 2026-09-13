@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/current-user";
 import { gradeDrillAnswer } from "@/lib/drills";
 import { recordAttemptForErrorModel } from "@/lib/error-patterns";
+import { recordAttemptForStickyWords } from "@/lib/sticky-words";
+import { recordPossibleSwap } from "@/lib/interference";
+import { toSkeleton } from "@/lib/normalize";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -64,8 +67,26 @@ export async function POST(req: Request) {
           { expectedArabic: result.expectedInternal, userAnswer: answer, englishGloss: result.englishGloss },
           result.correct
         );
+
+        const category = result.skill === "reading" ? "reading" : result.skill === "listening" ? "listening" : "production";
+        await recordAttemptForStickyWords(
+          tx,
+          userId,
+          result.expectedInternal,
+          result.englishGloss ?? "",
+          result.correct,
+          answer,
+          category
+        );
       }
     });
+
+    // Independent of the main transaction — its own read/write cycle
+    // over the vocab table, not something that needs to be atomic
+    // with the attempt log above.
+    if (result.arabicTarget && !result.correct) {
+      await recordPossibleSwap(userId, result.expectedInternal, toSkeleton(answer));
+    }
   }
 
   return NextResponse.json(result);
