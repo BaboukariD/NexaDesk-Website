@@ -29,6 +29,7 @@ export default function PracticePaperPage() {
   const [writingResponse, setWritingResponse] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const startedAt = useRef<number>(0);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function PracticePaperPage() {
   async function generate() {
     if (!topicId) return;
     setGenerating(true);
+    setError(null);
     try {
       const res = await fetch("/api/practice-paper/generate", {
         method: "POST",
@@ -48,7 +50,11 @@ export default function PracticePaperPage() {
       if (res.ok) {
         setPaper(data);
         startedAt.current = Date.now();
+      } else {
+        setError(data.error ?? "Could not generate a paper.");
       }
+    } catch {
+      setError("Could not reach the server.");
     } finally {
       setGenerating(false);
     }
@@ -57,6 +63,7 @@ export default function PracticePaperPage() {
   async function submit() {
     if (!paper) return;
     setSubmitting(true);
+    setError(null);
     try {
       const res = await fetch(`/api/practice-paper/${paper.id}/submit`, {
         method: "POST",
@@ -71,6 +78,9 @@ export default function PracticePaperPage() {
       });
       const data = await res.json();
       if (res.ok) setResult(data);
+      else setError(data.error ?? "Could not mark this paper.");
+    } catch {
+      setError("Could not reach the server.");
     } finally {
       setSubmitting(false);
     }
@@ -111,6 +121,7 @@ export default function PracticePaperPage() {
         <button onClick={generate} disabled={!topicId || generating} className="mt-4 rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper disabled:opacity-40">
           {generating ? "Generating…" : "Generate paper"}
         </button>
+        {error && <p className="mt-3 text-sm text-error">{error}</p>}
       </main>
     );
   }
@@ -187,6 +198,7 @@ export default function PracticePaperPage() {
       <button onClick={submit} disabled={submitting} className="mt-8 rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper disabled:opacity-40">
         {submitting ? "Marking…" : "Submit paper"}
       </button>
+      {error && <p className="mt-3 text-sm text-error">{error}</p>}
     </main>
   );
 }

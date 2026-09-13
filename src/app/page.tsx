@@ -61,6 +61,16 @@ export default function HomePage() {
             Practice paper
           </Link>
         </nav>
+
+        <p className="mt-8 text-xs uppercase text-ink-muted">Other</p>
+        <nav className="mt-2 flex flex-col gap-4">
+          <Link href="/sticky-words" className="text-ink underline underline-offset-2">
+            Sticky words
+          </Link>
+          <Link href="/export" className="text-ink underline underline-offset-2">
+            Export & backup
+          </Link>
+        </nav>
       </div>
 
       <LogoutButton />

@@ -49,7 +49,7 @@ export default function UploadPage() {
   });
 
   const [committing, setCommitting] = useState(false);
-  const [committed, setCommitted] = useState<{ vocabCreated: number; dialoguesCreated: number; notesCreated: number; exercisesCreated: number } | null>(null);
+  const [committed, setCommitted] = useState<{ vocabCreated: number; vocabMerged: number; dialoguesCreated: number; notesCreated: number; exercisesCreated: number } | null>(null);
 
   useEffect(() => {
     fetch("/api/books").then((r) => r.json()).then(setBooks);
@@ -156,7 +156,10 @@ export default function UploadPage() {
         <div className="mt-8 rounded-md border border-accent bg-accent-muted p-4 text-sm text-ink">
           <p>Added from {fileName}:</p>
           <ul className="mt-1 list-inside list-disc">
-            <li>{committed.vocabCreated} vocabulary item(s)</li>
+            <li>{committed.vocabCreated} new vocabulary item(s)</li>
+            {committed.vocabMerged > 0 && (
+              <li>{committed.vocabMerged} already known — new source recorded, not duplicated</li>
+            )}
             <li>{committed.dialoguesCreated} dialogue(s)</li>
             <li>{committed.notesCreated} grammar note(s)</li>
             <li>{committed.exercisesCreated} exercise(s)</li>

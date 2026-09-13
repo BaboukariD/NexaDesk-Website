@@ -45,6 +45,10 @@ export default function RootsPage() {
     try {
       const res = await fetch(`/api/roots/${encodeURIComponent(root)}/suggest`, { method: "POST" });
       const data = await res.json();
+      if (data.error) {
+        setSuggestion({ root, confident: false, note: data.error });
+        return;
+      }
       setSuggestion({ root, ...data });
       if (data.confident) {
         setDraft({ quranRef: data.quranRef ?? "", quranSnippet: data.quranSnippet ?? "" });

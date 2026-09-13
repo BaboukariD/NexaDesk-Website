@@ -31,6 +31,11 @@ const EMPTY_FORM = {
 
 export default function VocabPage() {
   const [items, setItems] = useState<VocabItem[]>([]);
+  // Study mode (English hidden until tapped) is the default everywhere
+  // a word list shows both languages — "any screen showing an Arabic
+  // word with its English visible is a wasted opportunity" (N).
+  const [studyMode, setStudyMode] = useState(true);
+  const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [topics, setTopics] = useState<Topic[]>([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [showSentence, setShowSentence] = useState(false);
@@ -79,15 +84,26 @@ export default function VocabPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <div className="flex items-baseline justify-between">
+    <main className="mx-auto max-w-2xl px-6 py-12 print:p-0">
+      <div className="flex items-baseline justify-between print:hidden">
         <h1 className="text-lg font-medium text-ink">Vocabulary</h1>
-        <Link href="/" className="text-sm text-ink-muted underline underline-offset-2">
-          Home
-        </Link>
+        <div className="flex gap-4">
+          <button
+            onClick={() => {
+              setStudyMode(false); // a printed list should show both languages
+              setTimeout(() => window.print(), 50);
+            }}
+            className="text-sm text-ink-muted underline underline-offset-2"
+          >
+            Print
+          </button>
+          <Link href="/" className="text-sm text-ink-muted underline underline-offset-2">
+            Home
+          </Link>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-4 border-b border-line pb-8">
+      <form onSubmit={handleSubmit} className="mt-8 space-y-4 border-b border-line pb-8 print:hidden">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-ink-muted">Arabic (vowelled)</label>
@@ -222,14 +238,35 @@ export default function VocabPage() {
         </button>
       </form>
 
-      <ul className="mt-8 divide-y divide-line">
-        {items.map((item) => (
-          <li key={item.id} className="flex items-center justify-between gap-4 py-3">
-            <div>
+      <div className="mt-8 flex items-center justify-between print:hidden">
+        <p className="text-xs uppercase text-ink-muted">{items.length} words</p>
+        <label className="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="checkbox" checked={studyMode} onChange={(e) => setStudyMode(e.target.checked)} />
+          Study mode (tap to reveal)
+        </label>
+      </div>
+
+      <ul className="mt-2 divide-y divide-line">
+        {items.map((item) => {
+          const isRevealed = !studyMode || revealed.has(item.id);
+          return (
+          <li
+            key={item.id}
+            className="flex items-center justify-between gap-4 py-3"
+            onClick={() =>
+              studyMode &&
+              setRevealed((prev) => {
+                const next = new Set(prev);
+                next.has(item.id) ? next.delete(item.id) : next.add(item.id);
+                return next;
+              })
+            }
+          >
+            <div className={studyMode ? "cursor-pointer" : undefined}>
               <span className="arabic-text text-lg text-ink" lang="ar">
                 {item.arabic}
               </span>
-              <span className="ms-3 text-sm text-ink-muted">{item.english}</span>
+              <span className="ms-3 text-sm text-ink-muted">{isRevealed ? item.english : "•••"}</span>
               {item.topic && (
                 <span className="ms-3 rounded-full bg-accent-muted px-2 py-0.5 text-xs text-accent">
                   {item.topic.nameEn}
@@ -237,13 +274,17 @@ export default function VocabPage() {
               )}
             </div>
             <button
-              onClick={() => handleDelete(item.id)}
-              className="text-sm text-ink-muted underline underline-offset-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(item.id);
+              }}
+              className="text-sm text-ink-muted underline underline-offset-2 print:hidden"
             >
               Remove
             </button>
           </li>
-        ))}
+          );
+        })}
         {items.length === 0 && <p className="py-6 text-sm text-ink-muted">No vocabulary yet.</p>}
       </ul>
     </main>

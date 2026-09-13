@@ -26,7 +26,20 @@ export default function DrillsPage() {
   const [explaining, setExplaining] = useState(false);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicId, setTopicId] = useState<string>("");
+  const [timeUp, setTimeUp] = useState(false);
+  const [overridden, setOverridden] = useState(false);
   const shownAt = useRef<number>(Date.now());
+  const sessionStart = useRef<number>(Date.now());
+
+  // Section Q: a hard stop at 20 minutes. Long sessions feel
+  // productive and retain badly — coming back later beats grinding on.
+  useEffect(() => {
+    const SESSION_CAP_MS = 20 * 60 * 1000;
+    const id = setInterval(() => {
+      if (Date.now() - sessionStart.current >= SESSION_CAP_MS) setTimeUp(true);
+    }, 15000);
+    return () => clearInterval(id);
+  }, []);
 
   const loadNext = useCallback(async (sid: number, topic: string) => {
     setFeedback(null);
@@ -108,6 +121,26 @@ export default function DrillsPage() {
   }
 
   if (item === undefined) return null;
+
+  if (timeUp && !overridden) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 py-12 text-center">
+        <p className="text-ink">20 minutes. Long sessions feel productive but retain badly.</p>
+        <p className="mt-1 text-sm text-ink-muted">Come back later instead.</p>
+        <div className="mt-6 flex gap-3">
+          <Link href="/" className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper">
+            Stop here
+          </Link>
+          <button
+            onClick={() => setOverridden(true)}
+            className="text-sm text-ink-muted underline underline-offset-2"
+          >
+            Keep going anyway
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-12">

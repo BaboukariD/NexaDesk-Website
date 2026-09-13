@@ -36,6 +36,7 @@ export default function AssessmentPage() {
   const [response, setResponse] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<MarkedAttempt | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/topics")
@@ -49,6 +50,7 @@ export default function AssessmentPage() {
     setTask(null);
     setResult(null);
     setResponse("");
+    setError(null);
     try {
       const res = await fetch("/api/assessment/generate", {
         method: "POST",
@@ -57,6 +59,9 @@ export default function AssessmentPage() {
       });
       const data = await res.json();
       if (res.ok) setTask(data);
+      else setError(data.error ?? "Could not generate a task.");
+    } catch {
+      setError("Could not reach the server.");
     } finally {
       setGenerating(false);
     }
@@ -65,6 +70,7 @@ export default function AssessmentPage() {
   async function submit() {
     if (!task || !response.trim()) return;
     setSubmitting(true);
+    setError(null);
     try {
       const res = await fetch("/api/assessment/attempt", {
         method: "POST",
@@ -73,6 +79,9 @@ export default function AssessmentPage() {
       });
       const data = await res.json();
       if (res.ok) setResult(data);
+      else setError(data.error ?? "Could not mark this attempt.");
+    } catch {
+      setError("Could not reach the server.");
     } finally {
       setSubmitting(false);
     }
@@ -91,6 +100,7 @@ export default function AssessmentPage() {
       <p className="mt-1 text-sm text-ink-muted">
         Speaking tasks are typed, not spoken — a substitute for real speaking practice, not a replacement for it.
       </p>
+      {error && <p className="mt-4 rounded-md border border-error bg-error-muted p-3 text-sm text-error">{error}</p>}
 
       {!task && (
         <div className="mt-8 space-y-3">

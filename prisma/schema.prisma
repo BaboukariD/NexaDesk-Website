@@ -44,6 +44,7 @@ model User {
   lessonNotes          LessonNote[]
   audioRecordings      AudioRecording[]
   stickyWords          StickyWord[]
+  backups              Backup[]
 }
 
 model Book {
@@ -545,4 +546,21 @@ model StickyWord {
   graduatedAt      DateTime?
 
   @@unique([userId, arabic])
+}
+
+// ---------------------------------------------------------------------------
+// Backups (G) — "everything he types is learning data he cannot
+// recreate." A weekly automatic dump plus on-demand export, stored as
+// a row rather than a file since there's no persistent local disk on
+// a serverless deploy.
+// ---------------------------------------------------------------------------
+
+model Backup {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  // "manual" | "weekly"
+  trigger   String
+  data      String // JSON dump, see src/lib/export.ts
+  createdAt DateTime @default(now())
 }

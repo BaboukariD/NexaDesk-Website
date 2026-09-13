@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/current-user";
 import { emptyReviewStateFields } from "@/lib/srs";
+import { toSkeleton } from "@/lib/normalize";
 import type { ParsedDialogue, ParsedExercise, ParsedGrammarNote, ParsedVocab } from "@/lib/ingest/types";
 
 type Destination =
@@ -70,9 +71,39 @@ export async function POST(req: Request) {
   const topics = await prisma.topic.findMany();
   const topicIdBySlug = new Map(topics.map((t) => [t.slug, t.id]));
 
+  // Section T: "deduplicate on normalised Arabic form so the same word
+  // from two books becomes one entry with two sources, not two
+  // entries." A source reference derived from the destination itself
+  // — every word can be traced back to where it came from either way.
+  const destination = body.destination as Destination;
+  const sourceRef =
+    destination.mode === "new"
+      ? `${destination.bookTitle}, unit ${destination.unitNumber}, lesson ${destination.lessonNumber}`
+      : `lesson #${destination.lessonId}`;
+
+  const existingVocab = await prisma.vocabItem.findMany({ where: { userId } });
+  const existingBySkeleton = new Map(existingVocab.map((v) => [toSkeleton(v.arabic), v]));
+
   let vocabCreated = 0;
+  let vocabMerged = 0;
   for (const item of vocab) {
     if (!item.arabic?.trim() || !item.english?.trim()) continue;
+    const skeleton = toSkeleton(item.arabic);
+    const existing = existingBySkeleton.get(skeleton);
+
+    if (existing) {
+      // Same word already known — record the additional source rather
+      // than creating a duplicate entry.
+      if (!existing.sourceRef?.includes(sourceRef)) {
+        await prisma.vocabItem.update({
+          where: { id: existing.id },
+          data: { sourceRef: existing.sourceRef ? `${existing.sourceRef}; ${sourceRef}` : sourceRef },
+        });
+      }
+      vocabMerged++;
+      continue;
+    }
+
     const vocabItem = await prisma.vocabItem.create({
       data: {
         lessonId,
@@ -85,8 +116,10 @@ export async function POST(req: Request) {
         gender: item.gender || null,
         plural: item.plural || null,
         notes: item.notes || null,
+        sourceRef,
       },
     });
+    existingBySkeleton.set(skeleton, vocabItem);
     const flashcard = await prisma.flashcard.create({ data: { vocabId: vocabItem.id } });
     await prisma.reviewState.create({
       data: { userId, flashcardId: flashcard.id, ...emptyReviewStateFields() },
@@ -138,5 +171,5 @@ export async function POST(req: Request) {
     exercisesCreated++;
   }
 
-  return NextResponse.json({ lessonId, vocabCreated, dialoguesCreated, notesCreated, exercisesCreated });
+  return NextResponse.json({ lessonId, vocabCreated, vocabMerged, dialoguesCreated, notesCreated, exercisesCreated });
 }

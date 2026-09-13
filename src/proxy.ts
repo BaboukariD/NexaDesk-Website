@@ -1,10 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
-// Everything requires a session except the login page itself and the
-// login API route. No public marketing pages, no multi-tenant routing —
-// this is a single-user app behind a single gate.
-const PUBLIC_PATHS = ["/login", "/api/login"];
+// Everything requires a session except the login page/route, and the
+// cron endpoint Vercel calls server-to-server on a schedule (which
+// checks its own CRON_SECRET instead of a session — see
+// src/app/api/cron/weekly-backup/route.ts). No public marketing pages,
+// no multi-tenant routing — this is a single-user app behind a single
+// gate.
+const PUBLIC_PATHS = ["/login", "/api/login", "/api/cron"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

@@ -18,6 +18,7 @@ export default function TranslationPage() {
   const [scores, setScores] = useState<number[]>([]);
   const [generating, setGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/topics")
@@ -28,6 +29,7 @@ export default function TranslationPage() {
   async function generate() {
     if (!topicId) return;
     setGenerating(true);
+    setError(null);
     try {
       const res = await fetch("/api/translation/generate", {
         method: "POST",
@@ -41,7 +43,11 @@ export default function TranslationPage() {
         setScores([]);
         setFeedback(null);
         setAnswer("");
+      } else {
+        setError(data.error ?? "Could not generate sentences.");
       }
+    } catch {
+      setError("Could not reach the server.");
     } finally {
       setGenerating(false);
     }
@@ -50,6 +56,7 @@ export default function TranslationPage() {
   async function submit() {
     if (!task || !answer.trim()) return;
     setSubmitting(true);
+    setError(null);
     try {
       const item = task.items[index];
       const res = await fetch("/api/translation/attempt", {
@@ -61,7 +68,11 @@ export default function TranslationPage() {
       if (res.ok) {
         setFeedback(data);
         setScores((prev) => [...prev, data.score]);
+      } else {
+        setError(data.error ?? "Could not mark this translation.");
       }
+    } catch {
+      setError("Could not reach the server.");
     } finally {
       setSubmitting(false);
     }
@@ -105,6 +116,7 @@ export default function TranslationPage() {
           <button onClick={generate} disabled={!topicId || generating} className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper disabled:opacity-40">
             {generating ? "Generating…" : "Generate 5 sentences"}
           </button>
+          {error && <p className="text-sm text-error">{error}</p>}
         </div>
       )}
 
