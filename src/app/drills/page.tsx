@@ -103,7 +103,13 @@ export default function DrillsPage() {
         body: JSON.stringify({ expectedArabic: feedback.expected, userAnswer: answer, englishGloss: item?.promptEn }),
       });
       const data = await res.json();
-      setExplanation(data.explanation ?? "No specific pattern recognised for this one.");
+      if (res.ok) {
+        setExplanation(data.explanation ?? "No specific pattern recognised for this one.");
+      } else {
+        setExplanation(data.error ?? "Couldn't get an explanation right now.");
+      }
+    } catch {
+      setExplanation("Couldn't reach the server — check your connection.");
     } finally {
       setExplaining(false);
     }

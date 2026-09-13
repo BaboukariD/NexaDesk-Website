@@ -50,6 +50,7 @@ export default function UploadPage() {
 
   const [committing, setCommitting] = useState(false);
   const [committed, setCommitted] = useState<{ vocabCreated: number; vocabMerged: number; dialoguesCreated: number; notesCreated: number; exercisesCreated: number } | null>(null);
+  const [commitError, setCommitError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/books").then((r) => r.json()).then(setBooks);
@@ -90,6 +91,7 @@ export default function UploadPage() {
   async function handleCommit() {
     if (!result) return;
     setCommitting(true);
+    setCommitError(null);
     try {
       const destination =
         destMode === "existing"
@@ -105,7 +107,11 @@ export default function UploadPage() {
       if (res.ok) {
         setCommitted(data);
         setResult(null);
+      } else {
+        setCommitError(data.error ?? "Couldn't save this lesson — try again.");
       }
+    } catch {
+      setCommitError("Couldn't reach the server — check your connection.");
     } finally {
       setCommitting(false);
     }
@@ -294,6 +300,7 @@ export default function UploadPage() {
           >
             {committing ? "Adding…" : "Confirm and add"}
           </button>
+          {commitError && <p className="mt-2 text-sm text-error">{commitError}</p>}
         </div>
       )}
     </main>

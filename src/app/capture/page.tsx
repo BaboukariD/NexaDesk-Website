@@ -28,6 +28,7 @@ export default function CapturePage() {
   const [queuedCount, setQueuedCount] = useState(0);
   const [glossing, setGlossing] = useState<number | null>(null);
   const [manualGloss, setManualGloss] = useState<Record<number, string>>({});
+  const [processError, setProcessError] = useState<Record<number, string>>({});
 
   function loadItems() {
     fetch("/api/capture")
@@ -100,13 +101,24 @@ export default function CapturePage() {
 
   async function process(id: number) {
     setGlossing(id);
+    setProcessError((prev) => ({ ...prev, [id]: "" }));
     try {
       const res = await fetch(`/api/capture/${id}/process`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ english: manualGloss[id] || undefined }),
       });
-      if (res.ok) loadItems();
+      if (res.ok) {
+        loadItems();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setProcessError((prev) => ({
+          ...prev,
+          [id]: data.error || "Couldn't add this word — type a gloss yourself and try again.",
+        }));
+      }
+    } catch {
+      setProcessError((prev) => ({ ...prev, [id]: "Couldn't reach the server — check your connection." }));
     } finally {
       setGlossing(null);
     }
@@ -170,6 +182,7 @@ export default function CapturePage() {
                 Discard
               </button>
             </div>
+            {processError[item.id] && <p className="mt-1 text-sm text-red-700">{processError[item.id]}</p>}
           </li>
         ))}
         {items && items.length === 0 && <p className="py-3 text-sm text-ink-muted">Nothing pending.</p>}
