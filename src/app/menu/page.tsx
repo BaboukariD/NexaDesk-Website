@@ -35,6 +35,9 @@ export default function MenuPage() {
           <Link href="/class-mode" className="text-ink underline underline-offset-2">
             Class mode
           </Link>
+          <Link href="/dialogues" className="text-ink underline underline-offset-2">
+            Dialogues (record & compare)
+          </Link>
         </nav>
 
         <p className="mt-8 text-xs uppercase text-ink-muted">Progress</p>
