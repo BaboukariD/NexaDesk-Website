@@ -5,12 +5,28 @@ import { parseLessonText } from "@/lib/ingest/text";
 import { extractPdfText } from "@/lib/ingest/pdf";
 import { parseLessonPhoto, isSupportedImageType } from "@/lib/ingest/photo";
 
+// Vercel Functions hard-cap the request body at 4.5MB — a larger
+// payload is rejected at the platform level before this code ever
+// runs, so this check mostly matters for anything just under that.
+// The client (src/app/upload/page.tsx) checks first and blocks the
+// request from firing at all, but that's advisory, not enforcement.
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
   const file = form?.get("file");
 
   if (!file || typeof file === "string") {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return NextResponse.json(
+      {
+        error: `This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — uploads are capped at 4MB. Upload one page at a time as a photo, or split a multi-page PDF.`,
+      },
+      { status: 413 }
+    );
   }
 
   const name = file.name.toLowerCase();

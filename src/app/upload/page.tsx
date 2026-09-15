@@ -30,6 +30,16 @@ type Lesson = { id: number; number: number; section: string };
 type Unit = { id: number; number: number; titleEn: string; titleAr: string; lessons: Lesson[] };
 type Book = { id: number; title: string; units: Unit[] };
 
+// Vercel Functions hard-cap the request body at 4.5 MB (not
+// configurable, not raisable by code) — a payload over that never
+// even reaches this route, it gets rejected at the platform level.
+// Checked client-side, before upload, with headroom under the real
+// limit for multipart overhead. Real scans of a whole book run well
+// past this; the ingestion pipeline is built for one lesson/page at a
+// time regardless (see the upload note below), so the fix is a page
+// photo or a split PDF, not a bigger limit.
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
 export default function UploadPage() {
   const [parsing, setParsing] = useState(false);
   const [result, setResult] = useState<ParseResult | null>(null);
@@ -61,16 +71,40 @@ export default function UploadPage() {
     setResult(null);
     setCommitted(null);
     setFileName(file.name);
+
+    const fail = (error: string) =>
+      setResult({ source: "", warnings: [], vocab: [], dialogues: [], grammarNotes: [], exercises: [], error });
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setParsing(false);
+      fail(
+        `This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — uploads are capped at 4MB (a server platform limit, not a setting). Upload one page at a time as a photo, or split a multi-page PDF, rather than a whole book.`
+      );
+      return;
+    }
+
     try {
       const form = new FormData();
       form.append("file", file);
       const res = await fetch("/api/upload/parse", { method: "POST", body: form });
-      const data = await res.json();
-      if (!res.ok) {
-        setResult({ source: "", warnings: [], vocab: [], dialogues: [], grammarNotes: [], exercises: [], error: data.error });
-      } else {
-        setResult(data);
+      let data: { error?: string } & Record<string, unknown>;
+      try {
+        data = await res.json();
+      } catch {
+        fail(
+          res.status === 413
+            ? "This file is too large for the server to accept — upload one page at a time as a photo, or split a multi-page PDF."
+            : `Server returned an unexpected response (status ${res.status}). Try again, or try a smaller file.`
+        );
+        return;
       }
+      if (!res.ok) {
+        fail(data.error ?? `Upload failed (status ${res.status}).`);
+      } else {
+        setResult(data as ParseResult);
+      }
+    } catch {
+      fail("Couldn't reach the server — check your connection and try again.");
     } finally {
       setParsing(false);
     }
@@ -126,7 +160,9 @@ export default function UploadPage() {
         </Link>
       </div>
       <p className="mt-1 text-sm text-ink-muted">
-        Plain text, CSV, PDF, and page photographs. A PDF whose text layer
+        Plain text, CSV, PDF, and page photographs — one lesson or page at a
+        time, under 4MB (a server limit, not a setting; split a multi-page
+        PDF or a whole book into individual pages). A PDF whose text layer
         looks shaped or reordered will be rejected with a note to use a photo
         instead, rather than risk a bad parse. Photos are read by Claude's
         vision, not standard OCR, since standard OCR fails badly on vowelled
