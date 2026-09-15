@@ -1,34 +1,100 @@
 import { NextResponse } from "next/server";
+import { get, del } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
 import { parseVocabCsv } from "@/lib/ingest/csv";
 import { parseLessonText } from "@/lib/ingest/text";
 import { extractPdfText } from "@/lib/ingest/pdf";
 import { parseLessonPhoto, isSupportedImageType } from "@/lib/ingest/photo";
 
-// Vercel Functions hard-cap the request body at 4.5MB — a larger
-// payload is rejected at the platform level before this code ever
-// runs, so this check mostly matters for anything just under that.
-// The client (src/app/upload/page.tsx) checks first and blocks the
-// request from firing at all, but that's advisory, not enforcement.
-const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+// Vercel Functions hard-cap the request body at 4.5MB, so anything
+// bigger can't come through as multipart form data at all — the
+// client (src/app/upload/page.tsx) routes those through Vercel Blob
+// instead (direct browser-to-storage, see /api/upload/blob-token) and
+// sends this route a { blobPathname, blobUrl, fileName } JSON body
+// rather than a file. DIRECT_UPLOAD_MAX_BYTES is the ceiling for the form-data path;
+// ABSOLUTE_MAX_BYTES is the overall app ceiling regardless of path.
+const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
+const ABSOLUTE_MAX_BYTES = 10 * 1024 * 1024;
+
+type UploadedFile = { name: string; type: string; size: number; text: () => Promise<string>; arrayBuffer: () => Promise<ArrayBuffer> };
 
 export async function POST(req: Request) {
-  const form = await req.formData().catch(() => null);
-  const file = form?.get("file");
+  const contentType = req.headers.get("content-type") ?? "";
+  let file: UploadedFile;
+  let blobUrlToClean: string | null = null;
 
-  if (!file || typeof file === "string") {
-    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+  if (contentType.includes("application/json")) {
+    const body = await req.json().catch(() => null);
+    const blobPathname = typeof body?.blobPathname === "string" ? body.blobPathname : "";
+    const blobUrl = typeof body?.blobUrl === "string" ? body.blobUrl : "";
+    const fileName = typeof body?.fileName === "string" ? body.fileName : "";
+    if (!blobPathname || !fileName) {
+      return NextResponse.json({ error: "Missing blobPathname or fileName" }, { status: 400 });
+    }
+    if (blobUrl) blobUrlToClean = blobUrl;
+
+    // Private Blob stores require the SDK's authenticated get() — a
+    // plain fetch(url) 401s, since the pathname alone isn't a bearer
+    // credential the way a public blob's URL would be.
+    const result = await get(blobPathname, { access: "private" }).catch(() => null);
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      return NextResponse.json({ error: "Could not retrieve the uploaded file" }, { status: 502 });
+    }
+    const buffer = Buffer.from(await new Response(result.stream).arrayBuffer());
+    const type = result.blob.contentType ?? "";
+    file = {
+      name: fileName,
+      type,
+      size: buffer.length,
+      text: async () => buffer.toString("utf8"),
+      arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+    };
+  } else {
+    const form = await req.formData().catch(() => null);
+    const formFile = form?.get("file");
+    if (!formFile || typeof formFile === "string") {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+    if (formFile.size > DIRECT_UPLOAD_MAX_BYTES) {
+      return NextResponse.json(
+        {
+          error: `This file is ${(formFile.size / (1024 * 1024)).toFixed(1)}MB — direct uploads are capped at 4MB. Try again; files above that go through the large-file path automatically.`,
+        },
+        { status: 413 }
+      );
+    }
+    file = formFile;
   }
 
-  if (file.size > MAX_UPLOAD_BYTES) {
+  if (file.size > ABSOLUTE_MAX_BYTES) {
+    if (blobUrlToClean) await cleanupBlob(blobUrlToClean);
     return NextResponse.json(
       {
-        error: `This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — uploads are capped at 4MB. Upload one page at a time as a photo, or split a multi-page PDF.`,
+        error: `This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — uploads are capped at 10MB. Upload one page at a time as a photo, or split a multi-page PDF.`,
       },
       { status: 413 }
     );
   }
 
+  try {
+    return await processFile(file);
+  } finally {
+    if (blobUrlToClean) await cleanupBlob(blobUrlToClean);
+  }
+}
+
+// The blob only ever exists to get bytes past the function's request
+// size limit — nothing reads it again after this route runs, so it's
+// deleted right away rather than left to build up in storage.
+async function cleanupBlob(url: string): Promise<void> {
+  try {
+    await del(url);
+  } catch (err) {
+    console.error("Failed to delete temporary upload blob:", url, err);
+  }
+}
+
+async function processFile(file: UploadedFile): Promise<NextResponse> {
   const name = file.name.toLowerCase();
 
   if (name.endsWith(".csv")) {

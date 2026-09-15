@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { upload } from "@vercel/blob/client";
 
 type ParsedVocab = {
   arabic: string;
@@ -32,13 +33,17 @@ type Book = { id: number; title: string; units: Unit[] };
 
 // Vercel Functions hard-cap the request body at 4.5 MB (not
 // configurable, not raisable by code) — a payload over that never
-// even reaches this route, it gets rejected at the platform level.
-// Checked client-side, before upload, with headroom under the real
-// limit for multipart overhead. Real scans of a whole book run well
-// past this; the ingestion pipeline is built for one lesson/page at a
-// time regardless (see the upload note below), so the fix is a page
-// photo or a split PDF, not a bigger limit.
-const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+// even reaches /api/upload/parse if sent as a normal form upload.
+// Below this, upload directly as multipart form data (one request,
+// simplest path, already proven). At or above it, go through Vercel
+// Blob instead: the browser uploads the bytes straight to storage
+// (see /api/upload/blob-token), sidestepping the function body limit
+// entirely, and this page then hands /api/upload/parse just the blob
+// URL. ABSOLUTE_MAX_BYTES is the overall ceiling either way — past
+// that this is closer to "a whole book" than "a lesson page," which
+// is what the ingestion pipeline is actually built for.
+const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
+const ABSOLUTE_MAX_BYTES = 10 * 1024 * 1024;
 
 export default function UploadPage() {
   const [parsing, setParsing] = useState(false);
@@ -75,18 +80,20 @@ export default function UploadPage() {
     const fail = (error: string) =>
       setResult({ source: "", warnings: [], vocab: [], dialogues: [], grammarNotes: [], exercises: [], error });
 
-    if (file.size > MAX_UPLOAD_BYTES) {
+    if (file.size > ABSOLUTE_MAX_BYTES) {
       setParsing(false);
       fail(
-        `This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — uploads are capped at 4MB (a server platform limit, not a setting). Upload one page at a time as a photo, or split a multi-page PDF, rather than a whole book.`
+        `This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — uploads are capped at 10MB. Upload one page at a time as a photo, or split a multi-page PDF, rather than a whole book.`
       );
       return;
     }
 
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/upload/parse", { method: "POST", body: form });
+      const res =
+        file.size > DIRECT_UPLOAD_MAX_BYTES
+          ? await parseViaBlob(file)
+          : await parseDirect(file);
+
       let data: { error?: string } & Record<string, unknown>;
       try {
         data = await res.json();
@@ -103,12 +110,34 @@ export default function UploadPage() {
       } else {
         setResult(data as ParseResult);
       }
-    } catch {
-      fail("Couldn't reach the server — check your connection and try again.");
+    } catch (err) {
+      fail(
+        err instanceof Error && err.message
+          ? err.message
+          : "Couldn't reach the server — check your connection and try again."
+      );
     } finally {
       setParsing(false);
     }
   }, []);
+
+  async function parseDirect(file: File): Promise<Response> {
+    const form = new FormData();
+    form.append("file", file);
+    return fetch("/api/upload/parse", { method: "POST", body: form });
+  }
+
+  async function parseViaBlob(file: File): Promise<Response> {
+    const blob = await upload(file.name, file, {
+      access: "private",
+      handleUploadUrl: "/api/upload/blob-token",
+    });
+    return fetch("/api/upload/parse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blobPathname: blob.pathname, blobUrl: blob.url, fileName: file.name }),
+    });
+  }
 
   function updateVocab(i: number, field: keyof ParsedVocab, value: string) {
     if (!result) return;
@@ -161,8 +190,8 @@ export default function UploadPage() {
       </div>
       <p className="mt-1 text-sm text-ink-muted">
         Plain text, CSV, PDF, and page photographs — one lesson or page at a
-        time, under 4MB (a server limit, not a setting; split a multi-page
-        PDF or a whole book into individual pages). A PDF whose text layer
+        time, under 10MB (split a multi-page PDF or a whole book into
+        individual pages instead). A PDF whose text layer
         looks shaped or reordered will be rejected with a note to use a photo
         instead, rather than risk a bad parse. Photos are read by Claude's
         vision, not standard OCR, since standard OCR fails badly on vowelled
