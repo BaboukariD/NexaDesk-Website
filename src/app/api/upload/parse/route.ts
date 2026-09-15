@@ -4,7 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { parseVocabCsv } from "@/lib/ingest/csv";
 import { parseLessonText } from "@/lib/ingest/text";
 import { extractPdfText } from "@/lib/ingest/pdf";
+import { extractScannedPdf } from "@/lib/ingest/pdf-vision";
 import { parseLessonPhoto, isSupportedImageType } from "@/lib/ingest/photo";
+
+// A scanned PDF's vision fallback (extractScannedPdf) can take several
+// minutes for a full book — several sequential batches of Claude calls,
+// not one fast request. Default Vercel Function timeout is 10s.
+export const maxDuration = 300;
 
 // Vercel Functions hard-cap the request body at 4.5MB, so anything
 // bigger can't come through as multipart form data at all — the
@@ -123,7 +129,18 @@ async function processFile(file: UploadedFile): Promise<NextResponse> {
     }
 
     if (!extracted.reliable) {
-      return NextResponse.json({ error: extracted.warning }, { status: 422 });
+      // No usable text layer — fall back to reading the pages as
+      // images via Claude's PDF/vision support instead of rejecting
+      // the file. Same idea as the photo-upload path, just automated
+      // across the whole document (see src/lib/ingest/pdf-vision.ts).
+      const topics = await prisma.topic.findMany({ select: { slug: true } });
+      try {
+        const result = await extractScannedPdf(buffer, topics.map((t) => t.slug));
+        return NextResponse.json(result);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Could not read this PDF as images";
+        return NextResponse.json({ error: message }, { status: 502 });
+      }
     }
 
     const topics = await prisma.topic.findMany({ select: { slug: true } });

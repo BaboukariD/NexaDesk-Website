@@ -211,13 +211,14 @@ export default function UploadPage() {
         </Link>
       </div>
       <p className="mt-1 text-sm text-ink-muted">
-        Plain text, CSV, PDF, and page photographs — one lesson or page at a
-        time, under 10MB (split a multi-page PDF or a whole book into
-        individual pages instead). A PDF whose text layer
-        looks shaped or reordered will be rejected with a note to use a photo
-        instead, rather than risk a bad parse. Photos are read by Claude's
-        vision, not standard OCR, since standard OCR fails badly on vowelled
-        Arabic.
+        Plain text, CSV, PDF, and page photographs — one lesson or a
+        whole book at a time, under 10MB. A PDF whose text layer looks
+        shaped, reordered, or garbled (a scanned book, usually) is read
+        as page images by Claude instead of trusting that text — same
+        as a photo, just automatic and page by page, so a full scan can
+        take a few minutes rather than seconds. Photos are always read
+        this way, not standard OCR, since standard OCR fails badly on
+        vowelled Arabic.
       </p>
 
       {!result && !committed && (
