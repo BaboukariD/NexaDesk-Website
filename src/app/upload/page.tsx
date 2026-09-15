@@ -45,6 +45,22 @@ type Book = { id: number; title: string; units: Unit[] };
 const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
 const ABSOLUTE_MAX_BYTES = 10 * 1024 * 1024;
 
+function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 export default function UploadPage() {
   const [parsing, setParsing] = useState(false);
   const [result, setResult] = useState<ParseResult | null>(null);
@@ -128,10 +144,16 @@ export default function UploadPage() {
   }
 
   async function parseViaBlob(file: File): Promise<Response> {
-    const blob = await upload(file.name, file, {
-      access: "private",
-      handleUploadUrl: "/api/upload/blob-token",
-    });
+    // The Blob client SDK retries transient failures internally and
+    // doesn't reliably surface a fetch that's blocked at the network
+    // layer (a CSP violation looks identical to a dropped connection
+    // to it) — without this, that class of failure hangs the "Parsing…"
+    // state forever instead of ever reaching the catch block below.
+    const blob = await withTimeout(
+      upload(file.name, file, { access: "private", handleUploadUrl: "/api/upload/blob-token" }),
+      90_000,
+      "The upload timed out — check your connection and try again."
+    );
     return fetch("/api/upload/parse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
