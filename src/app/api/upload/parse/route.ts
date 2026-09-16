@@ -27,7 +27,6 @@ type UploadedFile = { name: string; type: string; size: number; text: () => Prom
 export async function POST(req: Request) {
   const contentType = req.headers.get("content-type") ?? "";
   let file: UploadedFile;
-  let blobUrlToClean: string | null = null;
 
   if (contentType.includes("application/json")) {
     const body = await req.json().catch(() => null);
@@ -37,7 +36,6 @@ export async function POST(req: Request) {
     if (!blobPathname || !fileName) {
       return NextResponse.json({ error: "Missing blobPathname or fileName" }, { status: 400 });
     }
-    if (blobUrl) blobUrlToClean = blobUrl;
 
     // Private Blob stores require the SDK's authenticated get() — a
     // plain fetch(url) 401s, since the pathname alone isn't a bearer
@@ -55,6 +53,17 @@ export async function POST(req: Request) {
       text: async () => buffer.toString("utf8"),
       arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
     };
+
+    // The blob only exists to get bytes past the function's 4.5MB
+    // request-body limit. Once it's read into `buffer` above, nothing
+    // downstream touches the blob again — including a vision-fallback
+    // pass that can run for minutes as a streaming response, which
+    // would otherwise leave a `finally` around the whole request
+    // deleting the blob far too early, before streaming even starts,
+    // or (worse) not until a multi-minute stream finally closes.
+    // Deleting it here, right after the bytes are safely local, avoids
+    // both.
+    if (blobUrl) await cleanupBlob(blobUrl);
   } else {
     const form = await req.formData().catch(() => null);
     const formFile = form?.get("file");
@@ -73,7 +82,6 @@ export async function POST(req: Request) {
   }
 
   if (file.size > ABSOLUTE_MAX_BYTES) {
-    if (blobUrlToClean) await cleanupBlob(blobUrlToClean);
     return NextResponse.json(
       {
         error: `This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — uploads are capped at 10MB. Upload one page at a time as a photo, or split a multi-page PDF.`,
@@ -82,11 +90,7 @@ export async function POST(req: Request) {
     );
   }
 
-  try {
-    return await processFile(file);
-  } finally {
-    if (blobUrlToClean) await cleanupBlob(blobUrlToClean);
-  }
+  return processFile(file);
 }
 
 // The blob only ever exists to get bytes past the function's request
@@ -100,7 +104,34 @@ async function cleanupBlob(url: string): Promise<void> {
   }
 }
 
-async function processFile(file: UploadedFile): Promise<NextResponse> {
+// Newline-delimited JSON: one line per event, so the client can update
+// a per-page progress indicator instead of staring at a frozen
+// "Parsing…" for however long a full book takes. Every other upload
+// path (csv/txt/photo/reliable-text-PDF) is fast enough that a plain
+// JSON response is still the right call — this is the one path slow
+// enough to need it. The client (src/app/upload/page.tsx) tells the
+// two apart by Content-Type.
+function streamVisionExtraction(buffer: Buffer, topicSlugs: string[]): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const write = (event: Record<string, unknown>) => controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      try {
+        const result = await extractScannedPdf(buffer, topicSlugs, (progress) => write({ type: "progress", ...progress }));
+        write({ type: "done", result });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Could not read this PDF as images";
+        write({ type: "error", error: message });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8" } });
+}
+
+async function processFile(file: UploadedFile): Promise<Response> {
   const name = file.name.toLowerCase();
 
   if (name.endsWith(".csv")) {
@@ -133,14 +164,12 @@ async function processFile(file: UploadedFile): Promise<NextResponse> {
       // images via Claude's PDF/vision support instead of rejecting
       // the file. Same idea as the photo-upload path, just automated
       // across the whole document (see src/lib/ingest/pdf-vision.ts).
+      // A full book is several minutes of sequential API calls, not
+      // one fast request, so this streams newline-delimited JSON
+      // progress events instead of making the client wait on a single
+      // response with nothing to show in the meantime.
       const topics = await prisma.topic.findMany({ select: { slug: true } });
-      try {
-        const result = await extractScannedPdf(buffer, topics.map((t) => t.slug));
-        return NextResponse.json(result);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Could not read this PDF as images";
-        return NextResponse.json({ error: message }, { status: 502 });
-      }
+      return streamVisionExtraction(buffer, topics.map((t) => t.slug));
     }
 
     const topics = await prisma.topic.findMany({ select: { slug: true } });

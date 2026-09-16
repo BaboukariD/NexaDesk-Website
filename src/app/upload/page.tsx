@@ -45,6 +45,61 @@ type Book = { id: number; title: string; units: Unit[] };
 const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
 const ABSOLUTE_MAX_BYTES = 10 * 1024 * 1024;
 
+// Reads the server's newline-delimited progress stream for a scanned
+// PDF's vision extraction (see streamVisionExtraction in
+// src/app/api/upload/parse/route.ts). A stream chunk can split a JSON
+// line across two reads, so partial lines are buffered until a
+// newline actually arrives rather than parsed as soon as bytes show up.
+async function readVisionStream(
+  res: Response,
+  setProgress: (p: { completed: number; total: number } | null) => void,
+  setResult: (r: ParseResult) => void,
+  fail: (error: string) => void
+): Promise<void> {
+  const reader = res.body?.getReader();
+  if (!reader) {
+    fail("Server response had no body to read.");
+    return;
+  }
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let sawDone = false;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let newlineIndex: number;
+    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, newlineIndex).trim();
+      buffer = buffer.slice(newlineIndex + 1);
+      if (!line) continue;
+
+      let event: Record<string, unknown>;
+      try {
+        event = JSON.parse(line);
+      } catch {
+        continue;
+      }
+
+      if (event.type === "progress") {
+        setProgress({ completed: event.completed as number, total: event.total as number });
+      } else if (event.type === "done") {
+        sawDone = true;
+        setResult(event.result as ParseResult);
+      } else if (event.type === "error") {
+        sawDone = true;
+        fail((event.error as string) ?? "Something went wrong reading this PDF.");
+      }
+    }
+  }
+
+  if (!sawDone) {
+    fail("The connection closed before this file finished processing. Try again.");
+  }
+}
+
 function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error(timeoutMessage)), ms);
@@ -63,6 +118,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string)
 
 export default function UploadPage() {
   const [parsing, setParsing] = useState(false);
+  const [progress, setProgress] = useState<{ completed: number; total: number } | null>(null);
   const [result, setResult] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
@@ -89,6 +145,7 @@ export default function UploadPage() {
 
   const handleFile = useCallback(async (file: File) => {
     setParsing(true);
+    setProgress(null);
     setResult(null);
     setCommitted(null);
     setFileName(file.name);
@@ -109,6 +166,16 @@ export default function UploadPage() {
         file.size > DIRECT_UPLOAD_MAX_BYTES
           ? await parseViaBlob(file)
           : await parseDirect(file);
+
+      // A scanned PDF's page-by-page vision extraction always responds
+      // 200 and streams one JSON event per line instead of a single
+      // response body, so a full book shows real progress instead of a
+      // frozen "Parsing…" for however many minutes it takes. Every other
+      // path returns a normal JSON response, success or failure alike.
+      if ((res.headers.get("content-type") ?? "").includes("application/x-ndjson")) {
+        await readVisionStream(res, setProgress, setResult, fail);
+        return;
+      }
 
       let data: { error?: string } & Record<string, unknown>;
       try {
@@ -134,6 +201,7 @@ export default function UploadPage() {
       );
     } finally {
       setParsing(false);
+      setProgress(null);
     }
   }, []);
 
@@ -240,7 +308,19 @@ export default function UploadPage() {
               if (file) handleFile(file);
             }}
           />
-          {parsing ? "Parsing…" : "Drop a file here, or click to choose one (.txt, .csv, .pdf, or a page photo)"}
+          {parsing
+            ? progress
+              ? `Reading page ${progress.completed} of ${progress.total}…`
+              : "Parsing…"
+            : "Drop a file here, or click to choose one (.txt, .csv, .pdf, or a page photo)"}
+          {progress && (
+            <div className="mt-3 h-1.5 w-48 overflow-hidden rounded-full bg-line">
+              <div
+                className="h-full rounded-full bg-accent transition-[width]"
+                style={{ width: `${Math.round((progress.completed / Math.max(progress.total, 1)) * 100)}%` }}
+              />
+            </div>
+          )}
         </label>
       )}
 
